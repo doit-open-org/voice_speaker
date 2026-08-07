@@ -1,0 +1,171 @@
+/* pages/generate/generate.wxss */
+.container {
+  min-height: 100vh;
+	background: #F7F7F7;
+	padding: 0 30rpx;
+	overflow: hidden;
+	font-size: 25rpx;
+}
+
+
+/* 音频区域 */
+.audio-section {
+  margin: 50rpx 0 60rpx;
+  padding: 20rpx 0rpx;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+	align-items: center;
+	border-radius: 15rpx;
+}
+
+.waveform {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  /* gap: 4rpx; */
+  height: 120rpx;
+  margin-bottom: 20rpx;
+  width: 80%;
+}
+
+.wave-bar {
+  width: 4rpx;
+  background: #D32F2F;
+  border-radius: 3rpx;
+  transition: height 0.2s;
+}
+
+.play-btn {
+  background: #D32F2F;
+  color: #FFFFFF;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25rpx;
+  border: none;
+  gap: 10rpx;
+}
+
+.play-icon {
+  font-size: 24rpx;
+}
+
+/* 导出选项 */
+.export-options {
+  padding: 20rpx 0;
+}
+
+.option-item {
+  background: #FFFFFF;
+  padding: 30rpx 40rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+	justify-content: space-between;
+	border-radius: 15rpx;
+}
+
+.option-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.option-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  font-size: 40rpx;
+}
+
+.bluetooth-icon {
+  background: #9E9E9E;
+}
+.blueIcon{
+  width: 55rpx;
+  height: 55rpx;
+}
+.file-icon {
+  background: #9E9E9E;
+}
+
+.music-icon {
+  background: #9E9E9E;
+}
+
+.link-icon {
+  background: #9E9E9E;
+}
+
+.icon-text {
+  color: #FFFFFF;
+}
+
+.option-content {
+  flex: 1;
+}
+
+.option-title {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+
+.option-desc {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.action-btn {
+  width: 140rpx;
+  height: 64rpx;
+  background: #D32F2F;
+  color: #FFFFFF;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* 导入loading */
+.importMask{
+  top: 0;
+  left: 0;
+}
+.loadingView{
+	background: rgb(77, 76, 76);
+	color: #fff;
+	border-radius: 10rpx;
+	/* width: 240rpx;
+	height: 240rpx; */
+	padding: 20rpx 50rpx;
+}
+.loadIcon,.loadImg{
+	width: 150rpx;
+	height: 150rpx;
+}
+.importTxt{
+	color: #ccc;
+	margin-top:10rpx;
+}
+.loadImg{
+	animation: loadRound 2s linear infinite;
+}
+@keyframes loadRound{
+	from{
+		transform: rotate(0deg);
+	}
+	to{
+		transform: rotate(360deg);
+	}
+}

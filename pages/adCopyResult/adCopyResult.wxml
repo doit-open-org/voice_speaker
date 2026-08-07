@@ -1,0 +1,33 @@
+<view class="resultPage">
+  <scroll-view class="resultScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="resultTool">
+      <view class="fontToolbar">
+        <button
+          class="fontButton {{item.value === fontSize ? 'fontButton--active' : ''}}"
+          wx:for="{{fontSizes}}"
+          wx:key="value"
+          data-size="{{item.value}}"
+          bindtap="changeFontSize"
+        >{{item.name}}</button>
+      </view>
+
+      <view class="generatingState" wx:if="{{generating && !content}}">
+        <van-loading color="#C91C1C" size="28px">广告词生成中...</van-loading>
+      </view>
+      <text wx:else class="resultText resultText--{{fontSize}}" user-select="{{true}}">{{content}}</text>
+
+      <view class="resultMeta">
+        <text>{{generating ? '生成中' : '生成完成'}}</text>
+        <text>{{actualWords}}字</text>
+      </view>
+    </view>
+
+    <view class="secondaryActions">
+      <button class="secondaryButton" disabled="{{generating}}" bindtap="regenerate">重新生成</button>
+      <button class="secondaryButton" disabled="{{generating || !content}}" bindtap="copyResult">复制结果</button>
+    </view>
+
+    <button class="primaryButton" disabled="{{generating || !content}}" bindtap="copyToVoiceHome">复制到配音首页</button>
+    <button class="primaryButton" loading="{{saving}}" disabled="{{generating || saving || !content}}" bindtap="saveToTemplates">保存到我的模板</button>
+  </scroll-view>
+</view>

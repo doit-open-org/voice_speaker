@@ -1,0 +1,170 @@
+<view class="dialoguePage">
+  <scroll-view class="dialogueScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="dialogueList" wx:if="{{dialogueList.length}}">
+      <view class="dialogueItem" wx:for="{{dialogueList}}" wx:key="localId">
+        <image class="dialogueAvatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="dialogueContent">
+          <text class="dialogueVoiceName">{{item.voiceName}}</text>
+          <view class="dialogueBubble">{{item.text}}</view>
+          <view class="dialogueActions">
+            <view class="dialogueAction" data-id="{{item.localId}}" bindtap="playDialogue">
+              <van-icon name="{{playingDialogueId === item.localId ? 'pause-circle-o' : 'volume-o'}}" size="25px" color="#8D8D8D" />
+            </view>
+            <view class="dialogueAction" data-index="{{index}}" bindtap="deleteDialogue">
+              <van-icon name="delete-o" size="25px" color="#8D8D8D" />
+            </view>
+            <view
+              class="dialogueAction dialogueMove"
+              wx:if="{{index > 0}}"
+              data-index="{{index}}"
+              data-direction="-1"
+              bindtap="moveDialogue"
+            >
+              <van-icon name="arrow-up" size="22px" color="#C91818" />
+            </view>
+            <view
+              class="dialogueAction dialogueMove"
+              wx:if="{{index < dialogueList.length - 1}}"
+              data-index="{{index}}"
+              data-direction="1"
+              bindtap="moveDialogue"
+            >
+              <van-icon name="arrow-down" size="22px" color="#C91818" />
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="usageGuide" wx:else>
+      <view class="usageTitle">
+        <van-icon name="description-o" size="18px" color="#C91818" />
+        <text>使用步骤</text>
+      </view>
+      <text class="usageStep">1. 输入文字，需要添加标点符号以符合对话场景</text>
+      <text class="usageStep">2. 选择主播</text>
+      <text class="usageStep">3. 点击发送，生成对话内容</text>
+      <text class="usageStep">4. 点击合成，将多段对话合成为一个音频</text>
+      <text class="usageStep">5. 使用箭头调整对话顺序</text>
+    </view>
+  </scroll-view>
+
+  <view class="composerPanel">
+    <view class="textComposer">
+      <view class="textDisplay" bindtap="openTextEditor">
+        <text wx:if="{{inputText}}">{{inputText}}</text>
+        <text class="placeholder" wx:else>请输入...</text>
+      </view>
+      <button class="sendButton" bindtap="generateDialogue" disabled="{{generating}}">
+        <van-icon name="guide-o" size="34px" color="#C91818" />
+      </button>
+    </view>
+
+    <view class="voiceStrip">
+      <view
+        class="voiceCard {{voiceIndex === index ? 'voiceCard--active' : ''}}"
+        wx:for="{{voiceList}}"
+        wx:key="voice_id"
+        id="{{index}}"
+        bindtap="changeStreamer"
+      >
+        <image class="voiceAvatar" src="/img/{{item.headImg}}" mode="aspectFill" />
+        <text class="voiceName">{{item.voice_name}}</text>
+      </view>
+      <view class="voiceCard {{voiceIndex === -1 ? 'voiceCard--active' : ''}}" bindtap="moreVoice">
+        <view class="moreVoiceIcon">
+          <van-icon name="friends-o" size="34px" color="#C91818" />
+        </view>
+        <text class="voiceName">更多主播</text>
+      </view>
+    </view>
+
+    <view class="toolRow">
+      <view class="toolButton" bindtap="bgmPop">
+        <van-icon name="music-o" size="23px" color="#C91818" />
+        <text>背景音乐</text>
+      </view>
+      <view class="toolButton" bindtap="musicSet">
+        <van-icon name="setting-o" size="23px" color="#C91818" />
+        <text>音效设置</text>
+      </view>
+      <view class="toolButton" bindtap="openTemplate">
+        <van-icon name="description-o" size="23px" color="#C91818" />
+        <text>广告模板</text>
+      </view>
+      <view class="toolButton" bindtap="stopSet">
+        <van-icon name="underway-o" size="23px" color="#C91818" />
+        <text>插入停顿</text>
+      </view>
+    </view>
+
+    <button class="mergeButton" bindtap="mergeDialogues" loading="{{merging}}" disabled="{{merging}}">合成</button>
+  </view>
+
+  <view class="textEditorOverlay" wx:if="{{textEditorVisible}}" bindtap="closeTextEditor">
+    <view class="textEditorDialog" catchtap="noop">
+      <textarea
+        class="textEditorInput"
+        value="{{textDraft}}"
+        maxlength="5000"
+        auto-focus
+        cursor="{{cursorPosition}}"
+        bindinput="onTextDraftInput"
+      />
+      <view class="clearTextButton" bindtap="clearTextDraft">
+        <van-icon name="delete-o" size="24px" color="#C91818" />
+      </view>
+    </view>
+  </view>
+
+  <van-popup show="{{musicSetShow}}" position="bottom" round closeable bind:close="musicSet">
+    <view class="settingPopup">
+      <text class="settingTitle">音效设置</text>
+      <view class="sliderRow">
+        <text>语速</text>
+        <slider
+          class="settingSlider"
+          min="0.5"
+          max="2"
+          step="0.1"
+          value="{{speed}}"
+          show-value
+          activeColor="#E20E0E"
+          block-color="#E20E0E"
+          block-size="20"
+          bindchange="musicSliderChange"
+        />
+      </view>
+      <button class="popupConfirm" bindtap="musicPopConfirm">确定</button>
+    </view>
+  </van-popup>
+
+  <van-popup show="{{stopShow}}" position="bottom" round closeable bind:close="stopSet">
+    <view class="settingPopup">
+      <text class="settingTitle">插入停顿</text>
+      <text class="pauseValue">{{stopVal}} s</text>
+      <slider
+        class="pauseSlider"
+        min="0.1"
+        max="10"
+        step="0.1"
+        value="{{stopVal}}"
+        activeColor="#E20E0E"
+        block-color="#E20E0E"
+        block-size="20"
+        bindchanging="stopSliderChange"
+        bindchange="stopSliderChange"
+      />
+      <button class="popupConfirm" bindtap="stopPopConfirm">确定</button>
+    </view>
+  </van-popup>
+
+  <van-popup show="{{bgmSetPop}}" position="bottom" round closeable custom-style="z-index: 102;" bind:close="bgmPop">
+    <bgmset
+      activeBgmInfo="{{activeBgmInfo}}"
+      bgmSetDetail="{{bgmSetDetail}}"
+      bind:showBgmList="showBgmList"
+      bind:resetBgm="resetBgm"
+      bind:bmgSetConfirm="bmgSetConfirm"
+    />
+  </van-popup>
+</view>

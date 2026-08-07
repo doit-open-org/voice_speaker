@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "AI广告词创作",
+  "navigationBarBackgroundColor": "#E20E0E",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "van-icon": "@vant/weapp/icon/index",
+    "van-popup": "@vant/weapp/popup/index"
+  }
+}

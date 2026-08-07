@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "广告词创作",
+  "navigationBarBackgroundColor": "#E20E0E",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "van-loading": "@vant/weapp/loading/index"
+  }
+}

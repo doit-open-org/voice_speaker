@@ -1,0 +1,97 @@
+.videoExtractPage {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #E20E0E 0%, #EF4343 21%, #F8DBD1 43%, #F9F6E4 59%, #F9F6E4 100%);
+  color: #292929;
+}
+
+.extractMain {
+  min-height: 900rpx;
+  padding: 190rpx 48rpx 60rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.extractSymbol {
+  position: relative;
+  width: 320rpx;
+  height: 300rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settingIcon {
+  position: absolute;
+  right: 2rpx;
+  bottom: 6rpx;
+  width: 132rpx;
+  height: 132rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F1B8AD;
+  border-radius: 50%;
+}
+
+.extractButton {
+  width: 530rpx;
+  height: 104rpx;
+  margin-top: 92rpx;
+  padding: 0 28rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18rpx;
+  border: 2rpx solid #B91D1D;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.22);
+  color: #B91D1D;
+  font-size: 40rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.extractButton::after {
+  border: 0;
+}
+
+.extractButton[disabled] {
+  color: #A83434;
+  opacity: 1;
+}
+
+.extractButton--pressed {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.progressText {
+  min-width: 84rpx;
+  font-size: 30rpx;
+  text-align: left;
+}
+
+.usageSection {
+  margin-top: auto;
+  padding: 42rpx 42rpx calc(48rpx + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 150rpx minmax(0, 1fr);
+  column-gap: 18rpx;
+  font-size: 27rpx;
+  line-height: 1.55;
+}
+
+.usageTitle {
+  white-space: nowrap;
+}
+
+.usageContent {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}

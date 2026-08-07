@@ -1,0 +1,42 @@
+@import '../../app.wxss';
+.voiceList{
+	width: 100vw;
+	height: 100%;
+	background: #f7f8fa;
+}
+.voiceRight{
+	border-left: 1px solid #ccc;
+	overflow: auto;
+	padding-left: 20rpx;
+	padding-bottom: 50rpx;
+}
+.voiceItem{
+	background: #fff;
+	margin-top: 20rpx;
+	width: calc(100% - 68rpx);
+	min-height: 88rpx;
+	padding: 10rpx 20rpx;
+	border-radius: 10rpx;
+}
+.voiceName{
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.voiceOp{
+	width: 230rpx;
+	flex: 0 0 230rpx;
+}
+.voiceCheck{
+	border: 1px solid #ccc;
+	width: 25px;
+	height: 25px;
+}
+.voicePlay,
+.favoriteButton,
+.deleteButton{
+	width: 54rpx;
+	height: 54rpx;
+	flex: 0 0 54rpx;
+}

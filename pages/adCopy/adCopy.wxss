@@ -1,0 +1,212 @@
+.adCopyPage {
+  height: 100vh;
+  overflow: hidden;
+  background: #f5f5f5;
+  color: #222222;
+}
+
+.formScroll {
+  height: 100%;
+}
+
+.keywordPanel {
+  margin: 28rpx;
+  overflow: hidden;
+  border: 1rpx solid #eeeeee;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.keywordHeader {
+  height: 92rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1rpx solid #e8e8e8;
+}
+
+.keywordTitle {
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.resetButton,
+.compactButton {
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #c91c1c;
+  font-size: 27rpx;
+  line-height: 1.4;
+}
+
+.resetButton::after,
+.compactButton::after {
+  border: 0;
+}
+
+.keywordInput {
+  width: 100%;
+  height: 360rpx;
+  padding: 22rpx 30rpx;
+  box-sizing: border-box;
+  color: #333333;
+  font-size: 29rpx;
+  line-height: 1.6;
+}
+
+.keywordActions {
+  min-height: 72rpx;
+  padding: 14rpx 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  box-sizing: border-box;
+  border-top: 1rpx solid #e8e8e8;
+}
+
+.compactButton {
+  padding: 8rpx 20rpx;
+  border-radius: 28rpx;
+  background: #c91c1c;
+  color: #ffffff;
+  font-size: 24rpx;
+}
+
+.settingGrid {
+  margin: 0 28rpx;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18rpx;
+}
+
+.settingItem {
+  min-width: 0;
+  height: 82rpx;
+  padding: 0 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  box-sizing: border-box;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.settingLabel {
+  flex: 0 0 auto;
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.settingValue {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  color: #444444;
+  font-size: 26rpx;
+}
+
+.settingValue text {
+  max-width: 150rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.generateButton {
+  width: 500rpx;
+  height: 96rpx;
+  margin: 46rpx auto calc(40rpx + env(safe-area-inset-bottom));
+  border-radius: 48rpx;
+  background: #c91c1c;
+  color: #ffffff;
+  font-size: 34rpx;
+  font-weight: 600;
+  line-height: 96rpx;
+}
+
+.generateButton::after {
+  border: 0;
+}
+
+.selectionSheet {
+  padding: 0 40rpx calc(44rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.sheetTitle {
+  height: 72rpx;
+  margin: 0 -40rpx 34rpx;
+  background: #f6ded4;
+  color: #ffffff;
+  font-size: 28rpx;
+  line-height: 72rpx;
+  text-align: center;
+}
+
+.wordGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx 30rpx;
+}
+
+.sheetOption,
+.languageOption {
+  width: 100%;
+  height: 70rpx;
+  margin: 0;
+  padding: 0;
+  border: 1rpx solid #777777;
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: #222222;
+  font-size: 27rpx;
+  line-height: 70rpx;
+}
+
+.sheetOption::after,
+.languageOption::after {
+  border: 0;
+}
+
+.sheetOption--active {
+  border-color: #c91c1c;
+  color: #c91c1c;
+}
+
+.selectionSheet--language {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.selectionSheet--language .sheetTitle {
+  margin-right: 0;
+  margin-bottom: 0;
+  margin-left: 0;
+}
+
+.languageOption {
+  border: 0;
+  border-bottom: 1rpx solid #eeeeee;
+  border-radius: 0;
+}
+
+.languageOption--active {
+  color: #c91c1c;
+  font-weight: 600;
+}
+
+.languageState {
+  height: 160rpx;
+  color: #999999;
+  font-size: 27rpx;
+  line-height: 160rpx;
+  text-align: center;
+}

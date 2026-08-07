@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "navigation-bar": "../../components/navigation-bar/navigation-bar",
+    "bgmlist": "../../components/bgmList/bgmList",
+    "van-icon": "@vant/weapp/icon/index"
+  },
+  "navigationBarTitleText": "添加背景音乐"
+}

@@ -1,0 +1,30 @@
+<view class="videoExtractPage">
+  <view class="extractMain">
+    <view class="extractSymbol" aria-hidden="true">
+      <van-icon name="video-o" size="132px" color="#C91C1C" />
+      <view class="settingIcon">
+        <van-icon name="setting-o" size="64px" color="#C91C1C" />
+      </view>
+    </view>
+
+    <button
+      class="extractButton"
+      hover-class="extractButton--pressed"
+      disabled="{{processing}}"
+      bindtap="extractVideo"
+    >
+      <text>{{processing ? '视频提取中' : '视频提取'}}</text>
+      <text class="progressText" wx:if="{{processing}}">{{progress}}%</text>
+    </button>
+  </view>
+
+  <view class="usageSection">
+    <text class="usageTitle">使用步骤:</text>
+    <view class="usageContent">
+      <text>1. 将视频文件发送进微信，例如将喜欢的视频录屏后发送到微信；</text>
+      <text>2. 点击“视频提取”，在聊天记录中找到视频并确认；</text>
+      <text>3. 提取完成后将自动进入音频页面，可试听或发送到设备；</text>
+      <text>4. 最大支持提取6分钟时长的视频。</text>
+    </view>
+  </view>
+</view>

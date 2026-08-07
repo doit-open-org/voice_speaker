@@ -1,0 +1,33 @@
+<view class="recorderCom hv100 wv100 flexCC">
+	<view wx:if="{{showBack}}" class="backIndex" style="padding: 10rpx;" bindtap="backIndex">
+			<van-icon size="25px" color="#ffffff" name="arrow-left" />
+	</view>
+	<view class="recorderContent flex_ai_c flex_d_c">
+		<view class="reIcon flex">
+			<image mode="aspectFit" src="/img/recodBig.png"></image>
+		</view>
+		<view class="reIOp">
+			<view class="opReIcon flexCC">
+				<view bindtap="startRecorder">
+					<van-icon name="play-circle-o" color="#E20E0E" size="60" />
+					<view class="reTxt">开始录音</view>
+				</view>
+				<view bindtap="showBgm" >
+					<van-icon name="music-o" color="#E20E0E" size="60" custom-style="margin-left:170rpx" />
+					<view class="reTxt" style="text-align: right;">背景音乐</view>
+				</view>
+			</view>
+		</view>
+	</view>
+	<!-- 录音弹窗  -->
+	<view class="reTanchuang flexCC" wx:if="{{recorderMask}}">
+		 <view class="reModal flexCC flex_d_c">
+			<view class="reModalTotle">最长录音时长为3分钟</view>
+			<view class="reModalTips">正在录音中</view>
+			<view class="recordering">
+				<image class="recorderGif" src="/img/recorder.gif"></image>
+			</view>
+			<view class="recorderStopBtn" bindtap="recorderStop">点击停止录音</view>
+		 </view>
+	</view>
+</view>

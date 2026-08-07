@@ -1,0 +1,37 @@
+<view class="container flex flex_d_c flex_ai_c pos_rel">
+	<view class="content w90 flex_1 ovAu">
+		<view class="headTitle musicItem flex flex_1 w100">
+			<view class="headName w50">名称</view>
+			<view class="headBzH w15">备注</view>
+			<view class="headPlayH w15">播放</view>
+			<view class="headDelH w15">删除</view>
+		</view>
+		<view class="musicList" >
+			<view class="musicItem flex_ai_c w100" wx:for="{{musicList}}" wx:key="k">
+				<view class="headName w50">{{item.title}}</view>
+				<view class="w50 flex_C_SA">
+					<view class="headBz" id="{{index}}" bindtap="markMus">备注</view>
+					<view class="headPlay" id="{{index}}" bindtap="playMus">播放</view>
+					<view class="headDel" id="{{index}}" bindtap="delMus">删除</view>
+				</view>
+			</view>
+		</view>
+	</view>
+	<view class="opreat flex flex_d_c flex_C_SA w100">
+		<view class="importBtn flexCC w60" bindtap="importFun">导入</view>
+		<view class="progress w100 pos_rel">
+			<view class="progressVal pos_abs flexCC w100 h100">{{progressVal}}%</view>
+			<view class="progressView flexCC h100" style="width: {{progressVal}}%;"></view>
+		</view>
+	</view>
+	<!-- 导入进度蒙层 -->
+	<view class="importMask pos_abs w100 h100 flexCC" wx:if="{{importMask}}">
+		<view class="loadingView flex flex_d_c">
+			<view class="loadIcon flexCC pos_rel">
+				<image class="loadImg" src="/img/Loading.png" mode="aspectFit"></image>
+				<view class="pos_abs">{{importPro}}%</view>
+			</view>
+			<view class="flexCC importTxt">导入中</view>
+		</view>
+	</view>
+</view>

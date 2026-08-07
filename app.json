@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/voiceSelect/voiceSelect",
+    "pages/bgmSelect/bgmSelect",
+    "pages/recorder/recorder",
+    "pages/commonTemplate/commonTemplate",
+    "pages/advanced/advanced",
+    "pages/longTextDubbing/longTextDubbing",
+    "pages/voiceConvert/voiceConvert",
+    "pages/dialogueDubbing/dialogueDubbing",
+    "pages/videoExtract/videoExtract",
+    "pages/adCopy/adCopy",
+    "pages/adCopyCategory/adCopyCategory",
+    "pages/adCopyStyle/adCopyStyle",
+    "pages/adCopyResult/adCopyResult",
+    "pages/logs/logs",
+    "pages/device/device",
+    "pages/generate/generate",
+    "pages/devMusicList/devMusicList",
+    "pages/myWorks/myWorks"
+  ],
+  "window": {
+    "navigationBarTitleText": "",
+    "navigationBarTextStyle": "white",
+    "navigationBarBackgroundColor": "#E20E0E",
+    "navigationStyle": "default"
+  },
+  "permission": {
+    "scope.record": {
+      "desc": "用于录音功能"
+    }
+  },
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

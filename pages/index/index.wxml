@@ -1,0 +1,117 @@
+<view class="container flex flex_d_c">
+  <view class="content flex_1 flex flex_d_c flex_jc_sb">
+    <!-- 促销图片 -->
+    <view class="bannerView">
+      <swiper class="bannerSwiper" autoplay="{{true}}" circular="{{true}}" interval="3000" duration="500">
+        <swiper-item wx:for="{{bannerImages}}" wx:key="*this">
+          <image class="bannerImg" src="{{item}}" mode="aspectFit"></image>
+        </swiper-item>
+      </swiper>
+    </view>
+    <!-- 文字输入 -->
+    <view class="textView w100 flexCC">
+      <view class="input_section">
+        <textarea  class="text_input" placeholder="请输入要转换的文字..." value="{{inputText}}" bindinput="onTextInput" bindfocus="cursorPosition"  bindblur="cursorPosition"  maxlength="500" />
+        <view class="musicConfig flex_C_SB">
+          <view class="flex">
+            <view class="musicSet" bindtap="stopSet">插入停顿</view>
+            <view class="musicSet" bindtap="insertDD">插入叮咚</view>
+            <view class="musicSet" bindtap="musicSet">音效设置</view>
+            <view class="musicSet" bindtap="openTemp">常用模版</view>
+          </view>
+          <view class="char_count">{{inputText.length}}/500</view>
+        </view>
+      </view>
+    </view>
+    <!-- 当前主播 -->
+    <view class="streamerView flex_C_SB w90" style="margin-left: 5%;">
+      <view class="currentStreamer streamerV">当前主播</view>
+      <view class="currentStreamerInfo streamerV flexCC">
+        <view>{{voiceCheckInfo.voice_name}} </view>
+        <view class="flex" wx:if="{{voiceIndex != -1}}"> 
+          <image class="streamerSmallImg" src="/img/{{voiceList[voiceIndex].headImg}}" mode="aspectFit"></image>
+        </view>
+      </view>
+      <view class="moreStreamer streamerV" bindtap="moreVoice">更多主播</view>
+    </view>
+    <!-- 主播列表 -->
+    <view class="streamersView flex_C_SB w90" style="margin-left: 5%;">
+      <view class="streamersItem flexCC flex_d_c {{voiceIndex== index&&'selectedStreamer'}}" wx:for="{{voiceList}}" wx:key="k" bindtap="changeStreamer" id="{{index}}">
+         <view class="streamerIcon">
+            <image class="streamerImg" src="/img/{{item.headImg}}" mode="aspectFit"></image>
+         </view>
+         <view>{{item.voice_name}}</view>
+      </view>
+    </view>
+    <!-- 广告录音 -->
+    <view class="AdvRecordings flex_C_SA w90" style="margin-left: 5%;">
+      <!-- <view class="AdvRecordView flexCC">
+        <view class="AdvRecordViewImg flex">
+          <image class="AdvRecordViewIcon" src="/img/adv.png" mode="aspectFit"></image>
+        </view>
+        <view class="AdvRecordViewTxt">广告模版</view>
+      </view> -->
+      <view class="AdvRecordView flexCC" bindtap="myWorks">
+        <view class="AdvRecordViewImg flex">
+          <image class="AdvRecordViewIcon" src="/img/myMusic.png" mode="aspectFit"></image>
+        </view>
+        <view class="AdvRecordViewTxt">我的作品</view>
+      </view>
+      <view class="AdvRecordView flexCC" bindtap="showRecorderPop">
+        <view class="AdvRecordViewImg flex">
+          <image class="AdvRecordViewIcon" src="/img/recod.png" mode="aspectFit"></image>
+        </view>
+        <view class="AdvRecordViewTxt">录音功能</view>
+      </view>
+    </view>
+    <!-- 背景、合成 -->
+    <view class="makeAudio flex_C_SB w90" style="margin-left: 5%;">
+      <view class="bgMusic makeView flexCC" bindtap="bgmPop">背景音乐</view>
+      <view class="synthesis makeView flexCC" bind:tap="convertToSpeech">合成配音</view>
+    </view>
+  </view>
+  <view class="tab flex">
+    <view class="tabItem flexCC flex_d_c" bindtap="changeTab" id="1">
+     <image class="tabIcon" src="/img/peiyined.png" mode="aspectFit"></image>
+     <text class="selectedTab">配音</text>
+    </view>
+    <view class="tabItem flexCC flex_d_c" bindtap="changeTab" id="2">
+      <image class="tabIcon" src="/img/dev.png" mode="aspectFit"></image>
+      <text>设备</text>
+    </view>
+    <view class="tabItem flexCC flex_d_c" bindtap="changeTab" id="3">
+      <van-icon name="cluster" size="25px" color="#8A8A8A" />
+      <text>高级</text>
+    </view>
+  </view>
+</view>
+
+<!-- 音效设置 -->
+<van-popup show="{{ musicSetShow }}" position="bottom" round closeable custom-style="" 
+  bind:close="musicSet" >
+    <view class="musicPop flexCC flex_d_c w100">
+      <view class="musicPopTiltle">音效设置</view>
+      <view class="musicSlider w90 flex_ai_c">
+        <text>语速</text>
+        <slider class="w75" min="0.5" value="{{speed}}" max="2.0" step="0.1" show-value="true" activeColor="#E20E0E" block-color="#E20E0E" block-size="20" bindchange="musicSliderChange"></slider>
+      </view>
+      <view class="musicPopTxt" bindtap="musicPopConfirm">确定</view>
+    </view>
+</van-popup>
+<!-- 停顿设置 -->
+<van-popup show="{{ stopShow }}" position="bottom" round closeable custom-style="" 
+  bind:close="stopSet" >
+    <view class="musicPop flexCC flex_d_c w100">
+      <view class="musicPopTiltle">插入停顿</view>
+      <view class="stopVal">{{stopVal}} s</view>
+      <view class="musicSlider w90 flex_ai_c">
+        <slider class="w75" min="0.1" value="{{stopVal}}" max="10.0" step="0.1" activeColor="#E20E0E" block-color="#E20E0E" block-size="20"  bindchanging="stopSliderChange" bindchange="stopSliderChange"></slider>
+      </view>
+      <view class="musicPopTxt" bindtap="stopPopConfirm">确定</view>
+    </view>
+</van-popup>
+<!-- 背景音乐设置 -->
+<van-popup show="{{ bgmSetPop }}" position="bottom" round closeable custom-style="z-index: 102;" 
+  bind:close="bgmPop"  >
+    <bgmset activeBgmInfo="{{activeBgmInfo}}" bgmSetDetail="{{bgmSetDetail}}" bind:showBgmList="showBgmList" bind:resetBgm="resetBgm" bind:bmgSetConfirm="bmgSetConfirm"></bgmset>
+</van-popup>

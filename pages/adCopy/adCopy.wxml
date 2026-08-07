@@ -1,0 +1,74 @@
+<view class="adCopyPage">
+  <scroll-view class="formScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="keywordPanel">
+      <view class="keywordHeader">
+        <text class="keywordTitle">关键词描述</text>
+        <button class="resetButton" bindtap="resetOptions">重置选项</button>
+      </view>
+      <textarea
+        class="keywordInput"
+        value="{{keywords}}"
+        maxlength="500"
+        placeholder="例如：超市特卖一元一瓶矿泉水"
+        bindinput="onKeywordInput"
+      />
+      <view class="keywordActions">
+        <button class="compactButton" bindtap="pasteKeywords">一键粘贴</button>
+        <button class="compactButton" bindtap="clearKeywords">清空文本</button>
+      </view>
+    </view>
+
+    <view class="settingGrid">
+      <view class="settingItem" bindtap="openCategory">
+        <text class="settingLabel">类型</text>
+        <view class="settingValue"><text>{{categoryName}}</text><van-icon name="arrow" size="16px" /></view>
+      </view>
+      <view class="settingItem" bindtap="openStyle">
+        <text class="settingLabel">风格</text>
+        <view class="settingValue"><text>{{styleName}}</text><van-icon name="arrow" size="16px" /></view>
+      </view>
+      <view class="settingItem" bindtap="openWordPopup">
+        <text class="settingLabel">字数</text>
+        <view class="settingValue"><text>{{maxWords}}字</text><van-icon name="arrow" size="16px" /></view>
+      </view>
+      <view class="settingItem" bindtap="openLanguagePopup">
+        <text class="settingLabel">语言</text>
+        <view class="settingValue"><text>{{languageName}}</text><van-icon name="arrow" size="16px" /></view>
+      </view>
+    </view>
+
+    <button class="generateButton" bindtap="generateCopy">点击生成</button>
+  </scroll-view>
+
+  <van-popup show="{{wordPopupVisible}}" position="bottom" round bind:close="closeWordPopup">
+    <view class="selectionSheet">
+      <view class="sheetTitle">设置字数范围</view>
+      <view class="wordGrid">
+        <button
+          class="sheetOption {{item === maxWords ? 'sheetOption--active' : ''}}"
+          wx:for="{{wordOptions}}"
+          wx:key="*this"
+          data-value="{{item}}"
+          bindtap="selectWordCount"
+        >{{item}}字</button>
+      </view>
+    </view>
+  </van-popup>
+
+  <van-popup show="{{languagePopupVisible}}" position="bottom" round bind:close="closeLanguagePopup">
+    <view class="selectionSheet selectionSheet--language">
+      <view class="sheetTitle">设置输出语言</view>
+      <view class="languageState" wx:if="{{languageLoading}}">加载中...</view>
+      <block wx:elif="{{languageOptions.length}}">
+        <button
+          class="languageOption {{item.value === language ? 'languageOption--active' : ''}}"
+          wx:for="{{languageOptions}}"
+          wx:key="value"
+          data-value="{{item.value}}"
+          bindtap="selectLanguage"
+        >{{item.label}}</button>
+      </block>
+      <view class="languageState" wx:else>{{languageEmptyText}}</view>
+    </view>
+  </van-popup>
+</view>

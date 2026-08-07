@@ -1,0 +1,122 @@
+/* pages/device/device.wxss */
+.container {
+  background: #f5f5f5;
+  min-height: 100vh;
+  font-size: 26rpx;
+  background: rgb(216, 216, 216);
+}
+.content{
+  
+  padding-bottom: 20rpx;
+  width: 90%;
+  margin-left: 5%;
+}
+.head{
+  margin: 30rpx 0;
+}
+.headleftImg{
+  width: 50rpx;
+  height: 50rpx;
+}
+.searchBtn{
+  background: #d81e06;
+  color: #fff;
+  border-radius: 10rpx;
+  padding: 15rpx 20rpx;
+}
+.deviceItem{
+  background: #fff;
+  border-radius: 10rpx;
+  padding: 10rpx 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.5);
+  height: 200rpx;
+  position: relative;
+  overflow: hidden;
+  border-radius: 5px;
+}
+.devReCon{
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+}
+.devReConImg{
+  width: 80rpx;
+  height: 80rpx;
+  animation: loading 1s linear infinite;
+}
+@keyframes loading {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+.devIcon{
+  width: 200rpx;
+  height: 200rpx;
+}
+.devInfoTitle{
+  color: #6d6d6d;
+}
+.devTitle{
+  font-size: 1.1rem;
+  color: black;
+  /* margin-bottom: 10rpx; */
+}
+.devDisItem{
+  border-radius: 10rpx;
+  padding: 7rpx 15rpx;
+}
+.ypMan{
+  background: #d81e06;
+  color: #fff;
+}
+.devDel{
+  border: 1px solid #ccb328;
+  color: #ccb328;
+  margin: 0 10rpx;
+}
+.connDev{
+  border: 1px solid #4feb5c;
+  color: #4feb5c;
+}
+.disconnDev{
+  border: 1px solid #ccc;
+  color: #ccc;
+}
+.reConn{
+  background: #d81e06;
+  color: #fff;
+  padding: 5rpx 30rpx;
+  border-radius: 10rpx;
+}
+
+
+
+
+.tab{
+  height: 100rpx;
+  color: #8a8a8a;
+  background: #fff;
+}
+.tabItem{
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+}
+.tabIcon{
+  width: 50rpx;
+  height: 50rpx;
+}
+.selectedTab{
+  color: #d81e06;
+}

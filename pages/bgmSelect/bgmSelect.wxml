@@ -1,0 +1,40 @@
+<view class="page-shell">
+  <!-- <navigation-bar title="添加背景音乐" back="{{true}}" color="#111" background="#fff" /> -->
+  <view class="importToolbar">
+    <button class="importAction" disabled="{{importing}}" bindtap="importMusic">
+      <van-icon name="music-o" size="22px" color="#E20E0E" />
+      <text>导入音乐</text>
+    </button>
+    <button class="importAction" disabled="{{importing}}" bindtap="extractVideoMusic">
+      <van-icon name="video-o" size="22px" color="#E20E0E" />
+      <text>视频提取</text>
+    </button>
+  </view>
+  <view class="page-content">
+    <bgmlist
+      wx:if="{{hasBgmList}}"
+      id="bgmlistCom"
+      bgmList="{{bgmList}}"
+      activeId="{{activeBgmId}}"
+      showBack="{{false}}"
+      bind:showBgmList="goBack"
+      bind:chooseBgm="chooseBgm"
+      bind:playBgm="playBgm"
+      bind:pauseMusic="pauseMusic"
+      bind:favoriteBgm="toggleFavorite"
+      bind:deleteBgm="deleteCustomBgm"
+    />
+    <view wx:else class="empty-state">{{emptyText}}</view>
+  </view>
+
+  <view class="uploadProgressMask" wx:if="{{importing}}">
+    <view class="uploadProgressPanel">
+      <van-icon name="upgrade" size="32px" color="#E20E0E" />
+      <view class="uploadProgressTitle">{{importLabel}}</view>
+      <view class="uploadProgressTrack">
+        <view class="uploadProgressFill" style="width: {{uploadProgress}}%;"></view>
+      </view>
+      <view class="uploadProgressValue">{{uploadProgress}}%</view>
+    </view>
+  </view>
+</view>

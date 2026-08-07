@@ -1,0 +1,87 @@
+.container{
+	background: rgb(216, 216, 216);
+	/* min-height: 100vh; */
+	height: 100vh;
+	font-size: 28rpx;
+}
+.content{
+	margin-top: 20rpx;
+	background: rgb(238, 238, 238);
+	border-radius: 10rpx;
+	padding: 0 10px 10px 10px ;
+}
+.musicItem{
+	margin-top: 30rpx;
+}
+.headTitle view{
+	color: #d81e06 !important;
+	text-align: center;
+	margin-left: 5%;
+}
+.headName{
+	text-align: left !important;
+	color: #3f3f3f ;
+	margin-left: 0% !important;
+	word-wrap: break-word;
+  word-break: break-all;
+  white-space: normal;
+}
+.headBz,.headPlay,.headDel{
+	text-align: center;
+	color: rgba(255, 255, 255, 0.959);
+	background: #d81e06;
+	border-radius: 10rpx;
+	padding: 10rpx 20rpx;
+}
+
+.opreat{
+	height: 200rpx;
+}
+
+.importBtn{
+	background: #d81e06;
+	color: rgba(255, 255, 255, 0.959);
+	height: 70rpx;
+	border-radius: 10rpx;
+}
+.progress{
+	background: rgb(151, 151, 151);
+	height: 70rpx;
+}
+.progressView{
+	background: #d81e06;
+}
+
+
+/* 导入loading */
+.importMask{
+  top: 0;
+  left: 0;
+}
+.loadingView{
+	background: rgb(77, 76, 76);
+	color: #fff;
+	border-radius: 10rpx;
+	/* width: 240rpx;
+	height: 240rpx; */
+	padding: 20rpx 50rpx;
+}
+.loadIcon,.loadImg{
+	width: 150rpx;
+	height: 150rpx;
+}
+.importTxt{
+	color: #ccc;
+	margin-top:10rpx;
+}
+.loadImg{
+	animation: loadRound 2s linear infinite;
+}
+@keyframes loadRound{
+	from{
+		transform: rotate(0deg);
+	}
+	to{
+		transform: rotate(360deg);
+	}
+}

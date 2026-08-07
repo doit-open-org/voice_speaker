@@ -1,0 +1,320 @@
+.templatePage {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  color: #242424;
+}
+
+.topTabs {
+  height: 110rpx;
+  flex: 0 0 110rpx;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-bottom: 1rpx solid #eeeeee;
+}
+
+.topTab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666666;
+  font-size: 32rpx;
+}
+
+.topTab--active {
+  color: #E20E0E;
+  font-weight: 600;
+}
+
+.topTab--active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 54rpx;
+  height: 6rpx;
+  transform: translateX(-50%);
+  border-radius: 3rpx;
+  background: #E20E0E;
+}
+
+.templateLayout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.categorySidebar {
+  width: 180rpx;
+  height: 100%;
+  flex: 0 0 180rpx;
+  background: #f6f7f8;
+}
+
+.categoryItem {
+  min-height: 104rpx;
+  padding: 24rpx 18rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  line-height: 1.35;
+}
+
+.categoryItem--active {
+  color: #E20E0E;
+  background: #ffffff;
+}
+
+.templateList {
+  height: 100%;
+  flex: 1;
+  min-width: 0;
+  background: #ffffff;
+}
+
+.templateItem {
+  position: relative;
+  height: 220rpx;
+  padding: 26rpx 176rpx 54rpx 28rpx;
+  box-sizing: border-box;
+  border-bottom: 1rpx solid #e8e8e8;
+}
+
+.templateItem--expanded {
+  height: auto;
+  min-height: 220rpx;
+}
+
+.templateItem--mine {
+  height: 270rpx;
+  min-height: 270rpx;
+  padding: 26rpx 28rpx 112rpx;
+}
+
+.templateItem--mine.templateItem--expanded {
+  height: auto;
+}
+
+.templateContent {
+  overflow: hidden;
+  color: #858585;
+  font-size: 28rpx;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.templateContent--expanded {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: initial;
+}
+
+.useButton {
+  position: absolute;
+  top: 32rpx;
+  right: 24rpx;
+  width: 136rpx;
+  height: 64rpx;
+  padding: 0;
+  border-radius: 8rpx;
+  background: #E20E0E;
+  color: #ffffff;
+  font-size: 28rpx;
+  line-height: 64rpx;
+}
+
+.useButton::after {
+  border: 0;
+}
+
+.mineActions {
+  position: absolute;
+  right: 24rpx;
+  bottom: 24rpx;
+  left: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.templateActionButton {
+  width: 136rpx;
+  height: 56rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 28rpx;
+  background: #E20E0E;
+  color: #ffffff;
+  font-size: 26rpx;
+  line-height: 56rpx;
+}
+
+.templateActionButton::after {
+  border: 0;
+}
+
+.expandButton {
+  position: absolute;
+  right: 68rpx;
+  bottom: 10rpx;
+  width: 72rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.templateItem--mine .expandButton {
+  right: 6rpx;
+  bottom: 82rpx;
+}
+
+.stateText {
+  min-height: 320rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999999;
+  font-size: 28rpx;
+}
+
+.genericList {
+  flex: 1;
+  min-height: 0;
+}
+
+.genericItem {
+  height: 154rpx;
+  padding: 0 48rpx;
+  display: grid;
+  grid-template-columns: 96rpx minmax(0, 1fr) 176rpx;
+  align-items: center;
+  column-gap: 28rpx;
+}
+
+.genericPlay {
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.genericName {
+  overflow: hidden;
+  color: #333333;
+  font-size: 30rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sendButton {
+  width: 176rpx;
+  height: 72rpx;
+  padding: 0;
+  border-radius: 8rpx;
+  background: #E20E0E;
+  color: #ffffff;
+  font-size: 28rpx;
+  line-height: 72rpx;
+}
+
+.sendButton::after {
+  border: 0;
+}
+
+.dialogMask {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.templateDialog {
+  width: 100%;
+  max-width: 650rpx;
+  overflow: hidden;
+  border-radius: 10rpx;
+  background: #ffffff;
+}
+
+.dialogTitle {
+  padding: 48rpx 40rpx 24rpx;
+  color: #333333;
+  font-size: 36rpx;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.dialogInputBox {
+  position: relative;
+  height: 370rpx;
+  margin: 0 48rpx 48rpx;
+  border: 1rpx solid #d7d7d7;
+  border-radius: 6rpx;
+  box-sizing: border-box;
+}
+
+.templateTextarea {
+  width: 100%;
+  height: 100%;
+  padding: 24rpx 24rpx 54rpx;
+  box-sizing: border-box;
+  color: #333333;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+.templateCounter {
+  position: absolute;
+  right: 20rpx;
+  bottom: 12rpx;
+  color: #999999;
+  font-size: 24rpx;
+}
+
+.dialogActions {
+  height: 96rpx;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1rpx solid #e5e5e5;
+}
+
+.dialogButton {
+  width: 100%;
+  height: 96rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: #ffffff;
+  font-size: 30rpx;
+  line-height: 96rpx;
+}
+
+.dialogButton::after {
+  border: 0;
+}
+
+.dialogButton--cancel {
+  color: #555555;
+  border-right: 1rpx solid #e5e5e5;
+}
+
+.dialogButton--confirm {
+  color: #E20E0E;
+}

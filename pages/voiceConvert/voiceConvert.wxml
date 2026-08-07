@@ -1,0 +1,96 @@
+<view class="voiceConvertPage">
+  <scroll-view class="timbreScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="timbreGrid" wx:if="{{timbres.length}}">
+      <view
+        class="timbreItem {{selectedTimbreId === item.id ? 'timbreItem--active' : ''}}"
+        wx:for="{{timbres}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="selectTimbre"
+      >
+        <image class="timbreAvatar" src="{{item.displayAvatar}}" mode="aspectFill" />
+        <text class="timbreName">{{item.name}}</text>
+        <text class="timbreType">{{item.typeLabel}}</text>
+      </view>
+    </view>
+    <view class="emptyState" wx:else>{{emptyText}}</view>
+  </scroll-view>
+
+  <view class="controlPanel">
+    <view class="primaryActions">
+      <view class="actionItem" bindtap="startRecording">
+        <view class="actionButton">
+          <van-icon name="play-circle-o" size="62px" color="#C91818" />
+        </view>
+        <text class="actionLabel">开始录音</text>
+      </view>
+      <view class="actionItem" bindtap="bgmPop">
+        <view class="actionButton">
+          <van-icon name="music-o" size="62px" color="#C91818" />
+        </view>
+        <text class="actionLabel">{{selectedBgm.name || '背景音乐'}}</text>
+      </view>
+    </view>
+
+    <view class="settingRow">
+      <text class="settingLabel">语速</text>
+      <slider
+        class="settingSlider"
+        min="0"
+        max="2"
+        step="0.1"
+        value="{{speed}}"
+        activeColor="#C91818"
+        backgroundColor="#E5E5E5"
+        block-color="#C91818"
+        block-size="22"
+        bindchange="changeSpeed"
+        bindchanging="changeSpeed"
+      />
+      <text class="settingValue">{{speedDisplay}}</text>
+    </view>
+    <view class="settingRow">
+      <text class="settingLabel">音量</text>
+      <slider
+        class="settingSlider"
+        min="-5"
+        max="5"
+        step="1"
+        value="{{volume}}"
+        activeColor="#C91818"
+        backgroundColor="#E5E5E5"
+        block-color="#C91818"
+        block-size="22"
+        bindchange="changeVolume"
+        bindchanging="changeVolume"
+      />
+      <text class="settingValue">{{volume}}</text>
+    </view>
+  </view>
+
+  <view class="recordingOverlay" wx:if="{{recording}}">
+    <view class="recordingDialog">
+      <text class="recordingTitle">最长录音时长为3分钟</text>
+      <text class="recordingText">正在录制音频</text>
+      <image class="recordingWave" src="/img/recorder.gif" mode="aspectFit" />
+      <button class="stopButton" bindtap="stopRecording">点击停止录音</button>
+    </view>
+  </view>
+
+  <van-popup
+    show="{{bgmSetPop}}"
+    position="bottom"
+    round
+    closeable
+    custom-style="z-index: 102;"
+    bind:close="bgmPop"
+  >
+    <bgmset
+      activeBgmInfo="{{selectedBgm}}"
+      bgmSetDetail="{{bgmSetDetail}}"
+      bind:showBgmList="showBgmList"
+      bind:resetBgm="resetBgm"
+      bind:bmgSetConfirm="bmgSetConfirm"
+    />
+  </van-popup>
+</view>

@@ -1,0 +1,95 @@
+.voiceList{
+	width: 100vw;
+	height: 100%;
+	background: #f7f8fa;
+}
+.voiceRight{
+	border-left: 1px solid #ccc;
+	overflow: auto;
+	padding-left: 20rpx;
+	padding-bottom: 50rpx;
+}
+.voiceItem{
+	background: #fff;
+	margin-top: 20rpx;
+	width: calc(100% - 40rpx);
+	min-height: 112rpx;
+	padding: 16rpx;
+	box-sizing: border-box;
+	gap: 14rpx;
+	border-radius: 10rpx;
+}
+.voiceIcon{
+	width: 80rpx;
+	height: 80rpx;
+	flex: 0 0 80rpx;
+}
+.voiceIconImg{
+	width: 80rpx;
+	height: 80rpx;
+	border-radius: 50%;
+}
+.voiceName{
+	min-width: 0;
+}
+.voiceTitleRow{
+	display: flex;
+	align-items: center;
+	gap: 8rpx;
+}
+.voicePrimaryName{
+	min-width: 0;
+	overflow: hidden;
+	color: #222;
+	font-size: 27rpx;
+	line-height: 1.35;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.voiceLevel{
+	height: 30rpx;
+	padding: 0 8rpx;
+	box-sizing: border-box;
+	flex: 0 0 auto;
+	border: 1rpx solid currentColor;
+	border-radius: 5rpx;
+	font-size: 18rpx;
+	line-height: 28rpx;
+}
+.voiceLevel--gold{
+	color: #eaa13a;
+}
+.voiceLevel--silver{
+	color: #9098a3;
+}
+.voiceLevel--bronze{
+	color: #b7784a;
+}
+.voiceLevel--normal{
+	color: #ff6f7e;
+	background: #fff7f8;
+}
+.voiceDescription{
+	margin-top: 5rpx;
+	overflow: hidden;
+	display: -webkit-box;
+	color: #999;
+	font-size: 21rpx;
+	line-height: 1.35;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+.voiceOp{
+	width: 220rpx;
+	flex: 0 0 220rpx;
+}
+.voiceCheck{
+	border: 1px solid #ccc;
+	width: 25px;
+	height: 25px;
+}
+.favoriteButton{
+	width: 60rpx;
+	height: 60rpx;
+	flex: 0 0 60rpx;
+}

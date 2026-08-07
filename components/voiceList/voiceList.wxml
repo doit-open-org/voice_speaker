@@ -1,0 +1,35 @@
+<view class="voiceList flex">
+	<view class="voiceLeft">
+		<view wx:if="{{showBack}}" style="padding: 10rpx;" bindtap="backIndex">
+			<van-icon size="25px" color="#616161" name="arrow-left" />
+		</view>
+		<van-sidebar active-key="{{ activeKey }}" bind:change="onChange">
+			<van-sidebar-item wx:for="{{voiceList.categories}}"  wx:key="k" title="{{item.name}}" id="{{item.key}}" />
+		</van-sidebar>
+	</view>
+	<view class="voiceRight flex_1">
+		<view class="voiceItem flex_C_SB" wx:for="{{currentVoices}}" wx:key="id">
+			<view class="voiceIcon">
+				<image class="voiceIconImg" src="{{item.icon?item.icon:'../../img/streamer3.jpg'}}"></image>
+			</view>
+			<view class="voiceName flex_1">
+				<view class="voiceTitleRow">
+					<view class="voicePrimaryName">{{item.voice_name}}</view>
+					<view class="voiceLevel {{item.levelClass}}" wx:if="{{item.levelLabel}}">{{item.levelLabel}}</view>
+				</view>
+				<view class="voiceDescription" wx:if="{{item.description}}">{{item.description}}</view>
+			</view>
+			<view class="voiceOp flex_C_SB">
+				<view class="voicePlay" bindtap="voicePlay" id="{{item.id}}">
+					<van-icon size='30px' color="#E20E0E" name="{{item.id == palyId?'pause-circle':'play-circle'}}" />
+				</view>
+				<view class="voiceCheck br50 flexCC" style="border: {{item.id == activeId?'0px':'1px solid #ccc'}};" id="{{item.id}}" bindtap="chooseVoice">
+					<van-icon size='30px' color="#E20E0E" wx:if="{{item.id == activeId}}" name="checked" />
+				</view>
+				<view class="favoriteButton flexCC" data-id="{{item.id}}" catchtap="toggleFavorite">
+					<van-icon size="24px" color="{{item.isFavorite ? '#E20E0E' : '#D8D8D8'}}" name="star" />
+				</view>
+			</view>
+		</view>
+	</view>
+</view>

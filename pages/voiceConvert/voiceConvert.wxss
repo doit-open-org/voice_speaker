@@ -1,0 +1,205 @@
+.voiceConvertPage {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(#E20E0E, #FFFCE9);
+  color: #3a302d;
+}
+
+.timbreScroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.timbreGrid {
+  padding: 24rpx 22rpx 36rpx;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22rpx 10rpx;
+}
+
+.timbreItem {
+  min-width: 0;
+  padding: 12rpx 4rpx 14rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2rpx solid transparent;
+  border-radius: 8rpx;
+}
+
+.timbreItem--active {
+  border-color: rgba(226, 14, 14, 0.7);
+  background: rgba(255, 207, 191, 0.68);
+}
+
+.timbreAvatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: #eeeeee;
+}
+
+.timbreName,
+.timbreType {
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timbreName {
+  margin-top: 8rpx;
+  font-size: 27rpx;
+  line-height: 1.3;
+}
+
+.timbreType {
+  margin-top: 2rpx;
+  font-size: 24rpx;
+  line-height: 1.3;
+}
+
+.emptyState {
+  height: 440rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(56, 43, 39, 0.75);
+  font-size: 28rpx;
+}
+
+.controlPanel {
+  padding: 20rpx 46rpx calc(28rpx + env(safe-area-inset-bottom));
+  flex: 0 0 auto;
+  /* background: rgba(255, 252, 233, 0.82); */
+}
+
+.primaryActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 70rpx;
+}
+
+.actionItem {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.actionButton {
+  width: 132rpx;
+  height: 132rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 8rpx 18rpx rgba(58, 38, 32, 0.2);
+}
+
+.actionLabel {
+  width: 100%;
+  margin-top: 14rpx;
+  overflow: hidden;
+  color: #b51a18;
+  font-size: 28rpx;
+  line-height: 1.35;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settingRow {
+  margin-top: 26rpx;
+  display: grid;
+  grid-template-columns: 76rpx minmax(0, 1fr) 70rpx;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.settingLabel {
+  font-size: 28rpx;
+}
+
+.settingSlider {
+  margin: 0;
+}
+
+.settingValue {
+  height: 54rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  background: rgba(226, 14, 14, 0.08);
+  color: #b51a18;
+  font-size: 26rpx;
+}
+
+.recordingOverlay {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36rpx;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.recordingDialog {
+  width: 610rpx;
+  max-width: 100%;
+  padding: 64rpx 54rpx 58rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.recordingTitle {
+  color: #1f1f1f;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.recordingText {
+  margin-top: 30rpx;
+  color: #333333;
+  font-size: 28rpx;
+}
+
+.recordingWave {
+  width: 300rpx;
+  height: 110rpx;
+  margin: 8rpx 0 30rpx;
+}
+
+.stopButton {
+  width: 360rpx;
+  height: 86rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 8rpx;
+  background: #d51b16;
+  color: #ffffff;
+  font-size: 29rpx;
+  font-weight: 600;
+  line-height: 86rpx;
+  box-shadow: 0 8rpx 16rpx rgba(93, 25, 21, 0.2);
+}
+
+.stopButton::after {
+  border: 0;
+}

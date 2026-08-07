@@ -1,0 +1,55 @@
+@import '../../app.wxss';
+.recorderCom{
+	background: linear-gradient(#E20E0E,#FFFCE9);
+	height: 100%;
+}
+.reIcon{
+	width: 200rpx;
+	height: 200rpx;
+	margin-bottom: 170rpx;
+}
+.reIcon image{
+	width: 200rpx;
+	height: 200rpx;
+}
+.backIndex{
+	position: absolute;
+	left: 20rpx;
+	top: 20rpx;
+}
+.reTanchuang{
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: rgba(0,0,0,0.5);
+	width: 100%;
+	height: 100%;
+	font-size: 30rpx;
+}
+.reModal{
+	padding: 30rpx;
+	background: #fff;
+	border-radius: 10rpx;
+}
+.reModalTotle{
+	font-weight: 600;
+}
+.reModalTips{
+	font-size: 26rpx;
+	margin-top: 20rpx;
+}
+.recorderStopBtn{
+	background: #E20E0E;
+	color: #fff;
+	padding: 10rpx 30rpx;
+	border-radius: 10rpx;
+	font-size: 26rpx;
+}
+.recorderGif{
+	width: 350rpx;
+  height: 200rpx;
+}
+.reTxt{
+	color: #E20E0E;
+	margin-top: 20rpx;
+}

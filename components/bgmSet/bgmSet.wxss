@@ -1,0 +1,154 @@
+/* components/bgMusicSetting/bgMusicSetting.wxss */
+@import '../../app.wxss';
+
+
+
+/* 头部 */
+.modal-header {
+  background: #E20E0E;
+  color: #fff;
+  padding: 24rpx 30rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.modal-close {
+  position: absolute;
+  right: 30rpx;
+  font-size: 44rpx;
+  line-height: 1;
+}
+
+/* 内容区域 */
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* 每一行 */
+.modal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.item-label {
+  font-size: 28rpx;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.item-link {
+  font-size: 28rpx;
+  color: #E20E0E;
+}
+.reset{
+  background: #E20E0E;
+  color: #fff;
+  padding: 5rpx 20rpx;
+  border-radius: 10rpx;
+}
+.bgmName{
+  margin: 0 10rpx;
+}
+
+/* 滑块样式 */
+.slider-wrap {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-left: 20rpx;
+}
+
+.slider {
+  flex: 1;
+}
+
+.slider-value {
+  width: 70rpx;
+  text-align: right;
+  font-size: 28rpx;
+  color: #333;
+}
+
+/* Tab选项卡 */
+.tab-group {
+  display: flex;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.tab-item {
+  padding: 12rpx 24rpx;
+  font-size: 26rpx;
+  color: #666;
+  background: #fff;
+  border-right: 1rpx solid #ddd;
+}
+
+.tab-item:last-child {
+  border-right: none;
+}
+
+.tab-item.active {
+  background: #fff5f5;
+  color: #E20E0E;
+}
+
+/* 数字加减输入 */
+.number-input {
+  display: flex;
+  align-items: center;
+}
+
+.number-input .btn {
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 52rpx;
+  text-align: center;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  font-size: 36rpx;
+  color: #666;
+}
+
+.number-input .btn.disabled {
+  color: #ccc;
+  border-color: #eee;
+}
+
+.number-input .number {
+  width: 70rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #333;
+}
+
+/* 底部按钮 */
+.modal-footer {
+  padding: 30rpx;
+}
+
+.confirm-btn {
+  background: #E20E0E !important;
+  color: #fff !important;
+  border-radius: 44rpx !important;
+  font-size: 32rpx !important;
+  height: 88rpx;
+  line-height: 88rpx;
+  border: none;
+}
+
+.confirm-btn::after {
+  border: none;
+}

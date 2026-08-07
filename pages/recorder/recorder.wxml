@@ -1,0 +1,30 @@
+<view class="recorder-page">
+  <!-- <navigation-bar title="录音功能" back="{{true}}" color="#111" background="#fff" /> -->
+  <view class="recorder-content">
+    <recorder
+      id="recorderCom"
+      showBack="{{false}}"
+      disabled="{{uploading}}"
+      bind:showRecorderPop="goBack"
+      bind:bgmPop="bgmPop"
+      bind:handleRecorder="handleRecorder"
+    />
+  </view>
+
+  <van-popup
+    show="{{bgmSetPop}}"
+    position="bottom"
+    round
+    closeable
+    custom-style="z-index: 102;"
+    bind:close="bgmPop"
+  >
+    <bgmset
+      activeBgmInfo="{{activeBgmInfo}}"
+      bgmSetDetail="{{bgmSetDetail}}"
+      bind:showBgmList="showBgmList"
+      bind:resetBgm="resetBgm"
+      bind:bmgSetConfirm="bmgSetConfirm"
+    />
+  </van-popup>
+</view>

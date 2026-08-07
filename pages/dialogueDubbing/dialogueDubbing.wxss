@@ -1,0 +1,330 @@
+.dialoguePage {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f4f4f4;
+  color: #2d2d2d;
+}
+
+.dialogueScroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.usageGuide {
+  min-height: 250rpx;
+  margin: 24rpx 28rpx;
+  padding: 22rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border-radius: 4rpx;
+  background: #ffffff;
+  color: #888888;
+}
+
+.usageTitle {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  color: #c91818;
+  font-size: 28rpx;
+  line-height: 1.4;
+}
+
+.usageStep {
+  display: block;
+  font-size: 25rpx;
+  line-height: 1.55;
+}
+
+.dialogueList {
+  padding: 24rpx 28rpx 30rpx;
+}
+
+.dialogueItem {
+  margin-bottom: 28rpx;
+  display: grid;
+  grid-template-columns: 84rpx minmax(0, 1fr);
+  align-items: start;
+  gap: 16rpx;
+}
+
+.dialogueAvatar {
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 50%;
+  background: #e8e8e8;
+}
+
+.dialogueContent {
+  min-width: 0;
+}
+
+.dialogueVoiceName {
+  display: block;
+  margin: 2rpx 0 10rpx;
+  color: #444444;
+  font-size: 25rpx;
+}
+
+.dialogueBubble {
+  padding: 20rpx 22rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: #303030;
+  font-size: 28rpx;
+  line-height: 1.55;
+  word-break: break-all;
+}
+
+.dialogueActions {
+  height: 58rpx;
+  margin-top: 8rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.dialogueAction {
+  width: 54rpx;
+  height: 54rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialogueMove {
+  border: 3rpx solid #c91818;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.composerPanel {
+  padding: 18rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  flex: 0 0 auto;
+  border-top: 1rpx solid #eeeeee;
+  background: #ffffff;
+}
+
+.textComposer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 66rpx;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.textDisplay {
+  height: 72rpx;
+  padding: 0 18rpx;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #f5f5f5;
+  font-size: 27rpx;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.textDisplay text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.placeholder {
+  color: #999999;
+}
+
+.sendButton {
+  width: 66rpx;
+  height: 66rpx;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  line-height: 1;
+}
+
+.sendButton::after,
+.mergeButton::after,
+.popupConfirm::after {
+  border: 0;
+}
+
+.voiceStrip {
+  margin-top: 18rpx;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10rpx;
+}
+
+.voiceCard {
+  min-width: 0;
+  height: 150rpx;
+  padding: 12rpx 6rpx 10rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  border: 2rpx solid transparent;
+  border-radius: 8rpx;
+  background: #edf2fc;
+}
+
+.voiceCard--active {
+  border-color: #d21c18;
+  background: #d21c18;
+  color: #ffffff;
+}
+
+.voiceAvatar,
+.moreVoiceIcon {
+  width: 78rpx;
+  height: 78rpx;
+  flex: 0 0 78rpx;
+  border-radius: 50%;
+}
+
+.moreVoiceIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3c4c4;
+}
+
+.voiceName {
+  width: 100%;
+  margin-top: 7rpx;
+  overflow: hidden;
+  font-size: 22rpx;
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolRow {
+  margin-top: 18rpx;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12rpx;
+}
+
+.toolButton {
+  min-width: 0;
+  height: 62rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  border-radius: 8rpx;
+  background: #f6f6f6;
+  color: #333333;
+  font-size: 22rpx;
+  white-space: nowrap;
+}
+
+.mergeButton {
+  width: 390rpx;
+  height: 72rpx;
+  margin: 22rpx auto 0;
+  border-radius: 8rpx;
+  background: #c91c18;
+  color: #ffffff;
+  font-size: 28rpx;
+  line-height: 72rpx;
+}
+
+.textEditorOverlay {
+  position: fixed;
+  z-index: 500;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22rpx;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.textEditorDialog {
+  position: relative;
+  width: 100%;
+  height: 500rpx;
+  padding: 24rpx 24rpx 66rpx;
+  box-sizing: border-box;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.textEditorInput {
+  width: 100%;
+  height: 100%;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.clearTextButton {
+  position: absolute;
+  right: 24rpx;
+  bottom: 20rpx;
+  width: 54rpx;
+  height: 54rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settingPopup {
+  padding: 32rpx 36rpx calc(32rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.settingTitle {
+  color: #c91c18;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.sliderRow {
+  width: 100%;
+  margin-top: 36rpx;
+  display: grid;
+  grid-template-columns: 70rpx minmax(0, 1fr);
+  align-items: center;
+}
+
+.settingSlider,
+.pauseSlider {
+  width: 100%;
+  margin: 0;
+}
+
+.pauseValue {
+  margin: 26rpx 0 14rpx;
+  color: #c91c18;
+  font-size: 28rpx;
+}
+
+.popupConfirm {
+  width: 240rpx;
+  height: 70rpx;
+  margin: 34rpx auto 0;
+  border-radius: 8rpx;
+  background: #c91c18;
+  color: #ffffff;
+  font-size: 27rpx;
+  line-height: 70rpx;
+}

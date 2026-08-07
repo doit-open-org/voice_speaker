@@ -1,0 +1,81 @@
+  <!-- 标题 -->
+  <view class="modal-header">
+    <text class="modal-title">背景音乐设置</text>
+    <!-- <text class="modal-close" bindtap="close">×</text> -->
+  </view>
+
+  <view class="modal-body">
+    <!-- 背景音乐 -->
+    <view class="modal-item">
+      <text class="item-label">背景音乐</text>
+      <text class="item-link" wx:if="{{!activeBgmInfo.name}}" bindtap="changeMusic">添加背景音乐 +</text>
+      <view class="item-link flexCC" wx:if="{{activeBgmInfo.name}}">
+        <view class="reset" bindtap="reset">还原</view>
+        <view bindtap="changeMusic" class="flexCC">
+          <view class="bgmName">{{activeBgmInfo.name}}</view>
+          <view class="exchange"><van-icon name="exchange" color="#E20E0E" /></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 背景音乐音量 -->
+    <view class="modal-item">
+      <text class="item-label">背景音乐音量</text>
+      <view class="slider-wrap">
+        <slider 
+          class="slider" 
+          value="{{bgm.bgm_volume * 100}}" 
+          max="100" 
+          activeColor="#E20E0E" 
+          backgroundColor="#eee"
+          block-size="20"
+          bindchange="onVolumeChange"
+					show-value
+        />
+      </view>
+    </view>
+
+    <!-- 音量控制 -->
+    <view class="modal-item">
+      <text class="item-label">文本播报时背景音乐音量控制</text>
+      <view class="tab-group">
+        <text 
+          class="tab-item {{bgm.bgm_ducking === 'normal' ? 'active' : ''}}" 
+          bindtap="setVolumeControl" 
+          data-type="normal">正常</text>
+        <text 
+          class="tab-item {{bgm.bgm_ducking === 'reduce' ? 'active' : ''}}" 
+          bindtap="setVolumeControl" 
+          data-type="reduce">降低</text>
+        <text 
+          class="tab-item {{bgm.bgm_ducking === 'mute' ? 'active' : ''}}" 
+          bindtap="setVolumeControl" 
+          data-type="mute">静音</text>
+      </view>
+    </view>
+
+    <!-- 文本播报延迟 -->
+    <view class="modal-item">
+      <text class="item-label">文本播报延迟（s）</text>
+      <view class="number-input">
+        <text class="btn" bindtap="decreaseDelay">-</text>
+        <text class="number">{{bgm.voice_delay}}</text>
+        <text class="btn" bindtap="increaseDelay">+</text>
+      </view>
+    </view>
+
+    <!-- 背景音乐续播 -->
+    <view class="modal-item">
+      <text class="item-label">背景音乐续播（s）</text>
+      <view class="number-input">
+        <text class="btn" bindtap="decreaseContinue">-</text>
+        <text class="number">{{bgm.bgm_tail}}</text>
+        <text class="btn" bindtap="increaseContinue">+</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 确定按钮 -->
+  <view class="modal-footer">
+    <button class="confirm-btn" bindtap="confirm">确定</button>
+  </view>

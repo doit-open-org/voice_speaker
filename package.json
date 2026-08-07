@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "test": "node tests/standalone-pages.test.js"
+  },
+  "dependencies": {
+    "@vant/weapp": "^1.11.7"
+  }
+}

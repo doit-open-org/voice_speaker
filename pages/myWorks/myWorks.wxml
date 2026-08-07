@@ -1,0 +1,26 @@
+<view class="page">
+	<view class="container" wx:for="{{list}}" wx:key="id">
+		<view class="card">
+			<!-- 左边：图标 + 标题 + 时间 -->
+			<view class="left  w65">
+				<view class="flex" style="margin-right: 15rpx;" bindtap="playMusic" id="{{index}}">
+					<!-- <van-icon name="audio" color="#E20E0E" size="30" /> -->
+					<van-icon size='30px' color="#E20E0E" name="{{item.id == palyId?'pause-circle':'play-circle'}}" />
+				</view>
+				<view class="info flex flex_d_c flex-wrap_wrap">
+					<text class="title">{{item.file_new_name}}</text>
+					<text class="time">{{item.created_at}}</text>
+				</view>
+			</view>
+
+			<!-- 右边：操作按钮 -->
+			<view class="right w35 flex flex_C_SA">
+				<view class="btn" bindtap="onExport" id="{{index}}">导出</view>
+				<view class="btn" bindtap="onEdit" id="{{index}}">编辑</view>
+				<view class="btn" bindtap="onDelete" id="{{index}}">删除</view>
+			</view>
+
+		</view>
+	</view>
+</view>
+

@@ -1,0 +1,27 @@
+<!-- 搜索遮罩层 -->
+<view bind:tap="maskClick" class="maskSearch w100 h100">
+      <view class="connectDevice" catchtap="s">
+        <view class="search">
+          <view class="searchTtile">
+            <view class="searchView">可连接设备</view>
+            <view wx:if="{{loading && searchShow}}" class="searchTips">扫描中...</view>
+            <view class="searchView" bindtap="refresh">
+              <van-button wx:if="{{searchDev.length == 0}}" round type="info" size="small" color="#d81e06">搜索</van-button>
+              <van-button wx:if="{{searchDev.length != 0}}" round type="info" size="small" color="#d81e06">刷新</van-button>
+            </view>
+          </view>
+          <view class="searchdev" bindtap="chooseDev" wx:for="{{searchDev}}" wx:key='i' data-n="{{index+1}}">
+            <view class="devName">{{item.name}}</view>
+            <view class="devChooseIcon">
+              <van-icon name="success" size="25px" color="#d81e06" custom-style="display:{{devIndex==(index+1) ? 'block' : 'none'}};" />
+            </view>
+          </view>
+          <view wx:if="{{searchDev.length == 0}}" style="text-align: center;margin: 20rpx 0;font-size: 30rpx;">暂无设备</view>
+        </view>
+        <!-- 确定 -->
+        <view wx:if="{{searchDev.length != 0}}" class="confirm" bindtap="confirmDev">
+          <van-button round type="info" color="#d81e06" custom-style="width:150rpx;" size="small">确定</van-button>
+        </view>
+        <!-- <view class="ssTips">*注意:手机蓝牙要打开，打开定位</view> -->
+      </view>
+  </view>

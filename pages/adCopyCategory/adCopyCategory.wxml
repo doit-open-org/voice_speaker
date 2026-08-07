@@ -1,0 +1,17 @@
+<view class="optionPage">
+  <view class="optionGrid" wx:if="{{options.length}}">
+    <view
+      class="optionCard"
+      wx:for="{{options}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      hover-class="optionCard--pressed"
+      bindtap="selectOption"
+    >
+      <view class="optionName">{{item.name}}</view>
+      <view class="optionDescription">{{item.description}}</view>
+    </view>
+  </view>
+  <view class="optionEmpty" wx:elif="{{!loading}}">{{emptyText}}</view>
+  <view class="optionEmpty" wx:else>加载中...</view>
+</view>

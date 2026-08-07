@@ -1,0 +1,69 @@
+<view class="templatePage">
+  <view class="topTabs">
+    <view class="topTab {{activeTab === 'templates' ? 'topTab--active' : ''}}" data-tab="templates" bindtap="switchTab">广告模板</view>
+    <view class="topTab {{activeTab === 'generic' ? 'topTab--active' : ''}}" data-tab="generic" bindtap="switchTab">通用语音</view>
+  </view>
+
+  <view class="templateLayout" wx:if="{{activeTab === 'templates'}}">
+    <scroll-view class="categorySidebar" scroll-y>
+      <view
+        class="categoryItem {{item.key === activeCategoryKey ? 'categoryItem--active' : ''}}"
+        wx:for="{{templateCategories}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="selectCategory"
+      >{{item.name}}</view>
+    </scroll-view>
+
+    <scroll-view class="templateList" scroll-y>
+      <view class="stateText" wx:if="{{templateLoading}}">加载中...</view>
+      <view class="stateText" wx:elif="{{currentTemplates.length === 0}}">{{templateEmptyText}}</view>
+      <view class="templateItem {{item.isMine ? 'templateItem--mine' : ''}} {{item.expanded ? 'templateItem--expanded' : ''}}" wx:for="{{currentTemplates}}" wx:key="id">
+        <view class="templateContent {{item.expanded ? 'templateContent--expanded' : ''}}">{{item.content}}</view>
+        <view class="mineActions" wx:if="{{item.isMine}}">
+          <button class="templateActionButton" data-id="{{item.id}}" bindtap="openEditTemplate">编辑</button>
+          <button class="templateActionButton" data-id="{{item.id}}" loading="{{deletingTemplateId === item.id}}" disabled="{{deletingTemplateId !== 0}}" bindtap="deleteTemplate">删除</button>
+          <button class="templateActionButton" data-id="{{item.id}}" data-source="mine" bindtap="useTemplate">使用</button>
+        </view>
+        <button class="useButton" wx:else data-id="{{item.id}}" data-source="ad" bindtap="useTemplate">使用</button>
+        <view class="expandButton" data-id="{{item.id}}" data-source="{{item.source}}" catchtap="toggleTemplate">
+          <van-icon name="{{item.expanded ? 'arrow-up' : 'arrow-down'}}" size="20px" color="#E20E0E" />
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <scroll-view class="genericList" scroll-y wx:else>
+    <view class="stateText" wx:if="{{genericLoading}}">加载中...</view>
+    <view class="stateText" wx:elif="{{genericVoices.length === 0}}">{{genericEmptyText}}</view>
+    <view class="genericItem" wx:for="{{genericVoices}}" wx:key="id">
+      <view class="genericPlay" data-id="{{item.id}}" catchtap="playGeneric">
+        <van-icon name="{{item.id === playingId ? 'pause-circle' : 'play-circle'}}" size="44px" color="#E20E0E" />
+      </view>
+      <view class="genericName">{{item.name}}</view>
+      <button class="sendButton" data-id="{{item.id}}" bindtap="sendGeneric">发送</button>
+    </view>
+  </scroll-view>
+
+  <view class="dialogMask" wx:if="{{templateDialogVisible}}">
+    <view class="templateDialog">
+      <view class="dialogTitle">{{templateDialogMode === 'edit' ? '编辑我的模板' : '增加我的模板'}}</view>
+      <view class="dialogInputBox">
+        <textarea
+          class="templateTextarea"
+          value="{{templateDraft}}"
+          maxlength="2000"
+          auto-focus="{{true}}"
+          placeholder="请输入模板内容"
+          disabled="{{templateSubmitting}}"
+          bindinput="onTemplateInput"
+        ></textarea>
+        <view class="templateCounter">{{templateDraft.length}}/2000</view>
+      </view>
+      <view class="dialogActions">
+        <button class="dialogButton dialogButton--cancel" disabled="{{templateSubmitting}}" bindtap="closeTemplateDialog">取消</button>
+        <button class="dialogButton dialogButton--confirm" loading="{{templateSubmitting}}" disabled="{{templateSubmitting}}" bindtap="submitTemplate">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

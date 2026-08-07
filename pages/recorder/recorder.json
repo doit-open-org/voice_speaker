@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "navigation-bar": "../../components/navigation-bar/navigation-bar",
+    "van-popup": "@vant/weapp/popup/index",
+    "recorder": "../../components/recorder/recorder",
+    "bgmset": "../../components/bgmSet/bgmSet"
+  },
+  "navigationBarTitleText": "录音"
+}

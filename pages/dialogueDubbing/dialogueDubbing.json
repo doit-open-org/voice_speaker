@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "对话配音",
+  "navigationBarBackgroundColor": "#E20E0E",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "van-icon": "@vant/weapp/icon/index",
+    "van-popup": "@vant/weapp/popup/index",
+    "bgmset": "../../components/bgmSet/bgmSet"
+  }
+}

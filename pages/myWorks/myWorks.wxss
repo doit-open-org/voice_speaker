@@ -1,0 +1,55 @@
+/* @import '../../app.wxss'; */
+.page {
+  padding: 20rpx;
+  min-height: 100vh;
+}
+.container{
+  
+}
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 6rpx 20rpx rgba(0,0,0,0.06);
+}
+
+.left {
+  display: flex;
+}
+
+.icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 20rpx;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: bold;
+	margin-bottom: 6rpx;
+	white-space: normal;
+  word-break: break-all;
+}
+
+.time {
+  font-size: 26rpx;
+  color: #999;
+}
+
+
+.right {
+  display: flex;
+}
+
+.btn {
+  color: #d9534f;
+  font-size: 26rpx;
+}

@@ -1,0 +1,48 @@
+.optionPage {
+  min-height: 100vh;
+  padding: 28rpx;
+  box-sizing: border-box;
+  background: #f5f5f5;
+}
+
+.optionList {
+  display: grid;
+  gap: 20rpx;
+}
+
+.optionCard {
+  min-height: 126rpx;
+  padding: 22rpx 28rpx;
+  box-sizing: border-box;
+  border: 1rpx solid #eeeeee;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.optionCard--pressed {
+  background: #fafafa;
+}
+
+.optionName {
+  padding-bottom: 10rpx;
+  overflow-wrap: anywhere;
+  border-bottom: 1rpx solid #e5e5e5;
+  color: #222222;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.optionDescription {
+  margin-top: 8rpx;
+  color: #777777;
+  font-size: 25rpx;
+  line-height: 1.45;
+}
+
+.optionEmpty {
+  padding-top: 220rpx;
+  color: #999999;
+  font-size: 28rpx;
+  text-align: center;
+}

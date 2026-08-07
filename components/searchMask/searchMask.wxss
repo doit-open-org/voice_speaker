@@ -1,0 +1,65 @@
+/*  搜索遮罩层 */
+.maskSearch{
+  /* position: absolute; */
+  /* top: 0; */
+  /* background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 6; */
+}
+.connectDevice{
+  width: 550rpx;
+  background: #FFFEFF;
+  color: #403E41;
+  border-radius: 20rpx;
+  overflow: hidden;
+  max-height: 80%;
+  overflow: auto;
+}
+.connectedTtile,.searchTtile{
+  background:#EAE8EB;
+  padding:0 20rpx;
+  line-height: 90rpx;
+}
+.searchTtile{
+  display: flex;
+  justify-content: space-between;
+}
+.connectedev,.searchdev{
+  padding: 0px 20rpx;
+  line-height: 90rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.searchdev{
+  border-bottom: 1px solid #EAE8EB;
+}
+.confirm{
+  text-align: center;
+  line-height: 90rpx;
+}
+.ssTips{
+  padding: 20rpx;
+  font-size: 0.8rem;
+  color: red;
+  border-top: 1px solid #ccc;
+  text-align: center;
+}
+.devChooseIcon{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60rpx;
+  height: 60rpx;
+  border: 1px solid #ccc;
+}
+.devChooseIcon image{
+  width: 50rpx;
+  height: 50rpx;
+  display: none;
+}
+.searchTips{
+  font-size: 0.8rem;
+  color: red;
+}

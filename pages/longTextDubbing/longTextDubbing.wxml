@@ -1,0 +1,133 @@
+<view class="longTextPage">
+  <scroll-view class="pageScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="heroSection">
+      <image class="heroArtwork" src="/img/yinxiang.png" mode="aspectFit" />
+      <view class="heroTitle">四博广告音响</view>
+      <view class="heroSubtitle">一款可以智能制作广告的音响！</view>
+    </view>
+
+    <view class="pageContent">
+      <view class="textPanel">
+        <view class="usageGuide" wx:if="{{!inputText}}">
+          <view class="usageTitle">
+            <van-icon name="description-o" size="17px" color="#C91818" />
+            <text>使用步骤</text>
+          </view>
+          <text>1. 输入或粘贴需要合成的文字</text>
+          <text>2. 选择主播、背景音乐和语速</text>
+          <text>3. 可在光标位置插入停顿</text>
+          <text>4. 请规范使用标点符号，使朗读停顿更准确</text>
+        </view>
+        <textarea
+          class="textInput"
+          value="{{inputText}}"
+          maxlength="2000"
+          cursor="{{cursorPosition}}"
+          bindinput="onTextInput"
+          bindfocus="updateCursor"
+          bindblur="updateCursor"
+        />
+        <view class="textPanelFooter">
+          <button class="pauseChip" bindtap="stopSet">插入停顿</button>
+          <view class="textMeta">
+            <text>{{inputText.length}}/2000</text>
+            <view class="clearButton" bindtap="clearText">
+              <van-icon name="delete-o" size="21px" color="#C91818" />
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="voiceStrip">
+        <view
+          class="voiceCard {{voiceIndex === index ? 'voiceCard--active' : ''}}"
+          wx:for="{{voiceList}}"
+          wx:key="voice_id"
+          id="{{index}}"
+          bindtap="changeStreamer"
+        >
+          <image class="voiceAvatar" src="/img/{{item.headImg}}" mode="aspectFill" />
+          <text class="voiceName">{{item.voice_name}}</text>
+        </view>
+        <view class="voiceCard {{voiceIndex === -1 ? 'voiceCard--active' : ''}}" bindtap="moreVoice">
+          <view class="moreVoiceIcon">
+            <van-icon name="friends-o" size="32px" color="#C91818" />
+          </view>
+          <text class="voiceName">更多主播</text>
+        </view>
+      </view>
+
+      <view class="toolRow">
+        <button class="toolButton" bindtap="musicSet">
+          <van-icon name="setting-o" size="22px" color="#C91818" />
+          <text>音效设置</text>
+        </button>
+        <button class="toolButton" bindtap="openTemplate">
+          <van-icon name="description-o" size="22px" color="#C91818" />
+          <text>广告模板</text>
+        </button>
+        <!-- <button class="toolButton toolButton--disabled" disabled>
+          <van-icon name="records" size="22px" color="#A9A9A9" />
+          <text>文章导入</text>
+        </button> -->
+      </view>
+
+      <view class="actionRow">
+        <button class="bgmButton" bindtap="bgmPop">背景音乐</button>
+        <button class="synthesisButton" disabled>合成配音</button>
+      </view>
+    </view>
+  </scroll-view>
+
+  <van-popup show="{{musicSetShow}}" position="bottom" round closeable bind:close="musicSet">
+    <view class="settingPopup">
+      <text class="settingTitle">音效设置</text>
+      <view class="sliderRow">
+        <text>语速</text>
+        <slider
+          class="settingSlider"
+          min="0.5"
+          max="2"
+          step="0.1"
+          value="{{speed}}"
+          show-value
+          activeColor="#E20E0E"
+          block-color="#E20E0E"
+          block-size="20"
+          bindchange="musicSliderChange"
+        />
+      </view>
+      <button class="popupConfirm" bindtap="musicPopConfirm">确定</button>
+    </view>
+  </van-popup>
+
+  <van-popup show="{{stopShow}}" position="bottom" round closeable bind:close="stopSet">
+    <view class="settingPopup">
+      <text class="settingTitle">插入停顿</text>
+      <text class="pauseValue">{{stopVal}} s</text>
+      <slider
+        class="pauseSlider"
+        min="0.1"
+        max="10"
+        step="0.1"
+        value="{{stopVal}}"
+        activeColor="#E20E0E"
+        block-color="#E20E0E"
+        block-size="20"
+        bindchanging="stopSliderChange"
+        bindchange="stopSliderChange"
+      />
+      <button class="popupConfirm" bindtap="stopPopConfirm">确定</button>
+    </view>
+  </van-popup>
+
+  <van-popup show="{{bgmSetPop}}" position="bottom" round closeable custom-style="z-index: 102;" bind:close="bgmPop">
+    <bgmset
+      activeBgmInfo="{{activeBgmInfo}}"
+      bgmSetDetail="{{bgmSetDetail}}"
+      bind:showBgmList="showBgmList"
+      bind:resetBgm="resetBgm"
+      bind:bmgSetConfirm="bmgSetConfirm"
+    />
+  </van-popup>
+</view>

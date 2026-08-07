@@ -1,0 +1,125 @@
+.advancedPage {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f6f7f8;
+  color: #2e2e2e;
+}
+
+.advancedScroll {
+  flex: 1;
+  min-height: 0;
+  background: linear-gradient(#E20E0E,#F9F6E4);
+}
+
+.advancedHeader {
+  height: 176rpx;
+  background: #E20E0E;
+}
+
+.featureList {
+  padding: 28rpx 28rpx calc(36rpx + env(safe-area-inset-bottom));
+}
+
+.featureCard {
+  min-height: 164rpx;
+  margin-bottom: 24rpx;
+  padding: 28rpx 26rpx 28rpx 32rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  border: 1rpx solid #ececec;
+  border-radius: 8rpx;
+  background: #ffffff;
+  box-shadow: 0 8rpx 22rpx rgba(35, 35, 35, 0.08);
+}
+
+.featureCard--pressed {
+  background: #fafafa;
+}
+
+.featureCopy {
+  min-width: 0;
+  flex: 1;
+}
+
+.featureHeading {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.featureTitle {
+  color: #303030;
+  font-size: 34rpx;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.advancedBadge {
+  height: 40rpx;
+  padding: 0 14rpx;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  border-radius: 20rpx;
+  background: #ef5a2e;
+  color: #ffffff;
+  font-size: 22rpx;
+  line-height: 40rpx;
+  white-space: nowrap;
+}
+
+.featureDescription {
+  margin-top: 22rpx;
+  overflow: hidden;
+  color: #767676;
+  font-size: 27rpx;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.featureIcon {
+  width: 96rpx;
+  height: 96rpx;
+  flex: 0 0 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  background: #fff7e8;
+}
+
+.advancedTabBar {
+  min-height: 100rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1rpx solid #eeeeee;
+  background: #ffffff;
+}
+
+.advancedTabItem {
+  min-width: 0;
+  height: 100rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tabLabel {
+  margin-top: 4rpx;
+  color: #8a8a8a;
+  font-size: 24rpx;
+  line-height: 1.2;
+}
+
+.tabLabel--active {
+  color: #D81E06;
+}

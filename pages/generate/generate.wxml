@@ -1,0 +1,84 @@
+<view class="container pos_rel">
+  <!-- 音频波形区域 -->
+  <view class="audio-section">
+    <view class="waveform">
+      <view class="wave-bar" wx:for="{{waveData}}" wx:key="index" style="height: {{item}}rpx;"></view>
+    </view>
+    
+    <button class="play-btn" bindtap="playAudio">
+      <text class="play-icon" wx:if="{{!isPlaying}}">▶</text>
+      <text class="play-icon" wx:if="{{isPlaying}}">II</text>
+      音频试听
+    </button>
+  </view>
+
+  <!-- 导出选项列表 -->
+  <view class="export-options">
+    <!-- 发送到智能音箱 -->
+    <view class="option-item">
+      <view class="option-left">
+        <view class="option-icon bluetooth-icon flex">
+          <image class="blueIcon" src="/img/bluetooth.png" mode="aspectFit"></image>
+        </view>
+        <view class="option-content">
+          <!-- <view class="option-title">发送到智能音箱</view> -->
+          <view class="option-title">发送到配音宝</view>
+          <view class="option-desc">发送到设备之后无法保存文件</view>
+        </view>
+      </view>
+      <button class="action-btn" bindtap="sendToDevice">发送</button>
+    </view>
+
+    <!-- 保存音频到作品 -->
+    <!-- <view class="option-item">
+      <view class="option-left">
+        <view class="option-icon file-icon">
+          <text class="icon-text">📄</text>
+        </view>
+        <view class="option-content">
+          <view class="option-title">保存音频到作品</view>
+          <view class="option-desc">导出音频至个人作品</view>
+        </view>
+      </view>
+      <button class="action-btn" bindtap="saveToWorks">保存</button>
+    </view> -->
+
+    <!-- 导出音频到微信 -->
+    <view class="option-item">
+      <view class="option-left">
+        <view class="option-icon music-icon">
+          <text class="icon-text">♪</text>
+        </view>
+        <view class="option-content">
+          <view class="option-title">导出音频到微信</view>
+          <view class="option-desc">导出音频至微信下载</view>
+        </view>
+      </view>
+      <button class="action-btn" bindtap="exportToWechat">导出</button>
+    </view>
+
+    <!-- 复制链接下载文件 -->
+    <view class="option-item">
+      <view class="option-left">
+        <view class="option-icon link-icon">
+          <text class="icon-text">♪</text>
+        </view>
+        <view class="option-content">
+          <view class="option-title">复制链接下载文件</view>
+          <view class="option-desc">点击复制链接在浏览器下载</view>
+        </view>
+      </view>
+      <button class="action-btn" bindtap="copyLink">复制</button>
+    </view>
+  </view>
+  <!-- 导入进度蒙层 -->
+	<view class="importMask pos_abs w100 h100 flexCC" wx:if="{{importMask}}">
+		<view class="loadingView flex flex_d_c">
+			<view class="loadIcon flexCC pos_rel">
+				<image class="loadImg" src="/img/Loading.png" mode="aspectFit"></image>
+				<view class="pos_abs">{{importPro}}%</view>
+			</view>
+			<view class="flexCC importTxt">发送中</view>
+		</view>
+	</view>
+</view>
