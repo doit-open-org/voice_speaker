@@ -55,6 +55,13 @@
           "query": "",
           "launchMode": "default",
           "scene": null
+        },
+        {
+          "name": "gj",
+          "pathName": "pages/advanced/advanced",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         }
       ]
     }
