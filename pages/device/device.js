@@ -204,6 +204,9 @@ Page({
         url: '../advanced/advanced'
       })
     }
+    if(e.currentTarget.id == 4){
+      wx.navigateTo({ url: '../mine/mine' })
+    }
     
   },
 

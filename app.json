@@ -18,7 +18,11 @@
     "pages/device/device",
     "pages/generate/generate",
     "pages/devMusicList/devMusicList",
-    "pages/myWorks/myWorks"
+    "pages/myWorks/myWorks",
+    "pages/mine/mine",
+    "pages/profile/profile",
+    "pages/contact/contact",
+    "pages/about/about"
   ],
   "window": {
     "navigationBarTitleText": "",

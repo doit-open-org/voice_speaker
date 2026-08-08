@@ -32,6 +32,9 @@ Page({
 
   onLoad() {
     this.applyPendingVoiceText()
+    // 下面函数仅执行一次
+    if(app.globalData.onlyOnce){ return }
+    app.globalData.onlyOnce = true;
     //检查login
     checkLogin();
     // 拉取音色列表
@@ -100,7 +103,7 @@ Page({
     // dev = {"deviceId":'123',"name":'配音宝'}
     app.globalData.reConDevInfo = dev
     if(dev){
-      wx.navigateTo({  url: '../device/device?dev=1' })
+      wx.redirectTo({  url: '../device/device?dev=1' })
     }
   },
 
@@ -308,10 +311,13 @@ Page({
   changeTab(e){
     this.setData({ tabIndex: e.currentTarget.id })
     if(e.currentTarget.id == 2){
-      wx.navigateTo({  url: '../device/device' })
+      wx.redirectTo({  url: '../device/device' })
     }
     if(e.currentTarget.id == 3){
-      wx.navigateTo({ url: '../advanced/advanced' })
+      wx.redirectTo({ url: '../advanced/advanced' })
+    }
+    if(e.currentTarget.id == 4){
+      wx.redirectTo({ url: '../mine/mine' })
     }
   }
 

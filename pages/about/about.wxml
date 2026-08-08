@@ -1,0 +1,15 @@
+<view class="aboutPage">
+  <view class="aboutCopy">
+    <view class="aboutParagraph">
+      四博配音线上一站式音频制作工具，轻松搞定各类音视频配音需求。平台主打虚拟数字人配音，海量虚拟主播形象任选，输入文字即可生成配音，一键同步至四博设备直接使用，高效完成音频创作。
+    </view>
+    <view class="aboutParagraph">
+      仅需两步就能快速生成虚拟人播报音频，操作轻松、出音高效。平台同时兼顾 AI 语音合成与真人配音两大服务，始终以稳定出色的音质与高效交付能力，为用户提供专业配音解决方案。
+    </view>
+    <view class="aboutParagraph">
+      十余年来，四博持续深耕实体商户服务赛道，围绕门店广告投放、活动促销、品牌宣传场景，提供软硬件整合配套服务，助力商户实现宣传降本增效，简化营销全流程.
+    </view>
+  </view>
+
+  <image class="aboutProduct" src="/img/yinxiang1.png" mode="widthFix"></image>
+</view>

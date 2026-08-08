@@ -1,0 +1,64 @@
+<view class="minePage">
+  <scroll-view class="mineScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="mineHeader">
+      <view class="identityRow">
+        <view class="avatar" bindtap="openProfile" hover-class="tapPressed">
+          <image wx:if="{{avatarUrl}}" class="avatarImage" src="{{avatarUrl}}" mode="aspectFill"></image>
+          <van-icon wx:else name="manager-o" size="46px" color="#ffffff" />
+        </view>
+        <text class="nickname" bindtap="openProfile" hover-class="tapPressed">{{nickname}}</text>
+        <view class="editProfile" bindtap="openProfile" hover-class="tapPressed">
+          <van-icon name="edit" size="24px" color="#ffffff" />
+        </view>
+      </view>
+
+
+    </view>
+
+    <view class="mineBody">
+
+
+      <view class="settingsList">
+        <!-- <view class="settingRow">
+          <van-icon name="smile-o" size="23px" color="#d82929" />
+          <text class="settingLabel">主题切换</text>
+          <van-icon name="arrow" size="19px" color="#555555" />
+        </view>
+        <view class="settingRow" bindtap="openContact" hover-class="tapPressed">
+          <van-icon name="orders-o" size="23px" color="#d82929" />
+          <text class="settingLabel">我的订单</text>
+          <van-icon name="arrow" size="19px" color="#555555" />
+        </view> -->
+        <view class="settingRow" bindtap="openContact" hover-class="tapPressed">
+          <van-icon name="phone-o" size="23px" color="#d82929" />
+          <text class="settingLabel">联系方式</text>
+          <van-icon name="arrow" size="19px" color="#555555" />
+        </view>
+        <view class="settingRow" bindtap="openAbout">
+          <van-icon name="friends-o" size="23px" color="#d82929" />
+          <text class="settingLabel">关于我们</text>
+          <van-icon name="arrow" size="19px" color="#555555" />
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="mineTabBar">
+    <view class="mineTabItem" data-tab="voice" bindtap="changeTab">
+      <van-icon name="audio" size="25px" color="#8A8A8A" />
+      <text>配音</text>
+    </view>
+    <view class="mineTabItem" data-tab="device" bindtap="changeTab">
+      <van-icon name="desktop-o" size="25px" color="#8A8A8A" />
+      <text>设备</text>
+    </view>
+    <view class="mineTabItem" data-tab="advanced" bindtap="changeTab">
+      <van-icon name="cluster" size="25px" color="#8A8A8A" />
+      <text>高级</text>
+    </view>
+    <view class="mineTabItem">
+      <van-icon name="manager" size="25px" color="#D81E06" />
+      <text class="mineTabActive">我的</text>
+    </view>
+  </view>
+</view>

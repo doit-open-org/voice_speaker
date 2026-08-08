@@ -2708,6 +2708,219 @@ test('long text dubbing keeps the reusable editing controls without synthesis', 
   assert.equal(config.navigationBarTitleText, '\u957f\u6587\u672c\u914d\u97f3')
 })
 
+test('mine pages are registered and reachable from every bottom menu', () => {
+  const appConfig = JSON.parse(read('app.json'))
+  assert.equal(appConfig.pages.includes('pages/mine/mine'), true)
+  assert.equal(appConfig.pages.includes('pages/profile/profile'), true)
+
+  for (const pageName of ['mine/mine', 'profile/profile']) {
+    for (const extension of ['js', 'json', 'wxml', 'wxss']) {
+      assert.equal(fs.existsSync(path.join(projectRoot, `pages/${pageName}.${extension}`)), true)
+    }
+  }
+
+  const indexMarkup = read('pages/index/index.wxml')
+  const deviceMarkup = read('pages/device/device.wxml')
+  const advancedMarkup = read('pages/advanced/advanced.wxml')
+  assert.equal(indexMarkup.includes('id="4"'), true)
+  assert.equal(deviceMarkup.includes('id="4"'), true)
+  assert.equal(advancedMarkup.includes('data-tab="mine"'), true)
+  assert.equal(indexMarkup.includes('<text>\u6211\u7684</text>'), true)
+
+  const { navigationCalls: indexNavigation, page: indexPage } = loadPage('pages/index/index.js')
+  indexPage.changeTab({ currentTarget: { id: '4' } })
+  assert.equal(indexNavigation.at(-1).options.url, '../mine/mine')
+
+  const { navigationCalls: advancedNavigation, page: advancedPage } = loadPage('pages/advanced/advanced.js')
+  advancedPage.changeTab({ currentTarget: { dataset: { tab: 'mine' } } })
+  assert.equal(advancedNavigation.at(-1).options.url, '../mine/mine')
+
+  const { navigationCalls: deviceNavigation, page: devicePage } = loadPage('pages/device/device.js')
+  devicePage.changeTab({ currentTarget: { id: '4' } })
+  assert.equal(deviceNavigation.at(-1).options.url, '../mine/mine')
+})
+
+test('mine page loads the profile and all identity controls open the profile editor', async () => {
+  const requestCalls = []
+  const { navigationCalls, page } = loadPage('pages/mine/mine.js', {
+    request: async (options) => {
+      requestCalls.push(options)
+      return {
+        code: 200,
+        data: { nickname: '\u7528\u6237BpbU', avatar_url: '/uploads/avatar.png' }
+      }
+    }
+  })
+
+  await page.onShow()
+
+  assert.equal(requestCalls[0].url, '/user/profile')
+  assert.equal(requestCalls[0].method, 'GET')
+  assert.equal(requestCalls[0].needAuth, true)
+  assert.equal(page.data.nickname, '\u7528\u6237BpbU')
+  assert.equal(page.data.avatarUrl, 'http://192.168.5.245:9000/uploads/avatar.png')
+
+  page.openProfile()
+  page.openProfile()
+  page.openProfile()
+  assert.deepEqual(
+    navigationCalls.map((call) => call.options.url),
+    ['../profile/profile', '../profile/profile', '../profile/profile']
+  )
+
+  const markup = read('pages/mine/mine.wxml')
+  assert.equal((markup.match(/bindtap="openProfile"/g) || []).length >= 3, true)
+
+  page.changeTab({ currentTarget: { dataset: { tab: 'voice' } } })
+  page.changeTab({ currentTarget: { dataset: { tab: 'device' } } })
+  page.changeTab({ currentTarget: { dataset: { tab: 'advanced' } } })
+  assert.deepEqual(
+    navigationCalls.slice(-3).map((call) => [call.type, call.options.url]),
+    [
+      ['redirect', '../index/index'],
+      ['to', '../device/device'],
+      ['to', '../advanced/advanced']
+    ]
+  )
+})
+
+test('contact and about pages are registered and open from mine settings', () => {
+  const appConfig = JSON.parse(read('app.json'))
+  assert.equal(appConfig.pages.includes('pages/contact/contact'), true)
+  assert.equal(appConfig.pages.includes('pages/about/about'), true)
+
+  for (const pageName of ['contact/contact', 'about/about']) {
+    for (const extension of ['js', 'json', 'wxml', 'wxss']) {
+      assert.equal(fs.existsSync(path.join(projectRoot, `pages/${pageName}.${extension}`)), true)
+    }
+  }
+
+  const { navigationCalls, page } = loadPage('pages/mine/mine.js')
+  page.openContact()
+  page.openAbout()
+  assert.deepEqual(
+    navigationCalls.map((call) => call.options.url),
+    ['../contact/contact', '../about/about']
+  )
+
+  const markup = read('pages/mine/mine.wxml')
+  assert.equal(markup.includes('bindtap="openContact"'), true)
+  assert.equal(markup.includes('bindtap="openAbout"'), true)
+})
+
+test('contact page copies WeChat and calls the service phone number', () => {
+  const clipboardCalls = []
+  const phoneCalls = []
+  const { page } = loadPage('pages/contact/contact.js', {
+    wx: {
+      setClipboardData(options) {
+        clipboardCalls.push(options)
+      },
+      makePhoneCall(options) {
+        phoneCalls.push(options)
+      }
+    }
+  })
+
+  page.copyWechat()
+  page.callService()
+
+  assert.equal(clipboardCalls[0].data, 'Darhopyb')
+  assert.equal(phoneCalls[0].phoneNumber, '15381715397')
+
+  const markup = read('pages/contact/contact.wxml')
+  assert.equal(markup.includes('Darhopyb'), true)
+  assert.equal(markup.includes('15381715397'), true)
+  assert.equal(markup.includes('9:00-18:00(\u5468\u4e00\u81f3\u5468\u516d)'), true)
+  assert.equal(markup.includes('bindtap="copyWechat"'), true)
+  assert.equal(markup.includes('bindtap="callService"'), true)
+})
+
+test('about page follows the reference copy and uses an existing product image', () => {
+  const config = JSON.parse(read('pages/about/about.json'))
+  const markup = read('pages/about/about.wxml')
+  const styles = read('pages/about/about.wxss')
+
+  assert.equal(config.navigationBarTitleText, '\u5173\u4e8e\u6211\u4eec')
+  assert.equal(markup.includes('\u5927\u6d2a\u914d\u97f3\u5c0f\u7a0b\u5e8f'), true)
+  assert.equal(markup.includes('\u4e00\u7ad9\u5f0f\u97f3\u89c6\u9891\u5236\u4f5c'), true)
+  assert.equal(markup.includes('src="/img/yinxiang1.png"'), true)
+  assert.equal(styles.includes('linear-gradient'), true)
+})
+
+test('profile page loads and updates a trimmed nickname', async () => {
+  const requestCalls = []
+  const { page, toastCalls } = loadPage('pages/profile/profile.js', {
+    request: async (options) => {
+      requestCalls.push(options)
+      if (options.method === 'GET') {
+        return { code: 200, data: { nickname: '\u65e7\u6635\u79f0', avatar_url: null } }
+      }
+      return { code: 200, data: { nickname: '\u65b0\u6635\u79f0', avatar_url: null } }
+    }
+  })
+
+  await page.onLoad()
+  page.openNicknameEditor()
+  page.onNicknameInput({ detail: { value: '  \u65b0\u6635\u79f0  ' } })
+  await page.saveNickname()
+
+  assert.equal(requestCalls[1].url, '/user/profile/nickname')
+  assert.equal(requestCalls[1].method, 'PUT')
+  assert.equal(requestCalls[1].data.nickname, '\u65b0\u6635\u79f0')
+  assert.equal(requestCalls[1].needAuth, true)
+  assert.equal(page.data.nickname, '\u65b0\u6635\u79f0')
+  assert.equal(page.data.editingNickname, false)
+  assert.equal(toastCalls.at(-1).title, '\u6635\u79f0\u5df2\u66f4\u65b0')
+})
+
+test('profile page uploads an avatar as authenticated multipart PUT', async () => {
+  const uploadCalls = []
+  const fileBytes = Uint8Array.from([137, 80, 78, 71]).buffer
+  const { page, toastCalls } = loadPage('pages/profile/profile.js', {
+    request: async () => ({ code: 200, data: { nickname: '\u7528\u6237BpbU', avatar_url: null } }),
+    wx: {
+      chooseMedia(options) {
+        options.success({ tempFiles: [{ tempFilePath: 'wxfile://tmp/avatar.png' }] })
+      },
+      getFileSystemManager() {
+        return {
+          readFile(options) {
+            options.success({ data: fileBytes })
+          }
+        }
+      },
+      getStorageSync(key) {
+        return key === 'auth_token' ? 'test-token' : ''
+      },
+      request(options) {
+        uploadCalls.push(options)
+        options.success({
+          statusCode: 200,
+          data: {
+            code: 200,
+            data: { nickname: '\u7528\u6237BpbU', avatar_url: '/uploads/new-avatar.png' }
+          }
+        })
+      }
+    }
+  })
+
+  await page.onLoad()
+  await page.chooseAvatar()
+
+  assert.equal(uploadCalls.length, 1)
+  assert.equal(uploadCalls[0].method, 'PUT')
+  assert.equal(uploadCalls[0].url, 'http://192.168.5.245:9000/api/v1/user/profile/avatar')
+  assert.equal(uploadCalls[0].header.Authorization, 'Bearer test-token')
+  assert.match(uploadCalls[0].header['Content-Type'], /^multipart\/form-data; boundary=/)
+  const multipartText = Buffer.from(new Uint8Array(uploadCalls[0].data)).toString('utf8')
+  assert.equal(multipartText.includes('name="avatar"'), true)
+  assert.equal(multipartText.includes('filename="avatar.png"'), true)
+  assert.equal(page.data.avatarUrl, 'http://192.168.5.245:9000/uploads/new-avatar.png')
+  assert.equal(toastCalls.at(-1).title, '\u5934\u50cf\u5df2\u66f4\u65b0')
+})
+
 async function main() {
   let failures = 0
 

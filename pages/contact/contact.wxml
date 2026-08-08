@@ -1,0 +1,18 @@
+<view class="contactPage">
+  <view class="contactRow">
+    <text class="contactLabel">客服微信</text>
+    <text class="contactValue">13430722360</text>
+    <button class="contactButton" bindtap="copyWechat">复制</button>
+  </view>
+
+  <view class="contactRow">
+    <text class="contactLabel">客服电话</text>
+    <text class="contactValue">13430722360</text>
+    <button class="contactButton" bindtap="callService">拨打</button>
+  </view>
+
+  <view class="contactRow">
+    <text class="contactLabel">工作时间</text>
+    <text class="contactValue contactValueWide">9:00-18:00(周一至周六)</text>
+  </view>
+</view>

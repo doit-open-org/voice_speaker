@@ -1,0 +1,32 @@
+page {
+  min-height: 100%;
+  background: #ef0000;
+}
+
+.aboutPage {
+  min-height: 100vh;
+  padding-top: 30rpx;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #ef0000 0%, #ea1619 47%, #ed7474 66%, #fff9dd 100%);
+  color: #fce8cc;
+}
+
+.aboutCopy {
+  padding: 0 34rpx;
+  font-size: 36rpx;
+  line-height: 1.18;
+  text-align: justify;
+}
+
+.aboutParagraph {
+  margin-bottom: 10rpx;
+  text-indent: 2em;
+}
+
+.aboutProduct {
+  width: 100%;
+  margin-top: auto;
+  display: block;
+}

@@ -6,6 +6,7 @@ App({
     // this.isIOS =  isIOS
   },
   globalData: {
+    onlyOnce: false,//进小程序仅执行一次
     userInfo: null,
     deviceInfo:{}, //已连接设备信息
     mtu: 512-3, //默认20

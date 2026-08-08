@@ -49,6 +49,10 @@
       <van-icon name="cluster" size="25px" color="#8A8A8A" />
       <text>高级</text>
     </view>
+    <view class="tabItem flexCC flex_d_c" bindtap="changeTab" id="4">
+      <van-icon name="manager" size="25px" color="#8A8A8A" />
+      <text>我的</text>
+    </view>
     
   </view>
 </view>

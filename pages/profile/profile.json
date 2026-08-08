@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "个人资料",
+  "navigationBarTextStyle": "black",
+  "navigationBarBackgroundColor": "#f7f7f7",
+  "usingComponents": {
+    "van-icon": "@vant/weapp/icon/index"
+  }
+}
