@@ -11,5 +11,7 @@
     </view>
   </view>
 
-  <image class="aboutProduct" src="/img/yinxiang1.png" mode="widthFix"></image>
+  <view class="aboutProductView">
+    <image class="aboutProduct" src="/img/yinxiang1.png" mode="widthFix"></image>
+  </view>
 </view>

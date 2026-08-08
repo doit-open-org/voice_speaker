@@ -240,9 +240,13 @@
 }
 
 .synthesisButton {
-  background: #cfcfcf;
+  background: #c91818;
   color: #ffffff;
   opacity: 1;
+}
+
+.synthesisButton--disabled {
+  background: #cfcfcf;
 }
 
 .settingPopup {
@@ -293,4 +297,19 @@
   color: #ffffff;
   font-size: 27rpx;
   line-height: 70rpx;
+}
+
+.musicPopActionRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.musicPopActionRow .popupConfirm {
+  margin: 32rpx 0 0;
+}
+
+.popupReset {
+  background: #c78482;
 }

@@ -1,6 +1,6 @@
 const { request, showToast } = require('../../utils/request')
 
-const API_ORIGIN = 'http://192.168.5.245:9000'
+const API_ORIGIN = getApp().globalData.domain
 const API_BASE_URL = `${API_ORIGIN}/api/v1`
 const FAVORITES_KEY = 'favorites'
 const UPLOADS_KEY = 'uploads'
@@ -68,7 +68,10 @@ Page({
 
   createAudio() {
     this.innerAudioContext = wx.createInnerAudioContext()
-    this.innerAudioContext.onPause(() => this.resetPlaying())
+    this.innerAudioContext.onPlay(() => this.syncPlaying())
+    this.innerAudioContext.onPause(() => {
+      if (!this.requestedPlayingId) this.resetPlaying()
+    })
     this.innerAudioContext.onEnded(() => this.resetPlaying())
     this.innerAudioContext.onError(() => {
       const wasPreviewing = Boolean(this.data.playingId)
@@ -232,21 +235,37 @@ Page({
       showToast('none', '背景音乐试听失败')
       return
     }
-    this.setData({ playingId: id })
+    this.requestedPlayingId = id
     this.playingSource = source
+    this.setData({ playingId: id })
     this.innerAudioContext.src = this.normalizeAudioUrl(bgm.audio_path)
     this.innerAudioContext.play()
   },
 
   pauseMusic() {
+    this.requestedPlayingId = 0
+    this.playingSource = ''
     if (this.innerAudioContext) {
       this.innerAudioContext.pause()
-    } else {
-      this.resetPlaying()
+    }
+    this.resetPlaying()
+  },
+
+  syncPlaying() {
+    if (!this.requestedPlayingId) return
+    this.setData({ playingId: this.requestedPlayingId })
+    const bgmList = this.selectComponent('#bgmlistCom')
+    if (bgmList) {
+      bgmList.setData({
+        palyId: this.requestedPlayingId,
+        palySource: this.playingSource
+      })
     }
   },
 
   resetPlaying() {
+    this.requestedPlayingId = 0
+    this.playingSource = ''
     this.setData({ playingId: 0 })
     const bgmList = this.selectComponent('#bgmlistCom')
     if (bgmList) bgmList.setData({ palyId: 0, palySource: '' })

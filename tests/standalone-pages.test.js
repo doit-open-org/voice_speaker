@@ -185,6 +185,30 @@ function createAudioDouble() {
   }
 }
 
+function createRecorderDouble(stopResult, beforeStop = () => {}) {
+  const handlers = {}
+  const recorder = {
+    startOptions: null,
+    stopped: false,
+    onStart(handler) { handlers.start = handler },
+    onStop(handler) { handlers.stop = handler },
+    onError(handler) { handlers.error = handler },
+    offStart(handler) { this.startRemoved = handler === handlers.start },
+    offStop(handler) { this.stopRemoved = handler === handlers.stop },
+    offError(handler) { this.errorRemoved = handler === handlers.error },
+    start(options) {
+      this.startOptions = options
+      handlers.start()
+    },
+    stop() {
+      this.stopped = true
+      beforeStop()
+      handlers.stop(stopResult)
+    }
+  }
+  return { handlers, recorder }
+}
+
 test('home registers all standalone pages', () => {
   const appConfig = JSON.parse(read('app.json'))
   const expectedPages = [
@@ -198,36 +222,91 @@ test('home registers all standalone pages', () => {
   })
 })
 
-test('home adds an advanced bottom menu and opens the advanced page', () => {
-  const appConfig = JSON.parse(read('app.json'))
-  assert.equal(appConfig.pages.includes('pages/advanced/advanced'), true)
+test('every page disables pull-down refresh and page scrolling', () => {
+  const pendingDirectories = [path.join(projectRoot, 'pages')]
+  const pageConfigPaths = []
 
-  const { navigationCalls, page } = loadPage('pages/index/index.js')
-  page.changeTab({ currentTarget: { id: 3 } })
+  while (pendingDirectories.length > 0) {
+    const directory = pendingDirectories.pop()
+    fs.readdirSync(directory, { withFileTypes: true }).forEach((entry) => {
+      const entryPath = path.join(directory, entry.name)
+      if (entry.isDirectory()) {
+        pendingDirectories.push(entryPath)
+      } else if (entry.name.endsWith('.json')) {
+        pageConfigPaths.push(entryPath)
+      }
+    })
+  }
 
-  assert.equal(page.data.tabIndex, 3)
-  assert.equal(navigationCalls.at(-1).type, 'to')
-  assert.equal(navigationCalls.at(-1).options.url, '../advanced/advanced')
-
-  const markup = read('pages/index/index.wxml')
-  assert.equal(markup.includes('id="3"'), true)
-  assert.equal(markup.includes('<text>高级</text>'), true)
+  assert.ok(pageConfigPaths.length > 0, 'no page JSON configurations found')
+  pageConfigPaths.forEach((configPath) => {
+    const relativePath = path.relative(projectRoot, configPath)
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+    assert.equal(config.enablePullDownRefresh, false, `${relativePath} enables pull-down refresh`)
+    assert.equal(config.disableScroll, true, `${relativePath} does not disable page scrolling`)
+  })
 })
 
-test('device page adds an advanced bottom menu and opens the advanced page', () => {
-  const { navigationCalls, page } = loadPage('pages/device/device.js')
-  page.changeTab({ currentTarget: { id: 3 } })
+test('shared bottom navigation renders four tabs and redirects between pages', () => {
+  for (const extension of ['js', 'json', 'wxml', 'wxss']) {
+    assert.equal(
+      fs.existsSync(path.join(projectRoot, `components/bottomNav/bottomNav.${extension}`)),
+      true
+    )
+  }
 
-  assert.equal(navigationCalls.length, 1)
-  assert.equal(navigationCalls[0].type, 'to')
-  assert.equal(navigationCalls[0].options.url, '../advanced/advanced')
+  const navigationCalls = []
+  const { component, componentConfig } = loadComponent('components/bottomNav/bottomNav.js', {
+    redirectTo(options) {
+      navigationCalls.push(options)
+    }
+  })
+  component.properties.active = 'voice'
 
-  const markup = read('pages/device/device.wxml')
-  const config = JSON.parse(read('pages/device/device.json'))
-  assert.equal(markup.includes('id="3"'), true)
-  assert.equal(markup.includes('<text>\u9ad8\u7ea7</text>'), true)
-  assert.equal(markup.includes('name="cluster"'), true)
+  component.changeTab({ currentTarget: { dataset: { tab: 'device' } } })
+  component.changeTab({ currentTarget: { dataset: { tab: 'advanced' } } })
+  component.changeTab({ currentTarget: { dataset: { tab: 'mine' } } })
+  component.changeTab({ currentTarget: { dataset: { tab: 'voice' } } })
+
+  assert.deepEqual(
+    navigationCalls.map((call) => call.url),
+    [
+      '/pages/device/device',
+      '/pages/advanced/advanced',
+      '/pages/mine/mine'
+    ]
+  )
+  assert.equal(componentConfig.properties.active.value, 'voice')
+
+  const config = JSON.parse(read('components/bottomNav/bottomNav.json'))
+  const markup = read('components/bottomNav/bottomNav.wxml')
+  const styles = read('components/bottomNav/bottomNav.wxss').replace(/\s+/g, '')
+  assert.equal(config.component, true)
   assert.equal(config.usingComponents['van-icon'], '@vant/weapp/icon/index')
+  assert.equal(markup.includes('wx:for="{{navItems}}"'), true)
+  assert.equal(markup.includes('data-tab="{{item.key}}"'), true)
+  assert.equal(styles.includes('grid-template-columns:repeat(4,minmax(0,1fr))'), true)
+  assert.equal(styles.includes('env(safe-area-inset-bottom)'), true)
+})
+
+test('four primary pages use the shared bottom navigation component', () => {
+  const pages = [
+    ['index/index', 'voice'],
+    ['device/device', 'device'],
+    ['advanced/advanced', 'advanced'],
+    ['mine/mine', 'mine']
+  ]
+
+  pages.forEach(([pagePath, active]) => {
+    const config = JSON.parse(read(`pages/${pagePath}.json`))
+    const markup = read(`pages/${pagePath}.wxml`)
+    assert.equal(
+      config.usingComponents['bottom-nav'],
+      '../../components/bottomNav/bottomNav'
+    )
+    assert.equal(markup.includes(`<bottom-nav active="${active}" />`), true)
+    assert.equal((markup.match(/<bottom-nav/g) || []).length, 1)
+  })
 })
 
 test('advanced page renders six reference features and keeps its bottom navigation usable', () => {
@@ -250,21 +329,14 @@ test('advanced page renders six reference features and keeps its bottom navigati
   page.openFeature({ currentTarget: { dataset: { key: 'dialogue' } } })
   assert.equal(toastCalls.at(-1).title, '该高级功能正在开发中')
 
-  page.changeTab({ currentTarget: { dataset: { tab: 'voice' } } })
-  assert.equal(navigationCalls.at(-1).type, 'redirect')
-  assert.equal(navigationCalls.at(-1).options.url, '../index/index')
-  page.changeTab({ currentTarget: { dataset: { tab: 'device' } } })
-  assert.equal(navigationCalls.at(-1).type, 'to')
-  assert.equal(navigationCalls.at(-1).options.url, '../device/device')
-
   const markup = read('pages/advanced/advanced.wxml')
   const styles = read('pages/advanced/advanced.wxss').replace(/\s+/g, '')
   const config = JSON.parse(read('pages/advanced/advanced.json'))
   assert.equal(markup.includes('wx:for="{{featureItems}}"'), true)
   assert.equal(markup.includes('class="advancedBadge"'), true)
-  assert.equal(markup.includes('<text class="tabLabel tabLabel--active">高级</text>'), true)
+  assert.equal(markup.includes('<bottom-nav active="advanced" />'), true)
   assert.equal(styles.includes('.featureCard{'), true)
-  assert.equal(styles.includes('.advancedTabBar{'), true)
+  assert.equal(styles.includes('.advancedTabBar{'), false)
   assert.equal(config.navigationBarTitleText, '高级功能')
   assert.equal(config.usingComponents['van-icon'], '@vant/weapp/icon/index')
 })
@@ -368,6 +440,23 @@ test('dialogue dubbing saves backdrop edits and imports template pauses', () => 
   assert.equal(markup.includes('bindtap="stopSet"'), true)
 })
 
+test('dialogue text editor stays above the iOS keyboard', () => {
+  const { page } = loadPage('pages/dialogueDubbing/dialogueDubbing.js')
+
+  assert.equal(page.data.editorKeyboardHeight, 0)
+  page.openTextEditor()
+  page.onEditorKeyboardHeightChange({ detail: { height: 312 } })
+  assert.equal(page.data.editorKeyboardHeight, 312)
+  page.closeTextEditor()
+  assert.equal(page.data.editorKeyboardHeight, 0)
+
+  const markup = read('pages/dialogueDubbing/dialogueDubbing.wxml')
+  assert.equal(markup.includes('bottom: {{editorKeyboardHeight}}px'), true)
+  assert.equal(markup.includes('fixed="{{true}}"'), true)
+  assert.equal(markup.includes('adjust-position="{{false}}"'), true)
+  assert.equal(markup.includes('bindkeyboardheightchange="onEditorKeyboardHeightChange"'), true)
+})
+
 test('dialogue dubbing reuses home voice effect and BGM settings', async () => {
   const requestCalls = []
   const { audio, navigationCalls, page } = loadPage('pages/dialogueDubbing/dialogueDubbing.js', {
@@ -401,8 +490,14 @@ test('dialogue dubbing reuses home voice effect and BGM settings', async () => {
 
   page.musicSet()
   page.musicSliderChange({ detail: { value: 1.3 } })
-  page.musicPopConfirm()
+  page.voiceSliderChange({ detail: { value: 1.7 } })
   assert.equal(page.data.speed, 1.3)
+  assert.equal(page.data.yxVoice, 1.7)
+  page.musicPopReset()
+  assert.equal(page.data.speed, 1)
+  assert.equal(page.data.yxVoice, 2)
+  assert.equal(page.data.musicSetShow, true)
+  page.musicPopConfirm()
   assert.equal(page.data.musicSetShow, false)
 
   page.bgmPop()
@@ -425,6 +520,14 @@ test('dialogue dubbing reuses home voice effect and BGM settings', async () => {
   assert.equal(markup.includes('bindtap="musicSet"'), true)
   assert.equal(markup.includes('bindtap="bgmPop"'), true)
   assert.equal(markup.includes('<bgmset'), true)
+  assert.equal(markup.includes('value="{{yxVoice}}"'), true)
+  assert.equal(markup.includes('bindchange="voiceSliderChange"'), true)
+  assert.equal(markup.includes('bindtap="musicPopReset"'), true)
+  assert.equal(markup.includes('>还原</button>'), true)
+  assert.equal(
+    /<slider[\s\S]*?min="0\.5"[\s\S]*?max="2(?:\.0)?"[\s\S]*?value="{{yxVoice}}"/.test(markup),
+    true
+  )
 })
 
 test('dialogue dubbing generates playable segments and enforces list movement bounds', async () => {
@@ -457,7 +560,12 @@ test('dialogue dubbing generates playable segments and enforces list movement bo
   assert.equal(typeof page.generateDialogue, 'function')
 
   await page.onLoad()
-  page.setData({ inputText: 'Hello[\u505c\u987f1000ms]world', speed: 1.2 })
+  page.setData({
+    inputText: 'Hello[\u505c\u987f1000ms]world',
+    speed: 1.2,
+    yxVoice: 1.6,
+    bgmSetDetail: { bgm_id: 42, bgm_volume: 0.4 }
+  })
   await page.generateDialogue()
 
   const synthesizeCall = requestCalls.find((call) => call.url === '/user/tts/synthesize')
@@ -469,8 +577,10 @@ test('dialogue dubbing generates playable segments and enforces list movement bo
   )
   assert.equal(synthesizeCall.data.voice_id, page.data.voiceList[0].voice_id)
   assert.equal(synthesizeCall.data.speed_ratio, 1.2)
-  assert.equal(synthesizeCall.data.volume_ratio, 1)
+  assert.equal(synthesizeCall.data.volume_ratio, 1.6)
   assert.equal(synthesizeCall.data.pitch_ratio, 1)
+  assert.equal(synthesizeCall.data.bgm_id, 42)
+  assert.equal(synthesizeCall.data.bgm_volume, 0.4)
   assert.equal(page.data.dialogueList.length, 1)
   assert.equal(page.data.dialogueList[0].text, 'Hello[\u505c\u987f1000ms]world')
   assert.equal(page.data.dialogueList[0].audio_url, 'https://media.local/segment-a.mp3')
@@ -510,6 +620,35 @@ test('dialogue dubbing generates playable segments and enforces list movement bo
   assert.equal(markup.includes('index < dialogueList.length - 1'), true)
   assert.equal(markup.includes('data-direction="-1"'), true)
   assert.equal(markup.includes('data-direction="1"'), true)
+})
+
+test('dialogue page only pauses audio while a segment is playing', () => {
+  const { audio, page } = loadPage('pages/dialogueDubbing/dialogueDubbing.js')
+
+  page.onLoad()
+  page.onHide()
+  assert.equal(audio.paused, false)
+
+  page.setData({ playingDialogueId: 'segment-a' })
+  page.onHide()
+  assert.equal(audio.paused, true)
+  page.onUnload()
+})
+
+test('dialogue audio errors are only reported during active playback', () => {
+  const { audio, page, toastCalls } = loadPage('pages/dialogueDubbing/dialogueDubbing.js')
+
+  page.onLoad()
+  audio.trigger('error', new Error('idle context interrupted'))
+  assert.equal(toastCalls.length, 0)
+
+  page.setData({ playingDialogueId: 'segment-a' })
+  audio.trigger('error', new Error('active playback failed'))
+  assert.equal(toastCalls.at(-1).title, '对话音频播放失败')
+
+  page.onUnload()
+  assert.doesNotThrow(() => audio.trigger('error', new Error('late destroy callback')))
+  assert.equal(toastCalls.length, 1)
 })
 
 test('dialogue dubbing merges ordered downloaded audio files and opens the result', async () => {
@@ -661,40 +800,56 @@ test('voice conversion loads timbres with mapped types and a default avatar', as
   assert.equal(markup.includes('{{item.typeLabel}}'), true)
 })
 
-test('voice conversion records selected parameters and prepares the upload', async () => {
-  const handlers = {}
-  const recorder = {
-    startOptions: null,
-    stopped: false,
-    onStart(handler) { handlers.start = handler },
-    onStop(handler) { handlers.stop = handler },
-    onError(handler) { handlers.error = handler },
-    offStart(handler) { this.startRemoved = handler === handlers.start },
-    offStop(handler) { this.stopRemoved = handler === handlers.stop },
-    offError(handler) { this.errorRemoved = handler === handlers.error },
-    start(options) {
-      this.startOptions = options
-      handlers.start()
-    },
-    stop() {
-      this.stopped = true
-      handlers.stop({
-        tempFilePath: 'wxfile://voice-convert.mp3',
-        duration: 11000,
-        fileSize: 4096
-      })
-    }
-  }
-  const { loadingCalls, navigationCalls, page, toastCalls } = loadPage(
+test('voice conversion uploads recording, polls the task, and opens generate', async () => {
+  const app = { globalData: { generate: { source: 'voice-convert' } } }
+  const lifecycle = []
+  let uploadOptions
+  let pollCount = 0
+  const { recorder } = createRecorderDouble({
+    tempFilePath: 'wxfile://voice-convert.mp3',
+    duration: 11000,
+    fileSize: 4096
+  }, () => lifecycle.push('recorder-stop'))
+  const { navigationCalls, page } = loadPage(
     'pages/voiceConvert/voiceConvert.js',
     {
-      request: async () => ({
-        code: 200,
-        data: [{ id: 7, name: 'Voice A', timbre_type: 'male', avatar_url: '' }]
-      }),
-      wx: { getRecorderManager: () => recorder }
+      app,
+      request: async (options) => {
+        if (options.url === '/voice-timbre/') {
+          return {
+            code: 200,
+            data: [{ id: 7, name: 'Voice A', timbre_type: 'male', avatar_url: '' }]
+          }
+        }
+        if (options.url === '/user/voice-conversion/81') {
+          pollCount += 1
+          return pollCount === 1
+            ? { code: 200, data: { task_id: 81, status: 'processing', progress: 45 } }
+            : {
+                code: 200,
+                data: {
+                  task_id: 81,
+                  status: 'success',
+                  progress: 100,
+                  audio_url: 'https://media.local/converted.mp3'
+                }
+              }
+        }
+        throw new Error(`Unexpected request: ${options.url}`)
+      },
+      uploadFile(options) {
+        uploadOptions = options
+        return { abort() { lifecycle.push('upload-abort') } }
+      },
+      wx: {
+        getRecorderManager: () => recorder,
+        getStorageSync: () => 'voice-convert-token',
+        showLoading() { lifecycle.push('show-loading') },
+        hideLoading() { lifecycle.push('hide-loading') }
+      }
     }
   )
+  page.waitForNextPoll = async () => {}
 
   assert.equal(typeof page.startRecording, 'function')
   await page.onLoad()
@@ -702,8 +857,17 @@ test('voice conversion records selected parameters and prepares the upload', asy
   const bgmNavigation = navigationCalls.at(-1)
   assert.equal(bgmNavigation.options.url, '../bgmSelect/bgmSelect')
   bgmNavigation.options.events.bgmSelected({ id: 9, name: 'Soft music' })
+  page.bmgSetConfirm({
+    detail: {
+      bgm_id: 9,
+      bgm_volume: 0.4,
+      bgm_ducking: 'reduce',
+      voice_delay: 2,
+      bgm_tail: 3
+    }
+  })
   page.changeSpeed({ detail: { value: 1.2 } })
-  page.changeVolume({ detail: { value: -2 } })
+  page.changeVolume({ detail: { value: 1.4 } })
 
   page.startRecording()
   assert.equal(page.data.recording, true)
@@ -712,20 +876,34 @@ test('voice conversion records selected parameters and prepares the upload', asy
   page.stopRecording()
 
   assert.equal(recorder.stopped, true)
+  assert.deepEqual(lifecycle.slice(0, 2), ['show-loading', 'recorder-stop'])
   assert.equal(page.data.recording, false)
   assert.equal(page.data.pendingUpload.filePath, 'wxfile://voice-convert.mp3')
   assert.equal(page.data.pendingUpload.name, 'audio_file')
   assert.equal(page.data.pendingUpload.duration, 11000)
   assert.equal(page.data.pendingUpload.fileSize, 4096)
-  assert.equal(page.data.pendingUpload.formData.timbre_id, 7)
-  assert.equal(page.data.pendingUpload.formData.timbre_type, 'male')
-  assert.equal(page.data.pendingUpload.formData.speed, 1.2)
-  assert.equal(page.data.pendingUpload.formData.volume, -2)
-  assert.equal(page.data.pendingUpload.formData.bgm_id, 9)
-  assert.equal(loadingCalls.at(-2).type, 'show')
-  assert.equal(loadingCalls.at(-2).options.mask, true)
-  assert.equal(loadingCalls.at(-1).type, 'hide')
-  assert.equal(toastCalls.at(-1).title, '\u5f55\u97f3\u5df2\u5b8c\u6210\uff0c\u4e0a\u4f20\u63a5\u53e3\u5f85\u63a5\u5165')
+  assert.equal(uploadOptions.url, 'http://192.168.5.245:9000/api/v1/user/voice-conversion')
+  assert.equal(uploadOptions.filePath, 'wxfile://voice-convert.mp3')
+  assert.equal(uploadOptions.name, 'audio_file')
+  assert.equal(uploadOptions.formData.voice_timbre_id, 7)
+  assert.equal(uploadOptions.formData.timbre_id, undefined)
+  assert.equal(uploadOptions.formData.speed, 1.2)
+  assert.equal(uploadOptions.formData.volume, 1.4)
+  assert.equal(uploadOptions.formData.bgm_id, 9)
+  assert.equal(uploadOptions.formData.bgm_volume, 0.4)
+  assert.equal(uploadOptions.header.Authorization.startsWith('Bearer '), true)
+
+  uploadOptions.success({
+    statusCode: 200,
+    data: JSON.stringify({ code: 200, data: { task_id: 81, status: 'pending' } })
+  })
+  await waitFor(() => navigationCalls.some((call) => call.options.url === '../generate/generate'))
+
+  assert.equal(pollCount, 2)
+  assert.equal(app.globalData.generate.source, 'voice-convert')
+  assert.equal(app.globalData.generate.audio_url, 'https://media.local/converted.mp3')
+  assert.equal(page.data.uploading, false)
+  assert.equal(lifecycle.at(-1), 'hide-loading')
 
   page.onUnload()
   assert.equal(recorder.startRemoved, true)
@@ -740,6 +918,88 @@ test('voice conversion records selected parameters and prepares the upload', asy
   assert.equal(markup.includes('/img/recorder.gif'), true)
 })
 
+test('voice conversion reports task creation failure and hides loading', async () => {
+  let uploadOptions
+  const lifecycle = []
+  const { recorder } = createRecorderDouble({ tempFilePath: 'wxfile://failed.mp3' })
+  const { page, toastCalls } = loadPage('pages/voiceConvert/voiceConvert.js', {
+    request: async () => ({
+      code: 200,
+      data: [{ id: 7, name: 'Voice A', timbre_type: 'male', avatar_url: '' }]
+    }),
+    uploadFile(options) {
+      uploadOptions = options
+      return { abort() {} }
+    },
+    wx: {
+      getRecorderManager: () => recorder,
+      showLoading() { lifecycle.push('show') },
+      hideLoading() { lifecycle.push('hide') }
+    }
+  })
+
+  await page.onLoad()
+  page.startRecording()
+  page.stopRecording()
+  uploadOptions.success({
+    statusCode: 200,
+    data: JSON.stringify({ code: 400, message: '创建转换任务失败', data: null })
+  })
+  await waitFor(() => toastCalls.length > 0)
+
+  assert.equal(toastCalls.at(-1).title, '创建转换任务失败')
+  assert.equal(page.data.uploading, false)
+  assert.equal(lifecycle.at(-1), 'hide')
+  page.onUnload()
+})
+
+test('voice conversion reports a failed polled task and hides loading', async () => {
+  let uploadOptions
+  const lifecycle = []
+  const { recorder } = createRecorderDouble({ tempFilePath: 'wxfile://poll-failed.mp3' })
+  const { navigationCalls, page, toastCalls } = loadPage('pages/voiceConvert/voiceConvert.js', {
+    request: async (options) => {
+      if (options.url === '/voice-timbre/') {
+        return {
+          code: 200,
+          data: [{ id: 7, name: 'Voice A', timbre_type: 'male', avatar_url: '' }]
+        }
+      }
+      if (options.url === '/user/voice-conversion/82') {
+        return {
+          code: 200,
+          data: { task_id: 82, status: 'failed', progress: 60, error_message: '转换服务处理失败' }
+        }
+      }
+      throw new Error(`Unexpected request: ${options.url}`)
+    },
+    uploadFile(options) {
+      uploadOptions = options
+      return { abort() {} }
+    },
+    wx: {
+      getRecorderManager: () => recorder,
+      showLoading() { lifecycle.push('show') },
+      hideLoading() { lifecycle.push('hide') }
+    }
+  })
+
+  await page.onLoad()
+  page.startRecording()
+  page.stopRecording()
+  uploadOptions.success({
+    statusCode: 200,
+    data: JSON.stringify({ code: 200, data: { task_id: 82, status: 'pending' } })
+  })
+  await waitFor(() => toastCalls.length > 0)
+
+  assert.equal(toastCalls.at(-1).title, '转换服务处理失败')
+  assert.equal(navigationCalls.some((call) => call.options.url === '../generate/generate'), false)
+  assert.equal(page.data.uploading, false)
+  assert.equal(lifecycle.at(-1), 'hide')
+  page.onUnload()
+})
+
 test('voice conversion sliders use the required ranges and speed precision', () => {
   const { page } = loadPage('pages/voiceConvert/voiceConvert.js')
   assert.equal(page.data.speedDisplay, '1.0')
@@ -747,17 +1007,18 @@ test('voice conversion sliders use the required ranges and speed precision', () 
   page.changeSpeed({ detail: { value: 1.26 } })
   assert.equal(page.data.speed, 1.3)
   assert.equal(page.data.speedDisplay, '1.3')
-  page.changeSpeed({ detail: { value: 0 } })
-  assert.equal(page.data.speedDisplay, '0.0')
+  page.changeSpeed({ detail: { value: 0.5 } })
+  assert.equal(page.data.speedDisplay, '0.5')
 
   const markup = read('pages/voiceConvert/voiceConvert.wxml')
   const speedSlider = markup.match(/<slider[\s\S]*?bindchange="changeSpeed"[\s\S]*?\/>/)[0]
   const volumeSlider = markup.match(/<slider[\s\S]*?bindchange="changeVolume"[\s\S]*?\/>/)[0]
-  assert.equal(speedSlider.includes('min="0"'), true)
+  assert.equal(speedSlider.includes('min="0.5"'), true)
   assert.equal(speedSlider.includes('max="2"'), true)
   assert.equal(speedSlider.includes('step="0.1"'), true)
-  assert.equal(volumeSlider.includes('min="-5"'), true)
-  assert.equal(volumeSlider.includes('max="5"'), true)
+  assert.equal(volumeSlider.includes('min="0.5"'), true)
+  assert.equal(volumeSlider.includes('max="2"'), true)
+  assert.equal(volumeSlider.includes('step="0.1"'), true)
 })
 
 test('voice conversion uses the same BGM settings flow as home', async () => {
@@ -1676,6 +1937,48 @@ test('BGM selection page initializes, selects, previews, and releases audio', ()
   assert.equal(audio.paused, true)
   page.onUnload()
   assert.equal(audio.destroyed, true)
+})
+
+test('BGM selection keeps the second playing icon stable through an iOS source-switch pause', () => {
+  const componentUpdates = []
+  const audio = createAudioDouble()
+  audio.play = function () {
+    this.played = true
+  }
+  const { eventChannel, page } = loadPage('pages/bgmSelect/bgmSelect.js', {
+    audio,
+    selectComponent: () => ({
+      setData(values) {
+        componentUpdates.push(values)
+      }
+    })
+  })
+  const firstBgm = { id: 41, name: 'BGM A', audio_path: 'cdn.example.com/a.mp3' }
+  const secondBgm = { id: 42, name: 'BGM B', audio_path: 'cdn.example.com/b.mp3' }
+
+  page.onLoad()
+  eventChannel.emit('initBgmSelect', {
+    bgmList: {
+      categories: [{ key: 'all', name: '全部' }],
+      bgms: { all: [firstBgm, secondBgm] }
+    }
+  })
+
+  page.playBgm({ detail: { id: 41, source: 'regular' } })
+  audio.trigger('play')
+  page.playBgm({ detail: { id: 42, source: 'regular' } })
+  const updatesBeforeSourceSwitchPause = componentUpdates.length
+  audio.trigger('pause')
+
+  assert.equal(page.data.playingId, 42)
+  assert.equal(componentUpdates.length, updatesBeforeSourceSwitchPause)
+
+  audio.trigger('play')
+
+  assert.equal(page.data.playingId, 42)
+  assert.equal(componentUpdates.at(-1).palyId, 42)
+  assert.equal(componentUpdates.at(-1).palySource, 'regular')
+  page.onUnload()
 })
 
 test('BGM selection fallback accepts a string success code', async () => {
@@ -2644,7 +2947,7 @@ test('advanced long text dubbing opens a registered dedicated page', () => {
   }
 })
 
-test('long text dubbing keeps the reusable editing controls without synthesis', async () => {
+test('long text dubbing keeps its editing and voice effect controls', async () => {
   const requestCalls = []
   const { navigationCalls, page } = loadPage('pages/longTextDubbing/longTextDubbing.js', {
     request: async (options) => {
@@ -2680,14 +2983,19 @@ test('long text dubbing keeps the reusable editing controls without synthesis', 
 
   page.musicSet()
   page.musicSliderChange({ detail: { value: 1.3 } })
-  page.musicPopConfirm()
+  page.voiceSliderChange({ detail: { value: 1.7 } })
   assert.equal(page.data.speed, 1.3)
+  assert.equal(page.data.yxVoice, 1.7)
+  page.musicPopReset()
+  assert.equal(page.data.speed, 1)
+  assert.equal(page.data.yxVoice, 2)
+  assert.equal(page.data.musicSetShow, true)
+  page.musicPopConfirm()
   assert.equal(page.data.musicSetShow, false)
 
   page.showBgmList()
   assert.equal(navigationCalls.at(-1).options.url, '../bgmSelect/bgmSelect')
-  assert.equal(typeof page.convertToSpeech, 'undefined')
-  assert.equal(requestCalls.some((call) => call.url === '/user/tts/synthesize'), false)
+  assert.equal(typeof page.convertToSpeech, 'function')
 
   const markup = read('pages/longTextDubbing/longTextDubbing.wxml')
   const styles = read('pages/longTextDubbing/longTextDubbing.wxss')
@@ -2698,17 +3006,159 @@ test('long text dubbing keeps the reusable editing controls without synthesis', 
   assert.equal(markup.includes('bindtap="openTemplate"'), true)
   assert.equal(markup.includes('bindtap="moreVoice"'), true)
   assert.equal(markup.includes('bindtap="bgmPop"'), true)
-  assert.equal(markup.includes('<text>\u6587\u7ae0\u5bfc\u5165</text>'), true)
-  assert.equal(markup.includes('class="toolButton toolButton--disabled" disabled'), true)
-  assert.equal(markup.includes('class="synthesisButton" disabled'), true)
-  assert.equal(markup.includes('bindtap="convertToSpeech"'), false)
+  assert.equal(markup.includes('bindtap="convertToSpeech"'), true)
+  assert.equal(markup.includes('value="{{yxVoice}}"'), true)
+  assert.equal(markup.includes('bindchange="voiceSliderChange"'), true)
+  assert.equal(markup.includes('bindtap="musicPopReset"'), true)
+  assert.equal(markup.includes('>还原</button>'), true)
   assert.equal(markup.includes('<bgmset'), true)
   assert.equal(styles.includes('.heroSection'), true)
   assert.equal(styles.includes('.textPanel'), true)
   assert.equal(config.navigationBarTitleText, '\u957f\u6587\u672c\u914d\u97f3')
 })
 
-test('mine pages are registered and reachable from every bottom menu', () => {
+test('long text dubbing submits, polls, and opens the generated audio', async () => {
+  const app = { globalData: { generate: { source: 'long-text' } } }
+  const requestCalls = []
+  let queryCount = 0
+  const taskId = 'long-text-task-12345678901234567890'
+  const { loadingCalls, navigationCalls, page } = loadPage(
+    'pages/longTextDubbing/longTextDubbing.js',
+    {
+      app,
+      request: async (options) => {
+        requestCalls.push(options)
+        if (options.url === '/user/voices/categories') {
+          return { code: 200, data: { categories: [], voices: {} } }
+        }
+        if (options.url === '/user/bgms/categories') {
+          return { code: 200, data: { categories: [], bgms: {} } }
+        }
+        if (options.url === '/user/tts/long-text/submit') {
+          return { code: 200, data: { task_id: taskId, status: 'running', req_text_length: 18 } }
+        }
+        if (options.url === '/user/tts/long-text/query') {
+          queryCount += 1
+          return queryCount === 1
+            ? { code: 200, data: { task_id: taskId, status: 'processing', req_text_length: 18 } }
+            : {
+                code: 200,
+                data: {
+                  task_id: taskId,
+                  status: 'success',
+                  req_text_length: 18,
+                  audio_url: 'https://media.local/long-text.mp3'
+                }
+              }
+        }
+        throw new Error(`Unexpected request: ${options.url}`)
+      }
+    }
+  )
+  page.waitForNextPoll = async () => {}
+
+  await page.onLoad()
+  page.setData({
+    inputText: 'AB[\u505c\u987f1000ms]CD',
+    speed: 1.3,
+    yxVoice: 1.7,
+    bgmSetDetail: {
+      bgm_id: 42,
+      bgm_volume: 0.4,
+      bgm_ducking: 'reduce',
+      voice_delay: 2,
+      bgm_tail: 3
+    }
+  })
+  await page.convertToSpeech()
+
+  const submitCall = requestCalls.find((call) => call.url === '/user/tts/long-text/submit')
+  assert.equal(submitCall.method, 'POST')
+  assert.equal(submitCall.needAuth, true)
+  assert.equal(submitCall.data.text, '<speak>AB<break time="1.0s"></break>CD</speak>')
+  assert.equal(submitCall.data.voice_id, page.data.voiceList[0].voice_id)
+  assert.equal(submitCall.data.speed_ratio, 1.3)
+  assert.equal(submitCall.data.volume_ratio, 1.7)
+  assert.equal(submitCall.data.pitch_ratio, 1)
+  assert.equal(submitCall.data.bgm_id, 42)
+  assert.equal(submitCall.data.bgm_volume, 0.4)
+
+  const queryCalls = requestCalls.filter((call) => call.url === '/user/tts/long-text/query')
+  assert.equal(queryCalls.length, 2)
+  assert.equal(queryCalls[0].method, 'POST')
+  assert.deepEqual({ ...queryCalls[0].data }, { task_id: taskId })
+  assert.equal(queryCalls[0].needAuth, true)
+  assert.equal(app.globalData.generate.source, 'long-text')
+  assert.equal(app.globalData.generate.audio_url, 'https://media.local/long-text.mp3')
+  assert.equal(navigationCalls.at(-1).options.url, '../generate/generate')
+  assert.equal(loadingCalls.at(-2).type, 'show')
+  assert.equal(loadingCalls.at(-2).options.mask, true)
+  assert.equal(loadingCalls.at(-1).type, 'hide')
+  assert.equal(page.data.synthesizing, false)
+  page.onUnload()
+})
+
+test('long text dubbing reports submit failure and hides loading', async () => {
+  const { loadingCalls, navigationCalls, page, toastCalls } = loadPage(
+    'pages/longTextDubbing/longTextDubbing.js',
+    {
+      request: async (options) => {
+        if (options.url === '/user/tts/long-text/submit') {
+          return { code: 500, message: '长文本任务提交失败', data: null }
+        }
+        return { code: 200, data: {} }
+      }
+    }
+  )
+  page.pageActive = true
+  page.setData({ inputText: '需要合成的长文本内容' })
+
+  await page.convertToSpeech()
+
+  assert.equal(toastCalls.at(-1).title, '长文本任务提交失败')
+  assert.equal(navigationCalls.length, 0)
+  assert.equal(loadingCalls.at(-2).type, 'show')
+  assert.equal(loadingCalls.at(-1).type, 'hide')
+  assert.equal(page.data.synthesizing, false)
+})
+
+test('long text dubbing reports failed polling and hides loading', async () => {
+  const taskId = 'long-text-task-12345678901234567890'
+  const { loadingCalls, navigationCalls, page, toastCalls } = loadPage(
+    'pages/longTextDubbing/longTextDubbing.js',
+    {
+      request: async (options) => {
+        if (options.url === '/user/tts/long-text/submit') {
+          return { code: 200, data: { task_id: taskId, status: 'running', req_text_length: 20 } }
+        }
+        if (options.url === '/user/tts/long-text/query') {
+          return {
+            code: 200,
+            data: {
+              task_id: taskId,
+              status: 'processing_failed',
+              req_text_length: 20,
+              error_message: '长文本合成服务失败'
+            }
+          }
+        }
+        return { code: 200, data: {} }
+      }
+    }
+  )
+  page.pageActive = true
+  page.setData({ inputText: '需要轮询失败的长文本内容' })
+
+  await page.convertToSpeech()
+
+  assert.equal(toastCalls.at(-1).title, '长文本合成服务失败')
+  assert.equal(navigationCalls.length, 0)
+  assert.equal(loadingCalls.at(-2).type, 'show')
+  assert.equal(loadingCalls.at(-1).type, 'hide')
+  assert.equal(page.data.synthesizing, false)
+})
+
+test('mine pages are registered', () => {
   const appConfig = JSON.parse(read('app.json'))
   assert.equal(appConfig.pages.includes('pages/mine/mine'), true)
   assert.equal(appConfig.pages.includes('pages/profile/profile'), true)
@@ -2719,25 +3169,6 @@ test('mine pages are registered and reachable from every bottom menu', () => {
     }
   }
 
-  const indexMarkup = read('pages/index/index.wxml')
-  const deviceMarkup = read('pages/device/device.wxml')
-  const advancedMarkup = read('pages/advanced/advanced.wxml')
-  assert.equal(indexMarkup.includes('id="4"'), true)
-  assert.equal(deviceMarkup.includes('id="4"'), true)
-  assert.equal(advancedMarkup.includes('data-tab="mine"'), true)
-  assert.equal(indexMarkup.includes('<text>\u6211\u7684</text>'), true)
-
-  const { navigationCalls: indexNavigation, page: indexPage } = loadPage('pages/index/index.js')
-  indexPage.changeTab({ currentTarget: { id: '4' } })
-  assert.equal(indexNavigation.at(-1).options.url, '../mine/mine')
-
-  const { navigationCalls: advancedNavigation, page: advancedPage } = loadPage('pages/advanced/advanced.js')
-  advancedPage.changeTab({ currentTarget: { dataset: { tab: 'mine' } } })
-  assert.equal(advancedNavigation.at(-1).options.url, '../mine/mine')
-
-  const { navigationCalls: deviceNavigation, page: devicePage } = loadPage('pages/device/device.js')
-  devicePage.changeTab({ currentTarget: { id: '4' } })
-  assert.equal(deviceNavigation.at(-1).options.url, '../mine/mine')
 })
 
 test('mine page loads the profile and all identity controls open the profile editor', async () => {
@@ -2771,17 +3202,6 @@ test('mine page loads the profile and all identity controls open the profile edi
   const markup = read('pages/mine/mine.wxml')
   assert.equal((markup.match(/bindtap="openProfile"/g) || []).length >= 3, true)
 
-  page.changeTab({ currentTarget: { dataset: { tab: 'voice' } } })
-  page.changeTab({ currentTarget: { dataset: { tab: 'device' } } })
-  page.changeTab({ currentTarget: { dataset: { tab: 'advanced' } } })
-  assert.deepEqual(
-    navigationCalls.slice(-3).map((call) => [call.type, call.options.url]),
-    [
-      ['redirect', '../index/index'],
-      ['to', '../device/device'],
-      ['to', '../advanced/advanced']
-    ]
-  )
 })
 
 test('contact and about pages are registered and open from mine settings', () => {

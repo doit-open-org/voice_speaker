@@ -58,20 +58,5 @@ Page({
       title: '该高级功能正在开发中',
       icon: 'none'
     })
-  },
-
-  changeTab(e) {
-    const tab = e.currentTarget.dataset.tab
-    if (tab === 'voice') {
-      wx.redirectTo({ url: '../index/index' })
-      return
-    }
-    if (tab === 'device') {
-      wx.navigateTo({ url: '../device/device' })
-      return
-    }
-    if (tab === 'mine') {
-      wx.navigateTo({ url: '../mine/mine' })
-    }
   }
 })

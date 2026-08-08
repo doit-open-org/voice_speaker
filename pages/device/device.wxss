@@ -99,24 +99,3 @@
   padding: 5rpx 30rpx;
   border-radius: 10rpx;
 }
-
-
-
-
-.tab{
-  height: 100rpx;
-  color: #8a8a8a;
-  background: #fff;
-}
-.tabItem{
-  flex: 1;
-  height: 100%;
-  min-width: 0;
-}
-.tabIcon{
-  width: 50rpx;
-  height: 50rpx;
-}
-.selectedTab{
-  color: #d81e06;
-}

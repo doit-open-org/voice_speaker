@@ -1,4 +1,6 @@
 {
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
   "navigationBarTitleText": "音色转化",
   "navigationBarBackgroundColor": "#E20E0E",
   "navigationBarTextStyle": "black",

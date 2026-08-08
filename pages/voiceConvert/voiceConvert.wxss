@@ -17,7 +17,7 @@
   padding: 24rpx 22rpx 36rpx;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22rpx 10rpx;
+  gap: 25rpx 55rpx;
 }
 
 .timbreItem {
@@ -115,11 +115,12 @@
 }
 
 .settingRow {
-  margin-top: 26rpx;
+  margin-top: 36rpx;
   display: grid;
   grid-template-columns: 76rpx minmax(0, 1fr) 70rpx;
   align-items: center;
   gap: 12rpx;
+  margin-bottom: 36rpx;
 }
 
 .settingLabel {

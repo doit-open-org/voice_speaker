@@ -15,12 +15,14 @@ Page({
     inputText: '',
     textDraft: '',
     textEditorVisible: false,
+    editorKeyboardHeight: 0,
     cursorPosition: 0,
     voiceList: DEFAULT_VOICES,
     voiceIndex: 0,
     voiceCheckInfo: DEFAULT_VOICES[0],
     voiceMoreList: {},
     speed: 1,
+    yxVoice: 2,
     musicSetShow: false,
     stopShow: false,
     stopVal: '1.0',
@@ -61,7 +63,9 @@ Page({
     this.innerAudioContext.onPause(() => this.resetPlaying())
     this.innerAudioContext.onEnded(() => this.resetPlaying())
     this.innerAudioContext.onError(() => {
-      this.innerAudioContext.stop()
+      if (!this.pageActive || !this.data.playingDialogueId) return
+      const audio = this.innerAudioContext
+      if (audio) audio.stop()
       this.resetPlaying()
       showToast('none', '对话音频播放失败')
     })
@@ -72,6 +76,7 @@ Page({
   },
 
   pauseDialogue() {
+    if (!this.data.playingDialogueId) return
     if (this.innerAudioContext) this.innerAudioContext.pause()
   },
 
@@ -113,7 +118,8 @@ Page({
     this.setData({
       textDraft: this.data.inputText,
       cursorPosition: this.data.inputText.length,
-      textEditorVisible: true
+      textEditorVisible: true,
+      editorKeyboardHeight: 0
     })
   },
 
@@ -126,10 +132,25 @@ Page({
     })
   },
 
+  onEditorKeyboardHeightChange(e) {
+    const editorKeyboardHeight = Math.max(0, Number(e.detail.height) || 0)
+    if (editorKeyboardHeight === this.data.editorKeyboardHeight) return
+    this.setData({ editorKeyboardHeight })
+  },
+
+  //获取光标位置
+  cursorPosition(e) {
+    console.log('光标位置1:', e.detail.cursor);
+    if(e.detail.cursor != undefined){
+      this.setData({  cursorPosition: e.detail.cursor  });
+    }
+  },
+
   closeTextEditor() {
     this.setData({
       inputText: this.data.textDraft,
-      textEditorVisible: false
+      textEditorVisible: false,
+      editorKeyboardHeight: 0
     })
   },
 
@@ -189,8 +210,18 @@ Page({
     this.setData({ speed: Number(Number(e.detail.value).toFixed(1)) })
   },
 
+  voiceSliderChange(e) {
+    this.setData({ yxVoice: Number(Number(e.detail.value).toFixed(1)) })
+  },
+
   musicPopConfirm() {
     this.setData({ musicSetShow: false })
+  },
+  musicPopReset(){
+    this.setData({
+      yxVoice: 2,
+      speed: 1
+    })
   },
 
   changeStreamer(e) {
@@ -266,20 +297,25 @@ Page({
       showToast('none', '请选择主播')
       return
     }
-
+    console.log('vvv...',voice.voice_id);
     this.setData({ generating: true })
     wx.showLoading({ title: '生成中...', mask: true })
     try {
+      let data = {
+        text: `<speak>${this.convertPauseToBreak(sourceText)}</speak>`,
+        voice_id: voice.voice_id,
+        speed_ratio: this.data.speed,
+        volume_ratio: this.data.yxVoice,
+        pitch_ratio: 1
+      }
+      const bgmSetDetail = this.data.bgmSetDetail || {}
+      if (bgmSetDetail.bgm_id !== undefined && Number(bgmSetDetail.bgm_id) !== 0) {
+        data = { ...data, ...bgmSetDetail }
+      }
       const res = await request({
         url: '/user/tts/synthesize',
         method: 'POST',
-        data: {
-          text: `<speak>${this.convertPauseToBreak(sourceText)}</speak>`,
-          voice_id: voice.voice_id,
-          speed_ratio: this.data.speed,
-          volume_ratio: 1,
-          pitch_ratio: 1
-        },
+        data,
         needAuth: true
       })
       if (Number(res.code) !== 200 || !res.data || !res.data.audio_url) {

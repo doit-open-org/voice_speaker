@@ -189,27 +189,6 @@ Page({
 
   },
 
-  changeTab(e){
-    if(e.currentTarget.id == 1){
-      // wx.switchTab({
-      //   url: '../index/index',
-      // })
-      wx.navigateBack()
-      // wx.navigateTo({
-      //   url: '../index/index',
-      // })
-    }
-    if(e.currentTarget.id == 3){
-      wx.navigateTo({
-        url: '../advanced/advanced'
-      })
-    }
-    if(e.currentTarget.id == 4){
-      wx.navigateTo({ url: '../mine/mine' })
-    }
-    
-  },
-
   /**
    * 生命周期函数--监听页面隐藏
    */

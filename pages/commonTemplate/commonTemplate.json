@@ -1,4 +1,6 @@
 {
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
   "navigationBarTitleText": "常用模板",
   "navigationBarBackgroundColor": "#ffffff",
   "navigationBarTextStyle": "black",

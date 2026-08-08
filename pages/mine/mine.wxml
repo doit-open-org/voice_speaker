@@ -43,22 +43,5 @@
     </view>
   </scroll-view>
 
-  <view class="mineTabBar">
-    <view class="mineTabItem" data-tab="voice" bindtap="changeTab">
-      <van-icon name="audio" size="25px" color="#8A8A8A" />
-      <text>配音</text>
-    </view>
-    <view class="mineTabItem" data-tab="device" bindtap="changeTab">
-      <van-icon name="desktop-o" size="25px" color="#8A8A8A" />
-      <text>设备</text>
-    </view>
-    <view class="mineTabItem" data-tab="advanced" bindtap="changeTab">
-      <van-icon name="cluster" size="25px" color="#8A8A8A" />
-      <text>高级</text>
-    </view>
-    <view class="mineTabItem">
-      <van-icon name="manager" size="25px" color="#D81E06" />
-      <text class="mineTabActive">我的</text>
-    </view>
-  </view>
+  <bottom-nav active="mine" />
 </view>

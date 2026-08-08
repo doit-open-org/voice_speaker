@@ -1,6 +1,6 @@
 const { request, showToast } = require('../../utils/request')
 
-const API_ORIGIN = 'http://192.168.5.245:9000'
+const API_ORIGIN = getApp().globalData.domain
 const AVATAR_UPLOAD_URL = `${API_ORIGIN}/api/v1/user/profile/avatar`
 
 Page({

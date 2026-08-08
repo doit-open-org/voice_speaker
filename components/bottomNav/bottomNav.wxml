@@ -1,0 +1,19 @@
+<view class="bottomNav">
+  <view
+    class="bottomNavItem"
+    hover-class="bottomNavItemPressed"
+    wx:for="{{navItems}}"
+    wx:key="key"
+    data-tab="{{item.key}}"
+    bindtap="changeTab"
+  >
+    <van-icon
+      name="{{item.icon}}"
+      size="25px"
+      color="{{active === item.key ? '#D81E06' : '#8A8A8A'}}"
+    />
+    <view class="bottomNavLabel {{active === item.key ? 'bottomNavLabelActive' : ''}}">
+      {{item.label}}
+    </view>
+  </view>
+</view>

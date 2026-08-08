@@ -3,8 +3,8 @@ const DEFAULT_BGM = {
   bgm_id: 0,
   bgm_volume: 1,
   bgm_ducking: 'normal',
-  voice_delay: 2,
-  bgm_tail: 3
+  voice_delay: 0,
+  bgm_tail: 0
 }
 
 Component({

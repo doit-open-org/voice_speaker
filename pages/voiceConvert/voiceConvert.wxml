@@ -36,7 +36,7 @@
       <text class="settingLabel">语速</text>
       <slider
         class="settingSlider"
-        min="0"
+        min="0.5"
         max="2"
         step="0.1"
         value="{{speed}}"
@@ -53,9 +53,9 @@
       <text class="settingLabel">音量</text>
       <slider
         class="settingSlider"
-        min="-5"
-        max="5"
-        step="1"
+        min="0.5"
+        max="2"
+        step="0.1"
         value="{{volume}}"
         activeColor="#C91818"
         backgroundColor="#E5E5E5"
@@ -64,7 +64,7 @@
         bindchange="changeVolume"
         bindchanging="changeVolume"
       />
-      <text class="settingValue">{{volume}}</text>
+      <text class="settingValue">{{volumeDisplay}}</text>
     </view>
   </view>
 

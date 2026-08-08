@@ -1,5 +1,5 @@
 const app = getApp()
-const API_ORIGIN = 'http://192.168.5.245:9000'
+const API_ORIGIN =  getApp().globalData.domain
 const API_BASE_URL = `${API_ORIGIN}/api/v1`
 const MAX_VIDEO_DURATION = 360
 

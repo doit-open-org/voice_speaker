@@ -36,25 +36,7 @@
       </view>
     </view>
 	</view>
-	<view class="tab flex">
-    <view class="tabItem flexCC flex_d_c" bindtap="changeTab" id="1">
-     <image class="tabIcon" src="/img/peiyin{{tabIndex==1?'ed':''}}.png" mode="aspectFit"></image>
-     <text class="{{tabIndex==1?'selectedTab':''}}">配音</text>
-    </view>
-    <view class="tabItem flexCC flex_d_c" bindtap="changeTab" id="2">
-      <image class="tabIcon" src="/img/deved.png" mode="aspectFit"></image>
-      <text class="selectedTab">设备</text>
-    </view>
-    <view class="tabItem flexCC flex_d_c" bindtap="changeTab" id="3">
-      <van-icon name="cluster" size="25px" color="#8A8A8A" />
-      <text>高级</text>
-    </view>
-    <view class="tabItem flexCC flex_d_c" bindtap="changeTab" id="4">
-      <van-icon name="manager" size="25px" color="#8A8A8A" />
-      <text>我的</text>
-    </view>
-    
-  </view>
+	<bottom-nav active="device" />
 </view>
 <!-- 搜索框 -->
 <van-popup round  show="{{ searchShow }}" custom-style="" data-flag="true"  bind:close="searchShow" >

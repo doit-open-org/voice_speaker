@@ -1,6 +1,6 @@
 const { request, showToast } = require('../../utils/request')
 
-const API_ORIGIN = 'http://192.168.5.245:9000'
+const API_ORIGIN = getApp().globalData.domain
 
 Page({
   data: {
@@ -55,20 +55,5 @@ Page({
   openAbout() {
     console.log('111');
     wx.navigateTo({ url: '../about/about' })
-  },
-
-  changeTab(e) {
-    const tab = e.currentTarget.dataset.tab
-    if (tab === 'voice') {
-      wx.redirectTo({ url: '../index/index' })
-      return
-    }
-    if (tab === 'device') {
-      wx.navigateTo({ url: '../device/device' })
-      return
-    }
-    if (tab === 'advanced') {
-      wx.navigateTo({ url: '../advanced/advanced' })
-    }
   }
 })

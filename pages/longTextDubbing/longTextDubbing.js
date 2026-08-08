@@ -1,4 +1,8 @@
 const { request, showToast } = require('../../utils/request')
+const app = getApp()
+
+const LONG_TEXT_POLL_INTERVAL = 1500
+const LONG_TEXT_MAX_POLLS = 200
 
 const DEFAULT_VOICES = [
   { voice_name: '智云', voice_id: 'zh_male_wenrouxiaoge_mars_bigtts', headImg: 'streamer2.jpg' },
@@ -16,13 +20,15 @@ Page({
     voiceCheckInfo: DEFAULT_VOICES[0],
     voiceMoreList: {},
     speed: 1,
+    yxVoice: 2,
     musicSetShow: false,
     stopShow: false,
     stopVal: '1.0',
     bgmSetPop: false,
     bgmList: {},
     activeBgmInfo: {},
-    bgmSetDetail: {}
+    bgmSetDetail: {},
+    synthesizing: false
   },
 
   onLoad() {
@@ -32,6 +38,8 @@ Page({
 
   onUnload() {
     this.pageActive = false
+    this.cancelPolling()
+    if (this.data.synthesizing) wx.hideLoading()
   },
 
   async getVoiceList() {
@@ -126,8 +134,19 @@ Page({
     this.setData({ speed: Number(Number(e.detail.value).toFixed(1)) })
   },
 
+  voiceSliderChange(e) {
+    this.setData({ yxVoice: Number(Number(e.detail.value).toFixed(1)) })
+  },
+
   musicPopConfirm() {
     this.setData({ musicSetShow: false })
+  },
+
+  musicPopReset() {
+    this.setData({
+      speed: 1,
+      yxVoice: 2
+    })
   },
 
   changeStreamer(e) {
@@ -177,5 +196,121 @@ Page({
 
   bmgSetConfirm(e) {
     this.setData({ bgmSetDetail: { ...e.detail }, bgmSetPop: false })
+  },
+
+  convertPauseToBreak(text) {
+    return String(text || '').replace(/\[停顿(\d+)ms\]/g, (match, ms) => {
+      return `<break time="${(Number(ms) / 1000).toFixed(1)}s"></break>`
+    })
+  },
+
+  async convertToSpeech() {
+    if (this.data.synthesizing) return
+    const inputText = String(this.data.inputText || '').trim()
+    if (!inputText) {
+      showToast('none', '请输入文字')
+      return
+    }
+
+    const voice = this.data.voiceCheckInfo || {}
+    this.setData({ synthesizing: true })
+    wx.showLoading({ title: '合成中...', mask: true })
+
+    let synthesisResult
+    try {
+      let data = {
+        text: `<speak>${this.convertPauseToBreak(inputText)}</speak>`,
+        voice_id: voice.voice_id || null,
+        speed_ratio: this.data.speed,
+        volume_ratio: this.data.yxVoice,
+        pitch_ratio: 1
+      }
+      const bgmSetDetail = this.data.bgmSetDetail || {}
+      const bgmId = bgmSetDetail.bgm_id !== undefined
+        ? bgmSetDetail.bgm_id
+        : this.data.activeBgmInfo.id
+      if (bgmId !== undefined && Number(bgmId) !== 0) {
+        data = { ...data, ...bgmSetDetail, bgm_id: bgmId }
+      }
+
+      const submitResponse = await request({
+        url: '/user/tts/long-text/submit',
+        method: 'POST',
+        data,
+        needAuth: true
+      })
+      if (Number(submitResponse.code) !== 200) {
+        throw new Error(submitResponse.message || '长文本任务提交失败')
+      }
+      const taskId = submitResponse.data && submitResponse.data.task_id
+      if (!taskId) throw new Error('长文本任务提交失败')
+
+      synthesisResult = await this.pollLongTextTask(taskId)
+    } catch (error) {
+      if (this.pageActive) {
+        console.error('长文本配音失败:', error)
+        showToast('none', error.message || '长文本配音失败')
+      }
+    } finally {
+      if (this.pageActive) this.finishSynthesis()
+    }
+
+    if (!synthesisResult || !this.pageActive) return
+    app.globalData.generate = {
+      ...(app.globalData.generate || {}),
+      audio_url: synthesisResult.audio_url
+    }
+    wx.navigateTo({ url: '../generate/generate' })
+  },
+
+  async pollLongTextTask(taskId) {
+    for (let attempt = 0; attempt < LONG_TEXT_MAX_POLLS; attempt += 1) {
+      if (!this.pageActive) throw new Error('页面已关闭')
+      const response = await request({
+        url: '/user/tts/long-text/query',
+        method: 'POST',
+        data: { task_id: taskId },
+        needAuth: true
+      })
+      if (Number(response.code) !== 200) {
+        throw new Error(response.message || '长文本任务查询失败')
+      }
+
+      const detail = response.data || {}
+      const status = String(detail.status || '').toLowerCase()
+      if (['processing_failed', 'failed', 'expired'].includes(status)) {
+        throw new Error(detail.error_message || response.message || '长文本配音失败')
+      }
+      if (status === 'success') {
+        if (!detail.audio_url) throw new Error('合成结果缺少音频地址')
+        return detail
+      }
+      await this.waitForNextPoll()
+    }
+    throw new Error('长文本配音超时，请稍后重试')
+  },
+
+  waitForNextPoll() {
+    return new Promise((resolve) => {
+      this.pollResolve = resolve
+      this.pollTimer = setTimeout(() => {
+        this.pollTimer = null
+        this.pollResolve = null
+        resolve()
+      }, LONG_TEXT_POLL_INTERVAL)
+    })
+  },
+
+  cancelPolling() {
+    if (this.pollTimer) clearTimeout(this.pollTimer)
+    this.pollTimer = null
+    if (this.pollResolve) this.pollResolve()
+    this.pollResolve = null
+  },
+
+  finishSynthesis() {
+    if (!this.data.synthesizing) return
+    this.setData({ synthesizing: false })
+    wx.hideLoading()
   }
 })

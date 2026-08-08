@@ -1,8 +1,11 @@
 {
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
   "navigationBarTitleText": "我的",
   "navigationBarBackgroundColor": "#E20E0E",
   "navigationBarTextStyle": "black",
   "usingComponents": {
-    "van-icon": "@vant/weapp/icon/index"
+    "van-icon": "@vant/weapp/icon/index",
+    "bottom-nav": "../../components/bottomNav/bottomNav"
   }
 }

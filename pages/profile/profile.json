@@ -1,4 +1,6 @@
 {
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
   "navigationBarTitleText": "个人资料",
   "navigationBarTextStyle": "black",
   "navigationBarBackgroundColor": "#f7f7f7",

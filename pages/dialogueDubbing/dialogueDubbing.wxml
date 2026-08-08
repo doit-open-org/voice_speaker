@@ -52,6 +52,7 @@
     <view class="textComposer">
       <view class="textDisplay" bindtap="openTextEditor">
         <text wx:if="{{inputText}}">{{inputText}}</text>
+        <!-- <textarea class="textDisplayTxt" wx:if="{{inputText}}" value="{{inputText}}"></textarea> -->
         <text class="placeholder" wx:else>请输入...</text>
       </view>
       <button class="sendButton" bindtap="generateDialogue" disabled="{{generating}}">
@@ -100,15 +101,25 @@
     <button class="mergeButton" bindtap="mergeDialogues" loading="{{merging}}" disabled="{{merging}}">合成</button>
   </view>
 
-  <view class="textEditorOverlay" wx:if="{{textEditorVisible}}" bindtap="closeTextEditor">
+  <view
+    class="textEditorOverlay"
+    style="bottom: {{editorKeyboardHeight}}px;"
+    wx:if="{{textEditorVisible}}"
+    bindtap="closeTextEditor"
+  >
     <view class="textEditorDialog" catchtap="noop">
       <textarea
         class="textEditorInput"
         value="{{textDraft}}"
         maxlength="5000"
         auto-focus
+        fixed="{{true}}"
+        adjust-position="{{false}}"
         cursor="{{cursorPosition}}"
         bindinput="onTextDraftInput"
+        bindfocus="cursorPosition"
+        bindblur="cursorPosition"
+        bindkeyboardheightchange="onEditorKeyboardHeightChange"
       />
       <view class="clearTextButton" bindtap="clearTextDraft">
         <van-icon name="delete-o" size="24px" color="#C91818" />
@@ -134,7 +145,25 @@
           bindchange="musicSliderChange"
         />
       </view>
-      <button class="popupConfirm" bindtap="musicPopConfirm">确定</button>
+      <view class="sliderRow">
+        <text>音量</text>
+        <slider
+          class="settingSlider"
+          min="0.5"
+          max="2.0"
+          step="0.1"
+          value="{{yxVoice}}"
+          show-value
+          activeColor="#E20E0E"
+          block-color="#E20E0E"
+          block-size="20"
+          bindchange="voiceSliderChange"
+        />
+      </view>
+      <view class="popupfootView">
+        <button class="popupConfirm reset" bindtap="musicPopReset">还原</button>
+        <button class="popupConfirm" bindtap="musicPopConfirm">确定</button>
+      </view>
     </view>
   </van-popup>
 

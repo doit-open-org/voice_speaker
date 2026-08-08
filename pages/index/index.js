@@ -18,7 +18,8 @@ Page({
       voice_name: '艾琳', voice_id: 'zh_female_shuangkuaisisi_moon_bigtts',headImg:'streamer1.jpg'
     },
     voiceMoreList:{}, //拉取接口的音色
-    speed: 1.0,
+    speed: 1.0, //音效语速
+    yxVoice: 2.0, //音效音量
     tabIndex: 1,
     musicSetShow: false,
     stopShow: false,
@@ -106,7 +107,11 @@ Page({
       wx.redirectTo({  url: '../device/device?dev=1' })
     }
   },
-
+  jumpAdCopy(){
+    wx.navigateTo({
+      url: '../adCopy/adCopy',
+    })
+  },
   onTextInput(e) {
     this.setData({  
       inputText: e.detail.value,
@@ -135,10 +140,20 @@ Page({
     let v = Number((e.detail.value).toFixed(1));
     this.setData({speed: v})
   },
+  voiceSliderChange(e){
+    let v = Number((e.detail.value).toFixed(1));
+    this.setData({yxVoice: v})
+  },
   
   musicPopConfirm(){
     this.musicSet();
     console.log(this.data.speed)
+  },
+  musicPopReset(){
+    this.setData({
+      yxVoice: 2,
+      speed: 1
+    })
   },
   stopSliderChange(e){
     let v = Number((e.detail.value).toFixed(1));
@@ -163,11 +178,11 @@ Page({
     //   url: '../generate/generate',
     // })
     // return
-    const { inputText, speed } = this.data
-    if(!app.globalData.deviceInfo.connState){
-          showToast('none','请先连接设备')
-      return
-    }
+    const { inputText, speed, yxVoice } = this.data
+    // if(!app.globalData.deviceInfo.connState){
+    //       showToast('none','请先连接设备')
+    //   return
+    // }
     if (!inputText.trim()) {
       showToast('none','请输入文字')
       return
@@ -181,7 +196,8 @@ Page({
         "text": '<speak>'+newTxt+'</speak>',
         "voice_id": this.data.voiceCheckInfo['voice_id'],
         "speed_ratio": speed,
-        "volume_ratio": 1,
+        // "volume_ratio": 1,
+        "volume_ratio": yxVoice,
         "pitch_ratio": 1
       }
       let bgmSetDetail = this.data.bgmSetDetail
@@ -306,19 +322,6 @@ Page({
         })
       }
     })
-  },
-  //导航跳转
-  changeTab(e){
-    this.setData({ tabIndex: e.currentTarget.id })
-    if(e.currentTarget.id == 2){
-      wx.redirectTo({  url: '../device/device' })
-    }
-    if(e.currentTarget.id == 3){
-      wx.redirectTo({ url: '../advanced/advanced' })
-    }
-    if(e.currentTarget.id == 4){
-      wx.redirectTo({ url: '../mine/mine' })
-    }
   }
 
 })

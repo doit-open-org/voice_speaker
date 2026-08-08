@@ -1,7 +1,9 @@
 {
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
   "usingComponents": {
     "searchmask":"/components/searchMask/searchMask",
     "van-popup": "@vant/weapp/popup/index",
-    "van-icon": "@vant/weapp/icon/index"
+    "bottom-nav": "../../components/bottomNav/bottomNav"
   }
 }

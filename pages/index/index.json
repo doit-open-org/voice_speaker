@@ -1,7 +1,9 @@
 {
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
   "usingComponents": {
     "van-popup": "@vant/weapp/popup/index",
-    "van-icon": "@vant/weapp/icon/index",
-    "bgmset": "../../components/bgmSet/bgmSet"
+    "bgmset": "../../components/bgmSet/bgmSet",
+    "bottom-nav": "../../components/bottomNav/bottomNav"
   }
 }

@@ -1,4 +1,6 @@
 {
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
   "navigationBarTitleText": "视频提取",
   "navigationBarBackgroundColor": "#E20E0E",
   "navigationBarTextStyle": "black",

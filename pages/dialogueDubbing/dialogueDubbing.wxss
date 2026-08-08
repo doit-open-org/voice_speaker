@@ -134,7 +134,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
+.textDisplayTxt{
+  width: 100%;
+  overflow: auto;
+  height: 100%;
+}
 .placeholder {
   color: #999999;
 }
@@ -157,7 +161,14 @@
 .popupConfirm::after {
   border: 0;
 }
-
+.reset{
+  background: #c78482 !important;
+}
+.popupfootView {
+  display: flex;
+  width: 100%;
+  justify-content: space-around
+}
 .voiceStrip {
   margin-top: 18rpx;
   display: grid;
@@ -300,15 +311,17 @@
 
 .sliderRow {
   width: 100%;
-  margin-top: 36rpx;
+  margin-top: 46rpx;
   display: grid;
   grid-template-columns: 70rpx minmax(0, 1fr);
   align-items: center;
+  margin-bottom: 30rpx;
+  justify-items: center;
 }
 
 .settingSlider,
 .pauseSlider {
-  width: 100%;
+  width: 80%;
   margin: 0;
 }
 
