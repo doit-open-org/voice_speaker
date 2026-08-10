@@ -38,18 +38,19 @@
         </view>
       </view>
 
-      <view class="voiceStrip">
+      <view class="voiceStrip" wx:if="{{voiceList.length}}">
         <view
           class="voiceCard {{voiceIndex === index ? 'voiceCard--active' : ''}}"
           wx:for="{{voiceList}}"
+          wx:if="{{index < 4}}"
           wx:key="voice_id"
           id="{{index}}"
           bindtap="changeStreamer"
         >
-          <image class="voiceAvatar" src="/img/{{item.headImg}}" mode="aspectFill" />
+          <image class="voiceAvatar" src="{{item.icon}}" mode="aspectFill" />
           <text class="voiceName">{{item.voice_name}}</text>
         </view>
-        <view class="voiceCard {{voiceIndex === -1 ? 'voiceCard--active' : ''}}" bindtap="moreVoice">
+        <view class="voiceCard {{voiceIndex === -1 ? 'voiceCard--active' : ''}}" bindtap="moreVoice" wx:if="{{voiceList.length > 3}}">
           <view class="moreVoiceIcon">
             <van-icon name="friends-o" size="32px" color="#C91818" />
           </view>

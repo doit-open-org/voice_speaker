@@ -35,21 +35,22 @@
       </viwe>
     </view>
     <!-- 当前主播 -->
-    <view class="streamerView flex_C_SB w90" style="margin-left: 5%;">
+    <view class="streamerView flex_C_SB w90" style="margin-left: 5%;" wx:if="{{voiceList.length}}">
       <view class="currentStreamer streamerV">当前主播</view>
       <view class="currentStreamerInfo streamerV flexCC">
         <view>{{voiceCheckInfo.voice_name}} </view>
-        <view class="flex" wx:if="{{voiceIndex != -1}}"> 
-          <image class="streamerSmallImg" src="/img/{{voiceList[voiceIndex].headImg}}" mode="aspectFit"></image>
+        <view class="flex"> 
+          <image class="streamerSmallImg" src="{{voiceCheckInfo.icon}}" mode="aspectFit"></image>
         </view>
       </view>
       <view class="moreStreamer streamerV" bindtap="moreVoice">更多主播</view>
     </view>
     <!-- 主播列表 -->
     <view class="streamersView flex_C_SB w90" style="margin-left: 5%;">
-      <view class="streamersItem flexCC flex_d_c {{voiceIndex== index&&'selectedStreamer'}}" wx:for="{{voiceList}}" wx:key="k" bindtap="changeStreamer" id="{{index}}">
+      <view class="streamersItem flexCC flex_d_c {{voiceIndex== index&&'selectedStreamer'}}" wx:for="{{voiceList}}" wx:if="{{index < 5}}" wx:key="k" bindtap="changeStreamer" id="{{index}}">
          <view class="streamerIcon">
-            <image class="streamerImg" src="/img/{{item.headImg}}" mode="aspectFit"></image>
+            <!-- <image class="streamerImg" src="/img/{{item.headImg}}" mode="aspectFit"></image> -->
+            <image class="streamerImg" src="{{item.icon}}" mode="aspectFit"></image>
          </view>
          <view>{{item.voice_name}}</view>
       </view>

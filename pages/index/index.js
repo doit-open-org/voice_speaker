@@ -7,16 +7,25 @@ Page({
     inputText: '',
     voiceIndex: 0,
     voiceList: [
-      { voice_name: '艾琳', voice_id: 'zh_female_shuangkuaisisi_moon_bigtts',headImg:'streamer1.jpg'},
-      { voice_name: '泽云', voice_id: 'zh_male_wenrouxiaoge_mars_bigtts' ,headImg:'streamer2.jpg'},
-      { voice_name: '瑶光', voice_id: 'zh_female_linzhiling_mars_bigtts' ,headImg:'streamer3.jpg'},
-      { voice_name: '凌声', voice_id: 'zh_male_hupunan_mars_bigtts' ,headImg:'streamer4.jpg'},
-      { voice_name: '希雅', voice_id: 'ICL_zh_female_wenrouwenya_tob' ,headImg:'streamer5.jpg'}
+      // { voice_name: '艾琳', voice_id: 'zh_female_shuangkuaisisi_moon_bigtts',headImg:'streamer1.jpg'},
+      // { voice_name: '泽云', voice_id: 'zh_male_wenrouxiaoge_mars_bigtts' ,headImg:'streamer2.jpg'},
+      // { voice_name: '瑶光', voice_id: 'zh_female_linzhiling_mars_bigtts' ,headImg:'streamer3.jpg'},
+      // { voice_name: '凌声', voice_id: 'zh_male_hupunan_mars_bigtts' ,headImg:'streamer4.jpg'},
+      // { voice_name: '希雅', voice_id: 'ICL_zh_female_wenrouwenya_tob' ,headImg:'streamer5.jpg'}
+      // {
+      //   "id": 10,
+      //   "voice_id": "en_male_alex_uranus_bigtts",
+      //   "voice_name": "Alex",
+      //   "icon": "https://lf3-static.bytednsdoc.com/obj/eden-cn/lm_hz_ihsph/ljhwZthlaukjlkulzlp/portal/bigtts/avatar/Alex_en_male_alex_uranus_bigtts.png",
+      //   "audio_path": null,
+      //   "language": "en-US",
+      //   "level": "normal",
+      //   "description": "American English male",
+      //   "is_favorite": false
+      // }
     ],
     //选中的音色信息
-    voiceCheckInfo:{
-      voice_name: '艾琳', voice_id: 'zh_female_shuangkuaisisi_moon_bigtts',headImg:'streamer1.jpg'
-    },
+    voiceCheckInfo:{},
     voiceMoreList:{}, //拉取接口的音色
     speed: 1.0, //音效语速
     yxVoice: 2.0, //音效音量
@@ -68,7 +77,17 @@ Page({
       })
       if(res.code == 200){
         console.log('音色列表:', res.data)
-        this.setData({ voiceMoreList: res.data })
+        console.log('home...:', res.data.home)
+        const voiceCatalog = res.data || {}
+        const homeVoices = Array.isArray(voiceCatalog.home)
+          ? voiceCatalog.home
+          : []
+        this.setData({ 
+          voiceMoreList: voiceCatalog,
+          voiceList: homeVoices,
+          voiceCheckInfo: homeVoices[0],
+        })
+
       }else{
         showToast('error','音色列表拉取失败')
       }
