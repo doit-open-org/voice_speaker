@@ -53,3 +53,12 @@
   color: #d9534f;
   font-size: 26rpx;
 }
+
+.noData{
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgb(173, 173, 173);
+}

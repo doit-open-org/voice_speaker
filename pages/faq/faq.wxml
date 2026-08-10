@@ -1,0 +1,38 @@
+<view class="faqPage">
+  <scroll-view
+    class="faqScroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    lower-threshold="100"
+    bindscrolltolower="loadMore"
+  >
+    <view class="statusState" wx:if="{{loading && !faqs.length}}">正在加载...</view>
+
+    <view class="statusState" wx:elif="{{loadError && !faqs.length}}">
+      <text>{{loadError}}</text>
+      <button class="retryButton" bindtap="retryLoad">重新加载</button>
+    </view>
+
+    <view class="statusState" wx:elif="{{!faqs.length}}">暂无常见问题</view>
+
+    <view class="faqList" wx:else>
+      <view
+        class="faqRow"
+        wx:for="{{faqs}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="openDetail"
+        hover-class="faqRow--pressed"
+      >
+        <view class="faqCopy">
+          <text class="faqTitle">{{item.title}}</text>
+          <text class="categoryLabel">{{item.categoryLabel}}</text>
+        </view>
+        <van-icon name="arrow" size="18px" color="#888888" />
+      </view>
+      <view class="loadMoreState" wx:if="{{loadingMore}}">正在加载...</view>
+      <view class="loadMoreState" wx:elif="{{page >= totalPages}}">已经到底了</view>
+    </view>
+  </scroll-view>
+</view>

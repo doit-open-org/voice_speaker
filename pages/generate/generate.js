@@ -15,6 +15,7 @@ Page({
     sendTimer:null,
     importMask: false, //发送蒙层
     importPro: 0,  //发送进度
+    exportFlag: false,
   },
 
   /**
@@ -88,6 +89,14 @@ Page({
 
   // 发送到设备
   async sendToDevice() {
+    //判断是否连接设备
+    if(!app.globalData.deviceInfo.connState){
+      wx.showToast({
+        title: '请先连接设备',
+        icon: 'none'
+      })
+      return
+    }
     // wx.showLoading({ title: '发送中...',mask: true})
     this.setData({importMask: true})
     this.data.sendTimer && clearTimeout(this.data.sendTimer)
@@ -244,6 +253,8 @@ Page({
       })
       return
     }
+    this.setData({exportFlag: true})
+    let that = this
     let tempPath = await downloadAudio(this.data.generate.audio_url)
     let fileName = (Math.ceil(Date.now()/1000)).toString(16)+'.mp3'
     console.log("tempPath....",tempPath)
@@ -257,6 +268,9 @@ Page({
       fail(err) {
         console.error('分享失败', err);
       },
+      complete(){
+        that.setData({exportFlag: false})
+      }
     });
   },
 

@@ -129,6 +129,7 @@
 
 .settingSlider {
   margin: 0;
+  margin-right: 20rpx;
 }
 
 .settingValue {

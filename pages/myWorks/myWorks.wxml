@@ -19,8 +19,10 @@
 				<view class="btn" bindtap="onEdit" id="{{index}}">编辑</view>
 				<view class="btn" bindtap="onDelete" id="{{index}}">删除</view>
 			</view>
-
 		</view>
+	</view>
+	<view class="noData" wx:if="{{!list.length}}">
+		暂无作品
 	</view>
 </view>
 

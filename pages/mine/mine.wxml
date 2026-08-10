@@ -29,6 +29,16 @@
           <text class="settingLabel">我的订单</text>
           <van-icon name="arrow" size="19px" color="#555555" />
         </view> -->
+        <view class="settingRow" bindtap="openFaq" hover-class="tapPressed">
+          <van-icon name="question-o" size="23px" color="#d82929" />
+          <text class="settingLabel">常见问题</text>
+          <van-icon name="arrow" size="19px" color="#555555" />
+        </view>
+        <view class="settingRow" bindtap="openFeedback" hover-class="tapPressed">
+          <van-icon name="comment-o" size="23px" color="#d82929" />
+          <text class="settingLabel">意见反馈</text>
+          <van-icon name="arrow" size="19px" color="#555555" />
+        </view>
         <view class="settingRow" bindtap="openContact" hover-class="tapPressed">
           <van-icon name="phone-o" size="23px" color="#d82929" />
           <text class="settingLabel">联系方式</text>

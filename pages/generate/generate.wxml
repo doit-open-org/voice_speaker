@@ -54,7 +54,7 @@
           <view class="option-desc">导出音频至微信下载</view>
         </view>
       </view>
-      <button class="action-btn" bindtap="exportToWechat">导出</button>
+      <button class="action-btn" disabled="{{exportFlag}}" bindtap="exportToWechat">导出</button>
     </view>
 
     <!-- 复制链接下载文件 -->

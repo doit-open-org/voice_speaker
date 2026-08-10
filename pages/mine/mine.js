@@ -52,6 +52,14 @@ Page({
     wx.navigateTo({ url: '../contact/contact' })
   },
 
+  openFaq() {
+    wx.navigateTo({ url: '../faq/faq' })
+  },
+
+  openFeedback() {
+    wx.navigateTo({ url: '../feedback/feedback' })
+  },
+
   openAbout() {
     console.log('111');
     wx.navigateTo({ url: '../about/about' })

@@ -18,6 +18,42 @@
 				</view>
 			</view>
 		</view>
+		<view class="settingRow">
+			<text class="settingLabel">语速</text>
+			<slider
+				class="settingSlider"
+				min="0.5"
+				max="2"
+				step="0.1"
+				value="{{speed}}"
+				disabled="{{disabled}}"
+				activeColor="#C91818"
+				backgroundColor="#E5E5E5"
+				block-color="#C91818"
+				block-size="22"
+				bindchange="changeSpeed"
+				bindchanging="changeSpeed"
+			/>
+			<text class="settingValue">{{speedDisplay}}</text>
+		</view>
+		<view class="settingRow">
+			<text class="settingLabel">音量</text>
+			<slider
+				class="settingSlider"
+				min="0.5"
+				max="2"
+				step="0.1"
+				value="{{volume}}"
+				disabled="{{disabled}}"
+				activeColor="#C91818"
+				backgroundColor="#E5E5E5"
+				block-color="#C91818"
+				block-size="22"
+				bindchange="changeVolume"
+				bindchanging="changeVolume"
+			/>
+			<text class="settingValue">{{volumeDisplay}}</text>
+		</view>
 	</view>
 	<!-- 录音弹窗  -->
 	<view class="reTanchuang flexCC" wx:if="{{recorderMask}}">

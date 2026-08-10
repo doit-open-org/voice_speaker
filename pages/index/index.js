@@ -29,6 +29,7 @@ Page({
     bgmList:{}, //背景音乐列表
     activeBgmInfo: {}, //选中的背景音乐
     bgmSetDetail: {}, //背景音乐设置明细
+    dingdongFlag: false, //叮咚标志
   },
 
   onLoad() {
@@ -128,6 +129,23 @@ Page({
     }
   },
 
+  clearText(){
+    this.setData({
+      inputText: '',
+      cursorPosition: 0
+    })
+  },
+
+  jumpXxmini(){
+    wx.navigateToMiniProgram({
+      appId: 'wx7fa7b99ba9bd3ba7',
+      envVersion: 'release',
+      success: (res) => {},
+      fail: (res) => {},
+      complete: (res) => {},
+    })
+  },
+
   musicSet(){
     this.setData({  musicSetShow: !this.data.musicSetShow   })
   },
@@ -170,6 +188,20 @@ Page({
     let  inputNewText = inputText.substring(0, cursorPosition) + insertStr + inputText.substring(cursorPosition);
     this.setData({inputText: inputNewText})
   },
+
+  //插入叮咚
+  insertDD(){
+    this.setData({dingdongFlag: true})
+    setTimeout(()=>{
+      this.setData({dingdongFlag: false})
+      let {cursorPosition,inputText} = this.data
+      console.log('p...',cursorPosition)
+      console.log('i...',inputText)
+      let insertStr = `[叮咚]`;
+      let  inputNewText = inputText.substring(0, cursorPosition) + insertStr + inputText.substring(cursorPosition);
+      this.setData({inputText: inputNewText})
+    },20)
+  },
   
 
   async convertToSpeech() {
@@ -191,6 +223,8 @@ Page({
     
     try {
       let newTxt = this.convertPauseToBreak(inputText)
+      newTxt = this.convertDingDong(newTxt)
+      console.log('ttt...',newTxt);
       let data = {
         //<speak>四博智联配音宝<break time=\"1.5s\"></break>就是好，</speak>
         "text": '<speak>'+newTxt+'</speak>',
@@ -215,16 +249,17 @@ Page({
       let result = res.data
       app.globalData.generate = result
       console.log('res....',result)
+      wx.hideLoading();
       wx.navigateTo({
         url: '../generate/generate',
       })
      
     } catch (error) {
-      console.error('TTS转换失败:', error)
+      console.error('TTS转换失败2:', error)
       wx.hideLoading();
       showToast('none',error.message || '转换失败')
     } finally {
-      wx.hideLoading();
+
     }
   },
   convertPauseToBreak(text) {
@@ -233,11 +268,18 @@ Page({
       return `<break time="${seconds}s"></break>`;
     });
   },
+  convertDingDong(text){
+    return text.replace(
+      /\[叮咚\]/g,
+      '<soundEvent src="https://ai-speaker.tos-cn-beijing.volces.com/wav/ding_dong.wav"/>'
+    );
+  },
   moreVoice(){
     wx.navigateTo({
       url: '../voiceSelect/voiceSelect',
       events: {
         voiceSelected: (voice) => {
+          console.log('vvv...',voice);
           this.setData({
             voiceIndex: -1,
             voiceCheckInfo: voice

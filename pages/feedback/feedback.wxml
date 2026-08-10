@@ -1,0 +1,38 @@
+<view class="feedbackPage">
+  <view class="categorySection">
+    <text class="sectionLabel">反馈类型</text>
+    <view class="categoryControl">
+      <view
+        class="categoryOption {{category === item.value ? 'categoryOption--active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="value"
+        data-value="{{item.value}}"
+        bindtap="selectCategory"
+      >
+        {{item.label}}
+      </view>
+    </view>
+  </view>
+
+  <view class="feedbackEditor">
+    <textarea
+      class="feedbackInput"
+      value="{{content}}"
+      maxlength="200"
+      disabled="{{submitting}}"
+      placeholder="请输入您的意见或建议"
+      placeholder-class="feedbackPlaceholder"
+      bindinput="onContentInput"
+    />
+    <text class="contentCount">{{content.length}}/200</text>
+  </view>
+
+  <button
+    class="submitButton"
+    loading="{{submitting}}"
+    disabled="{{submitting}}"
+    bindtap="submitFeedback"
+  >
+    {{submitting ? '提交中' : '提交'}}
+  </button>
+</view>

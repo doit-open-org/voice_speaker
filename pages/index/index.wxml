@@ -11,7 +11,7 @@
     <!-- 文字输入 -->
     <view class="textView w100 flexCC">
       <view class="input_section">
-        <textarea  class="text_input" placeholder="请输入要转换的文字..." value="{{inputText}}" bindinput="onTextInput" bindfocus="cursorPosition"  bindblur="cursorPosition"  maxlength="299" />
+        <textarea  class="text_input" placeholder="请输入要转换的文字..." value="{{inputText}}" bindinput="onTextInput" bindfocus="cursorPosition"  bindblur="cursorPosition"   maxlength="299" />
         <view class="musicConfig flex_C_SB">
           <view class="flex">
             <view class="musicSet" bindtap="stopSet">插入停顿</view>
@@ -19,7 +19,12 @@
             <view class="musicSet" bindtap="musicSet">音效设置</view>
             <view class="musicSet" bindtap="openTemp">常用模版</view>
           </view>
-          <view class="char_count">{{inputText.length}}/299</view>
+          <view class="char_count">
+            <view>{{inputText.length}}/299</view>
+            <view class="clearButton" bindtap="clearText">
+              <van-icon name="delete-o" size="21px" color="#C91818" />
+            </view>
+          </view>
         </view>
       </view>
       <!-- AI创作 -->
@@ -50,7 +55,7 @@
       </view>
     </view>
     <!-- 广告录音 -->
-    <view class="AdvRecordings flex_C_SA w90" style="margin-left: 5%;">
+    <view class="AdvRecordings flex_C_SB w90" style="margin-left: 5%;">
       <!-- <view class="AdvRecordView flexCC">
         <view class="AdvRecordViewImg flex">
           <image class="AdvRecordViewIcon" src="/img/adv.png" mode="aspectFit"></image>
@@ -68,6 +73,12 @@
           <image class="AdvRecordViewIcon" src="/img/recod.png" mode="aspectFit"></image>
         </view>
         <view class="AdvRecordViewTxt">录音功能</view>
+      </view>
+      <view class="AdvRecordView flexCC" bindtap="jumpXxmini">
+        <view class="AdvRecordViewImg flex">
+          <image class="AdvRecordViewIcon" src="/img/xx.png" mode="aspectFit"></image>
+        </view>
+        <view class="AdvRecordViewTxt">四博学习宝</view>
       </view>
     </view>
     <!-- 背景、合成 -->
@@ -99,6 +110,8 @@
 
     </view>
 </van-popup>
+<!-- 停顿叮咚 -->
+<view wx:if="{{dingdongFlag}}" style="position: absolute;width: 100%;height: 100%;"></view>
 <!-- 停顿设置 -->
 <van-popup show="{{ stopShow }}" position="bottom" round closeable custom-style="" 
   bind:close="stopSet" >

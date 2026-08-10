@@ -62,6 +62,13 @@
           "query": "",
           "launchMode": "default",
           "scene": null
+        },
+        {
+          "name": "mywork",
+          "pathName": "pages/myWorks/myWorks",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         }
       ]
     }

@@ -21,6 +21,9 @@
     "pages/myWorks/myWorks",
     "pages/mine/mine",
     "pages/profile/profile",
+    "pages/faq/faq",
+    "pages/faqDetail/faqDetail",
+    "pages/feedback/feedback",
     "pages/contact/contact",
     "pages/about/about"
   ],

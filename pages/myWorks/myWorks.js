@@ -103,7 +103,8 @@ Page({
       this.innerAudioContext.pause()
     } else {
       this.innerAudioContext.obeyMuteSwitch = false  // 忽略静音开关
-      this.innerAudioContext.src = "https://"+list[index]['audio_url']
+      console.log('33...',list[index]['audio_url']);
+      this.innerAudioContext.src = list[index]['audio_url']
       this.innerAudioContext.play()
       this.setData({palyId: id })
     }

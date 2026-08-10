@@ -59,7 +59,11 @@ Component({
    */
   data: {
     audioPath: '',
-    recorderMask: false
+    recorderMask: false,
+    speed: 1,
+    speedDisplay: '1.0',
+    volume: 2,
+    volumeDisplay: '2.0'
   },
 
   /**
@@ -71,6 +75,14 @@ Component({
     },
     showBgm(){
       this.triggerEvent('bgmPop')
+    },
+    changeSpeed(e) {
+      const speed = Number(Number(e.detail.value).toFixed(1))
+      this.setData({ speed, speedDisplay: speed.toFixed(1) })
+    },
+    changeVolume(e) {
+      const volume = Number(Number(e.detail.value).toFixed(1))
+      this.setData({ volume, volumeDisplay: volume.toFixed(1) })
     },
     startRecorder(){
       if (this.data.disabled) {
@@ -92,8 +104,8 @@ Component({
       if (this.recorder) this.recorder.stop()
     },
     handleRecorder(){
-      let audioPath = this.data.audioPath
-      this.triggerEvent('handleRecorder',{audioPath})
+      const { audioPath, speed, volume } = this.data
+      this.triggerEvent('handleRecorder', { audioPath, speed, volume })
     },
   }
 })

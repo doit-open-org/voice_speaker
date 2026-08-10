@@ -1,0 +1,17 @@
+<view class="faqDetailPage">
+  <view class="detailState" wx:if="{{loading}}">正在加载...</view>
+
+  <view class="detailState" wx:elif="{{loadError}}">
+    <text>{{loadError}}</text>
+    <button class="retryButton" bindtap="retryLoad" wx:if="{{faqId}}">重新加载</button>
+  </view>
+
+  <scroll-view class="detailScroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+    <view class="detailContent">
+      <text class="detailTitle">{{title}}</text>
+      <text class="detailCategory">{{categoryLabel}}</text>
+      <view class="detailDivider"></view>
+      <rich-text class="faqRichText" nodes="{{detail}}"></rich-text>
+    </view>
+  </scroll-view>
+</view>

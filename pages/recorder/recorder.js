@@ -1,6 +1,7 @@
 const app = getApp()
 const { showToast } = require('../../utils/request')
-
+const API_ORIGIN =  getApp().globalData.domain
+const VOICE_CONVERT_UPLOAD_URL = API_ORIGIN+'/api/v1/user/tts/synthesize-audio'
 Page({
   data: {
     bgmSetPop: false,
@@ -90,9 +91,17 @@ Page({
       showToast('none', '录音正在上传中')
       return
     }
-    const audioPath = e.detail.audioPath
+    const {
+      audioPath,
+      speed = 1,
+      volume = 2
+    } = e.detail
     const token = wx.getStorageSync('auth_token')
-    let formData = { title: `我的录音${Date.now()}` }
+    let formData = {
+      title: `我的录音${Date.now()}`,
+      speed_ratio: speed,
+      volume_ratio: volume
+    }
     const bgmSetDetail = this.data.bgmSetDetail
     if (bgmSetDetail.bgm_id !== undefined && bgmSetDetail.bgm_id !== 0) {
       formData = { ...formData, ...bgmSetDetail }
@@ -102,7 +111,7 @@ Page({
     this.setData({ uploading: true })
     wx.showLoading({ title: '上传中...', mask: true })
     this.uploadTask = wx.uploadFile({
-      url: 'https://ai-speaker.esp32.cn/api/v1/user/tts/synthesize-audio',
+      url: VOICE_CONVERT_UPLOAD_URL,
       filePath: audioPath,
       name: 'audio_file',
       formData,

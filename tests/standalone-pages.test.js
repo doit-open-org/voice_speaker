@@ -1507,6 +1507,16 @@ test('home BGM reset clears both selection and confirmed settings', () => {
   assert.equal(Object.keys(page.data.bgmSetDetail).length, 0)
 })
 
+test('home converts every ding-dong marker to a sound event', () => {
+  const { page } = loadPage('pages/index/index.js')
+  const soundEvent = '<soundEvent src="http://192.168.5.245:9000/static/miniprogram/wav/ding_dong.wav"/>'
+
+  assert.equal(
+    page.convertDingDong('开场[叮咚]正文[叮咚]结束'),
+    `开场${soundEvent}正文${soundEvent}结束`
+  )
+})
+
 test('standalone pages keep an unconditional safe-area navigation bar', () => {
   const pages = [
     ['pages/voiceSelect/voiceSelect', '<voicelist'],
@@ -2437,8 +2447,16 @@ test('recorder page synchronizes BGM state and uploads with confirmed settings',
   assert.equal(synchronized.payload.activeBgmInfo.id, 42)
   assert.equal(synchronized.payload.bgmSetDetail.bgm_id, 42)
 
-  page.handleRecorder({ detail: { audioPath: 'wxfile://recording.mp3' } })
+  page.handleRecorder({
+    detail: {
+      audioPath: 'wxfile://recording.mp3',
+      speed: 1.3,
+      volume: 1.7
+    }
+  })
   assert.equal(uploadOptions.filePath, 'wxfile://recording.mp3')
+  assert.equal(uploadOptions.formData.speed_ratio, 1.3)
+  assert.equal(uploadOptions.formData.volume_ratio, 1.7)
   assert.equal(uploadOptions.formData.bgm_id, 42)
   assert.equal(uploadOptions.formData.bgm_volume, 0.8)
 
@@ -2552,6 +2570,37 @@ test('recorder component stops and releases listeners when detached', () => {
   assert.equal(released.length, 3)
   callbacks.stop({ tempFilePath: 'wxfile://detached.mp3' })
   assert.equal(component.data.audioPath, '')
+})
+
+test('recorder component exposes speed and volume controls in its upload event', () => {
+  const emitted = []
+  const { component } = loadComponent('components/recorder/recorder.js', {
+    getRecorderManager() {
+      return {
+        onStart() {},
+        onStop() {},
+        onError() {}
+      }
+    },
+    showToast() {}
+  })
+  component.triggerEvent = (name, detail) => emitted.push({ name, detail })
+
+  component.changeSpeed({ detail: { value: 1.26 } })
+  component.changeVolume({ detail: { value: 1.74 } })
+  component.setData({ audioPath: 'wxfile://settings.mp3' })
+  component.handleRecorder()
+
+  assert.equal(component.data.speedDisplay, '1.3')
+  assert.equal(component.data.volumeDisplay, '1.7')
+  assert.equal(emitted[0].name, 'handleRecorder')
+  assert.equal(emitted[0].detail.audioPath, 'wxfile://settings.mp3')
+  assert.equal(emitted[0].detail.speed, 1.3)
+  assert.equal(emitted[0].detail.volume, 1.7)
+
+  const markup = read('components/recorder/recorder.wxml')
+  assert.equal(markup.includes('bindchange="changeSpeed"'), true)
+  assert.equal(markup.includes('bindchange="changeVolume"'), true)
 })
 
 test('home banner uses a three-image native carousel', () => {
@@ -3163,7 +3212,13 @@ test('mine pages are registered', () => {
   assert.equal(appConfig.pages.includes('pages/mine/mine'), true)
   assert.equal(appConfig.pages.includes('pages/profile/profile'), true)
 
-  for (const pageName of ['mine/mine', 'profile/profile']) {
+  for (const pageName of [
+    'mine/mine',
+    'profile/profile',
+    'faq/faq',
+    'faqDetail/faqDetail',
+    'feedback/feedback'
+  ]) {
     for (const extension of ['js', 'json', 'wxml', 'wxss']) {
       assert.equal(fs.existsSync(path.join(projectRoot, `pages/${pageName}.${extension}`)), true)
     }
@@ -3226,6 +3281,118 @@ test('contact and about pages are registered and open from mine settings', () =>
   const markup = read('pages/mine/mine.wxml')
   assert.equal(markup.includes('bindtap="openContact"'), true)
   assert.equal(markup.includes('bindtap="openAbout"'), true)
+})
+
+test('mine opens FAQ and feedback pages from its settings list', () => {
+  const { navigationCalls, page } = loadPage('pages/mine/mine.js')
+
+  page.openFaq()
+  page.openFeedback()
+
+  assert.deepEqual(
+    navigationCalls.map((call) => call.options.url),
+    ['../faq/faq', '../feedback/feedback']
+  )
+
+  const markup = read('pages/mine/mine.wxml')
+  assert.equal(markup.includes('bindtap="openFaq"'), true)
+  assert.equal(markup.includes('bindtap="openFeedback"'), true)
+  assert.equal(markup.includes('常见问题'), true)
+  assert.equal(markup.includes('意见反馈'), true)
+})
+
+test('feedback submits a trimmed category payload and prevents duplicate requests', async () => {
+  const requestCalls = []
+  let finishRequest
+  const { page, toastCalls } = loadPage('pages/feedback/feedback.js', {
+    request: (options) => {
+      requestCalls.push(options)
+      return new Promise((resolve) => {
+        finishRequest = () => resolve({ code: 200, data: { id: 61 } })
+      })
+    }
+  })
+
+  page.selectCategory({ currentTarget: { dataset: { value: 'bug' } } })
+  page.onContentInput({ detail: { value: '  播放时偶尔没有声音  ' } })
+  const submitPromise = page.submitFeedback()
+  page.submitFeedback()
+
+  assert.equal(requestCalls.length, 1)
+  assert.equal(requestCalls[0].url, '/user/feedback')
+  assert.equal(requestCalls[0].method, 'POST')
+  assert.equal(requestCalls[0].needAuth, true)
+  assert.equal(requestCalls[0].data.category, 'bug')
+  assert.equal(requestCalls[0].data.content, '播放时偶尔没有声音')
+  assert.equal(page.data.submitting, true)
+
+  finishRequest()
+  await submitPromise
+
+  assert.equal(page.data.submitting, false)
+  assert.equal(page.data.content, '')
+  assert.equal(toastCalls.at(-1).title, '提交成功')
+})
+
+test('FAQ list paginates and opens the selected detail page', async () => {
+  const requestCalls = []
+  const { navigationCalls, page } = loadPage('pages/faq/faq.js', {
+    request: async (options) => {
+      requestCalls.push(options)
+      const pageNumber = options.data.page
+      return {
+        code: 200,
+        data: pageNumber === 1
+          ? [{ id: 11, title: '如何生成配音？', category: 'usage' }]
+          : [{ id: 12, title: '为什么无法播放？', category: 'troubleshooting' }],
+        page: pageNumber,
+        page_size: 20,
+        total: 2,
+        total_pages: 2
+      }
+    }
+  })
+
+  await page.onLoad()
+  assert.equal(requestCalls[0].url, '/faqs')
+  assert.equal(requestCalls[0].needAuth, false)
+  assert.equal(page.data.faqs[0].categoryLabel, '使用帮助')
+
+  await page.loadMore()
+  assert.equal(page.data.faqs.length, 2)
+  assert.equal(page.data.faqs[1].categoryLabel, '故障排查')
+
+  page.openDetail({ currentTarget: { dataset: { id: 12 } } })
+  assert.equal(navigationCalls.at(-1).options.url, '../faqDetail/faqDetail?id=12')
+  page.onUnload()
+})
+
+test('FAQ detail loads sanitized HTML for rich-text rendering', async () => {
+  const requestCalls = []
+  const { page } = loadPage('pages/faqDetail/faqDetail.js', {
+    request: async (options) => {
+      requestCalls.push(options)
+      return {
+        code: 200,
+        data: {
+          title: '如何连接设备？',
+          category: 'usage',
+          detail: '<p>请先打开蓝牙，再选择需要连接的设备。</p>'
+        }
+      }
+    }
+  })
+
+  await page.onLoad({ id: '23' })
+
+  assert.equal(requestCalls[0].url, '/faqs/23')
+  assert.equal(requestCalls[0].method, 'GET')
+  assert.equal(requestCalls[0].needAuth, false)
+  assert.equal(page.data.title, '如何连接设备？')
+  assert.equal(page.data.categoryLabel, '使用帮助')
+  assert.equal(page.data.detail, '<p>请先打开蓝牙，再选择需要连接的设备。</p>')
+  assert.equal(read('pages/faqDetail/faqDetail.wxml').includes('<rich-text'), true)
+  page.onUnload()
 })
 
 test('contact page copies WeChat and calls the service phone number', () => {

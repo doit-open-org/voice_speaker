@@ -53,3 +53,33 @@
 	color: #E20E0E;
 	margin-top: 20rpx;
 }
+.settingRow {
+	width: 600rpx;
+	max-width: calc(100vw - 64rpx);
+	margin-top: 56rpx;
+	display: grid;
+	grid-template-columns: 76rpx minmax(0, 1fr) 70rpx;
+	align-items: center;
+	gap: 12rpx;
+	box-sizing: border-box;
+}
+.settingRow + .settingRow {
+	margin-top: 56rpx;
+}
+.settingLabel {
+	font-size: 28rpx;
+}
+.settingSlider {
+	margin: 0;
+	margin-right: 20rpx;
+}
+.settingValue {
+	height: 54rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 8rpx;
+	background: rgba(226, 14, 14, 0.08);
+	color: #b51a18;
+	font-size: 26rpx;
+}

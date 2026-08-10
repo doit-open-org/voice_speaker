@@ -1,0 +1,78 @@
+page {
+  height: 100%;
+  background: #ffffff;
+}
+
+.faqDetailPage {
+  height: 100vh;
+  background: #ffffff;
+  color: #222222;
+  font-size: 29rpx;
+}
+
+.detailScroll {
+  height: 100%;
+}
+
+.detailContent {
+  width: 100%;
+  padding: 38rpx 34rpx 64rpx;
+  box-sizing: border-box;
+}
+
+.detailTitle {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 36rpx;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.detailCategory {
+  display: block;
+  margin-top: 16rpx;
+  color: #a62020;
+  font-size: 24rpx;
+}
+
+.detailDivider {
+  height: 1rpx;
+  margin: 28rpx 0;
+  background: #e8e8e8;
+}
+
+.faqRichText {
+  display: block;
+  overflow-wrap: anywhere;
+  color: #444444;
+  font-size: 29rpx;
+  line-height: 1.75;
+}
+
+.detailState {
+  min-height: 520rpx;
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  color: #777777;
+}
+
+.retryButton {
+  width: 210rpx;
+  height: 72rpx;
+  margin: 28rpx 0 0;
+  padding: 0;
+  border: 1rpx solid #c91d20;
+  border-radius: 6rpx;
+  background: #ffffff;
+  color: #b51a18;
+  font-size: 27rpx;
+  line-height: 70rpx;
+}
+
+.retryButton::after {
+  border: 0;
+}

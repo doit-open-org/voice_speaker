@@ -1,0 +1,10 @@
+{
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
+  "navigationBarTitleText": "常见问题",
+  "navigationBarTextStyle": "black",
+  "navigationBarBackgroundColor": "#f6f6f6",
+  "usingComponents": {
+    "van-icon": "@vant/weapp/icon/index"
+  }
+}
