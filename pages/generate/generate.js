@@ -37,6 +37,9 @@ Page({
     this.innerAudioContext.onEnded(() => {
       this.setData({ isPlaying: false })
     })
+    this.innerAudioContext.onError(() => {
+      this.setData({ isPlaying: false })
+    })
     // 生成波形数据
     this.generateWaveform()
     //测试unicode
@@ -58,8 +61,11 @@ Page({
   generateWaveform() {
     const waveData = []
     for (let i = 0; i < 60; i++) {
-      const height = 20 + Math.random() * 80
-      waveData.push(height)
+      waveData.push({
+        height: Math.round(20 + Math.random() * 80),
+        animationDelay: i === 0 ? 0 : -((i * 47) % 760),
+        animationDuration: 520 + (i % 7) * 70
+      })
     }
     this.setData({ waveData })
   },
@@ -255,23 +261,31 @@ Page({
     }
     this.setData({exportFlag: true})
     let that = this
-    let tempPath = await downloadAudio(this.data.generate.audio_url)
-    let fileName = (Math.ceil(Date.now()/1000)).toString(16)+'.mp3'
-    console.log("tempPath....",tempPath)
-    this.data.tempPath = tempPath
-    wx.shareFileMessage({
-      filePath: this.data.tempPath,
-      fileName: fileName,
-      success() {
-        console.log('分享成功');
-      },
-      fail(err) {
-        console.error('分享失败', err);
-      },
-      complete(){
-        that.setData({exportFlag: false})
-      }
-    });
+    
+    try {
+      let tempPath = await downloadAudio(this.data.generate.audio_url)
+      let fileName = (Math.ceil(Date.now()/1000)).toString(16)+'.mp3'
+      console.log("tempPath....",tempPath)
+      this.data.tempPath = tempPath
+      wx.shareFileMessage({
+        filePath: this.data.tempPath,
+        fileName: fileName,
+        success() {
+          console.log('分享成功');
+        },
+        fail(err) {
+          console.error('分享失败', err);
+        },
+        complete(){
+          that.setData({exportFlag: false})
+        }
+      });
+    } catch (error) {
+      that.setData({exportFlag: false})
+    }
+    
+   
+    
   },
 
   // 复制链接

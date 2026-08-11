@@ -33,7 +33,34 @@
   width: 4rpx;
   background: #D32F2F;
   border-radius: 3rpx;
-  transition: height 0.2s;
+  flex-shrink: 0;
+  transform-origin: center;
+}
+
+.wave-bar-playing {
+  animation-name: wavePlaying;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@keyframes wavePlaying {
+  0%,
+  100% {
+    transform: scaleY(0.55);
+  }
+
+  25% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(0.7);
+  }
+
+  75% {
+    transform: scaleY(1.15);
+  }
 }
 
 .play-btn {

@@ -215,14 +215,14 @@
 }
 
 .sendButton {
-  width: 176rpx;
-  height: 72rpx;
+  width: 156rpx;
+  height: 52rpx;
   padding: 0;
   border-radius: 8rpx;
   background: #E20E0E;
   color: #ffffff;
   font-size: 28rpx;
-  line-height: 72rpx;
+  line-height: 52rpx;
 }
 
 .sendButton::after {

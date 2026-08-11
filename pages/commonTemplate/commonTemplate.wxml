@@ -38,7 +38,7 @@
     <view class="stateText" wx:elif="{{genericVoices.length === 0}}">{{genericEmptyText}}</view>
     <view class="genericItem" wx:for="{{genericVoices}}" wx:key="id">
       <view class="genericPlay" data-id="{{item.id}}" catchtap="playGeneric">
-        <van-icon name="{{item.id === playingId ? 'pause-circle' : 'play-circle'}}" size="44px" color="#E20E0E" />
+        <van-icon name="{{item.id === playingId ? 'pause-circle' : 'play-circle'}}" size="60rpx" color="#E20E0E" />
       </view>
       <view class="genericName">{{item.name}}</view>
       <button class="sendButton" data-id="{{item.id}}" bindtap="sendGeneric">发送</button>

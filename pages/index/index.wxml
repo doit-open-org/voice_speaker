@@ -35,9 +35,9 @@
       </viwe>
     </view>
     <!-- 当前主播 -->
-    <view class="streamerView flex_C_SB w90" style="margin-left: 5%;" wx:if="{{voiceList.length}}">
+    <view class="streamerView flex_C_SB w90" style="margin-left: 5%;">
       <view class="currentStreamer streamerV">当前主播</view>
-      <view class="currentStreamerInfo streamerV flexCC">
+      <view class="currentStreamerInfo streamerV flexCC" wx:if="{{voiceCheckInfo.voice_name}}">
         <view>{{voiceCheckInfo.voice_name}} </view>
         <view class="flex"> 
           <image class="streamerSmallImg" src="{{voiceCheckInfo.icon}}" mode="aspectFit"></image>
@@ -52,7 +52,7 @@
             <!-- <image class="streamerImg" src="/img/{{item.headImg}}" mode="aspectFit"></image> -->
             <image class="streamerImg" src="{{item.icon}}" mode="aspectFit"></image>
          </view>
-         <view>{{item.voice_name}}</view>
+         <view class="streamerName">{{item.voice_name}}</view>
       </view>
     </view>
     <!-- 广告录音 -->

@@ -2,12 +2,16 @@
   <!-- 音频波形区域 -->
   <view class="audio-section">
     <view class="waveform">
-      <view class="wave-bar" wx:for="{{waveData}}" wx:key="index" style="height: {{item}}rpx;"></view>
+      <view
+        class="wave-bar {{isPlaying ? 'wave-bar-playing' : ''}}"
+        wx:for="{{waveData}}"
+        wx:key="index"
+        style="height: {{item.height}}rpx; animation-delay: {{item.animationDelay}}ms; animation-duration: {{item.animationDuration}}ms;"
+      ></view>
     </view>
     
     <button class="play-btn" bindtap="playAudio">
-      <text class="play-icon" wx:if="{{!isPlaying}}">▶</text>
-      <text class="play-icon" wx:if="{{isPlaying}}">II</text>
+      <van-icon size='45rpx' color="#fff" name="{{isPlaying?'pause-circle':'play-circle'}}" />
       音频试听
     </button>
   </view>
@@ -61,7 +65,7 @@
     <view class="option-item">
       <view class="option-left">
         <view class="option-icon link-icon">
-          <text class="icon-text">♪</text>
+          <van-icon name="link-o" size='35rpx' color="#fff" />
         </view>
         <view class="option-content">
           <view class="option-title">复制链接下载文件</view>

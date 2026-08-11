@@ -1,5 +1,7 @@
 {
   "enablePullDownRefresh": false,
   "disableScroll": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "van-icon": "@vant/weapp/icon/index"
+  }
 }

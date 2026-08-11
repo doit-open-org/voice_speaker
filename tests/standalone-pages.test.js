@@ -2979,6 +2979,42 @@ test('generic voice URLs remain valid in generate page', () => {
   assert.equal(loadGenerateUrl('media.local/c.mp3').normalizedUrl, 'https://media.local/c.mp3')
 })
 
+test('generate waveform animates only while audio is playing', () => {
+  const app = {
+    globalData: { generate: { audio_url: 'https://media.local/preview.mp3' } },
+    bletool: { setCurPage() {} },
+    hextool: { setCurPage() {} }
+  }
+  const { audio, page } = loadPage('pages/generate/generate.js', { app })
+
+  page.onLoad()
+  const initialWaveData = JSON.parse(JSON.stringify(page.data.waveData))
+  assert.equal(initialWaveData.length, 60)
+  assert.equal(initialWaveData.every((bar) => bar.height >= 20 && bar.height <= 100), true)
+
+  page.playAudio()
+  assert.equal(page.data.isPlaying, true)
+  assert.equal(JSON.stringify(page.data.waveData), JSON.stringify(initialWaveData))
+
+  audio.trigger('pause')
+  assert.equal(page.data.isPlaying, false)
+  assert.equal(JSON.stringify(page.data.waveData), JSON.stringify(initialWaveData))
+
+  page.playAudio()
+  audio.trigger('ended')
+  assert.equal(page.data.isPlaying, false)
+
+  page.playAudio()
+  audio.trigger('error')
+  assert.equal(page.data.isPlaying, false)
+
+  const markup = read('pages/generate/generate.wxml')
+  const styles = read('pages/generate/generate.wxss')
+  assert.equal(markup.includes("isPlaying ? 'wave-bar-playing' : ''"), true)
+  assert.equal(styles.includes('@keyframes wavePlaying'), true)
+  page.onUnload()
+})
+
 test('advanced long text dubbing opens a registered dedicated page', () => {
   const appConfig = JSON.parse(read('app.json'))
   assert.equal(appConfig.pages.includes('pages/longTextDubbing/longTextDubbing'), true)

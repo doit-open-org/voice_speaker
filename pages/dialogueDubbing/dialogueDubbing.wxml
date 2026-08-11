@@ -68,7 +68,7 @@
         id="{{index}}"
         bindtap="changeStreamer"
       >
-        <image class="voiceAvatar" src="/img/{{item.headImg}}" mode="aspectFill" />
+        <image class="voiceAvatar" src="{{item.icon}}" mode="aspectFill" />
         <text class="voiceName">{{item.voice_name}}</text>
       </view>
       <view class="voiceCard {{voiceIndex === -1 ? 'voiceCard--active' : ''}}" bindtap="moreVoice">

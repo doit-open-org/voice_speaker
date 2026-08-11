@@ -59,7 +59,7 @@
 }
 .musicConfig{
   margin-top: 10rpx;
-  padding: 0px 15rpx;
+  padding: 0px 10rpx;
 }
 .musicSet{
   background: #f7eba8;
@@ -95,7 +95,7 @@
 }
 .streamersItem{
   background: #fff;
-  padding: 20rpx 0;
+  padding: 20rpx 3rpx;
   border-radius: 10rpx;
   width: 120rpx;
   box-shadow: 0 6rpx 12rpx 2rpx rgba(0, 0, 0, 0.16);
@@ -108,6 +108,13 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
+}
+.streamerName{
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 .AdvRecordings{
   margin-top: 30rpx;

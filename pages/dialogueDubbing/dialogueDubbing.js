@@ -17,9 +17,21 @@ Page({
     textEditorVisible: false,
     editorKeyboardHeight: 0,
     cursorPosition: 0,
-    voiceList: DEFAULT_VOICES,
+    voiceList: [
+      // {
+      //   "id": 10,
+      //   "voice_id": "en_male_alex_uranus_bigtts",
+      //   "voice_name": "Alex",
+      //   "icon": "https://lf3-static.bytednsdoc.com/obj/eden-cn/lm_hz_ihsph/ljhwZthlaukjlkulzlp/portal/bigtts/avatar/Alex_en_male_alex_uranus_bigtts.png",
+      //   "audio_path": null,
+      //   "language": "en-US",
+      //   "level": "normal",
+      //   "description": "American English male",
+      //   "is_favorite": false
+      // }
+    ],
     voiceIndex: 0,
-    voiceCheckInfo: DEFAULT_VOICES[0],
+    voiceCheckInfo: {},
     voiceMoreList: {},
     speed: 1,
     yxVoice: 2,
@@ -88,7 +100,15 @@ Page({
         needAuth: true
       })
       if (Number(res.code) === 200 && this.pageActive) {
-        this.setData({ voiceMoreList: res.data || {} })
+        const voiceCatalog = res.data || {}
+        const homeVoices = Array.isArray(voiceCatalog.home)
+          ? voiceCatalog.home
+          : []
+        this.setData({
+          voiceMoreList: voiceCatalog, 
+          voiceList: homeVoices ,
+          voiceCheckInfo: homeVoices[0] //默认一个音色
+        })
       }
     } catch (error) {
       if (!this.pageActive) return
