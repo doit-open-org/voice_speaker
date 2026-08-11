@@ -3,7 +3,7 @@
   "projectname": "voiceSpeaker_new",
   "setting": {
     "compileHotReLoad": false,
-    "urlCheck": false,
+    "urlCheck": true,
     "coverView": true,
     "lazyloadPlaceholderEnable": false,
     "preloadBackgroundData": false,

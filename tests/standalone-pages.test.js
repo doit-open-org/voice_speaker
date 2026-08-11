@@ -65,6 +65,7 @@ function loadPage(relativePath, options = {}) {
   const wx = {
     createInnerAudioContext: () => audio,
     getStorageSync: () => '',
+    setStorageSync: () => {},
     hideLoading: () => loadingCalls.push({ type: 'hide' }),
     navigateBack: () => navigationCalls.push({ type: 'back' }),
     navigateTo(navigationOptions) {
@@ -528,6 +529,81 @@ test('dialogue dubbing reuses home voice effect and BGM settings', async () => {
     /<slider[\s\S]*?min="0\.5"[\s\S]*?max="2(?:\.0)?"[\s\S]*?value="{{yxVoice}}"/.test(markup),
     true
   )
+})
+
+test('dialogue and long text dubbing reuse cached catalogs and fetch missing catalogs', async () => {
+  const voiceCatalog = {
+    home: [{ id: 7, voice_id: 'cached-voice', voice_name: 'Cached voice' }],
+    categories: [{ key: 'home', name: 'Home' }],
+    voices: { home: [] }
+  }
+  const bgmCatalog = {
+    categories: [{ key: 'music', name: 'Music' }],
+    bgms: { music: [{ id: 9, name: 'Cached BGM' }] }
+  }
+
+  for (const pagePath of [
+    'pages/dialogueDubbing/dialogueDubbing.js',
+    'pages/longTextDubbing/longTextDubbing.js'
+  ]) {
+    const requestCalls = []
+    const { page } = loadPage(pagePath, {
+      request: async (options) => {
+        requestCalls.push(options)
+        throw new Error(`Unexpected request: ${options.url}`)
+      },
+      wx: {
+        getStorageSync(key) {
+          if (key === 'voiceList') return voiceCatalog
+          if (key === 'bgmList') return bgmCatalog
+          return ''
+        }
+      }
+    })
+
+    await page.onLoad()
+    assert.equal(requestCalls.length, 0)
+    assert.equal(page.data.voiceList[0].voice_id, 'cached-voice')
+    assert.equal(page.data.voiceCheckInfo.id, 7)
+    assert.equal(page.data.voiceMoreList.categories[0].key, 'home')
+    assert.equal(page.data.bgmList.bgms.music[0].id, 9)
+    page.onUnload()
+  }
+
+  for (const pagePath of [
+    'pages/dialogueDubbing/dialogueDubbing.js',
+    'pages/longTextDubbing/longTextDubbing.js'
+  ]) {
+    const requestCalls = []
+    const storedCatalogs = {}
+    const { page } = loadPage(pagePath, {
+      request: async (options) => {
+        requestCalls.push(options.url)
+        if (options.url === '/user/voices/categories') {
+          return { code: 200, data: voiceCatalog }
+        }
+        if (options.url === '/user/bgms/categories') {
+          return { code: 200, data: bgmCatalog }
+        }
+        throw new Error(`Unexpected request: ${options.url}`)
+      },
+      wx: {
+        getStorageSync: () => '',
+        setStorageSync(key, value) {
+          storedCatalogs[key] = value
+        }
+      }
+    })
+
+    await page.onLoad()
+    assert.deepEqual(requestCalls.sort(), [
+      '/user/bgms/categories',
+      '/user/voices/categories'
+    ])
+    assert.equal(storedCatalogs.voiceList.home[0].id, 7)
+    assert.equal(storedCatalogs.bgmList.bgms.music[0].id, 9)
+    page.onUnload()
+  }
 })
 
 test('dialogue dubbing generates playable segments and enforces list movement bounds', async () => {

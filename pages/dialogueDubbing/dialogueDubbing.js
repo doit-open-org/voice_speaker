@@ -50,7 +50,21 @@ Page({
     this.pageActive = true
     this.downloadTasks = []
     this.createAudio()
-    return Promise.all([this.getVoiceList(), this.getBgmList()])
+    const requests = []
+    const voiceCatalog = wx.getStorageSync('voiceList')
+    const bgmCatalog = wx.getStorageSync('bgmList')
+
+    if (voiceCatalog) {
+      this.handleVoiceList(voiceCatalog)
+    } else {
+      requests.push(this.getVoiceList())
+    }
+    if (bgmCatalog) {
+      this.handleBgmList(bgmCatalog)
+    } else {
+      requests.push(this.getBgmList())
+    }
+    return Promise.all(requests)
   },
 
   onHide() {
@@ -100,15 +114,8 @@ Page({
         needAuth: true
       })
       if (Number(res.code) === 200 && this.pageActive) {
-        const voiceCatalog = res.data || {}
-        const homeVoices = Array.isArray(voiceCatalog.home)
-          ? voiceCatalog.home
-          : []
-        this.setData({
-          voiceMoreList: voiceCatalog, 
-          voiceList: homeVoices ,
-          voiceCheckInfo: homeVoices[0] //默认一个音色
-        })
+        this.handleVoiceList(res.data)
+        wx.setStorageSync('voiceList', res.data)
       }
     } catch (error) {
       if (!this.pageActive) return
@@ -125,13 +132,28 @@ Page({
         needAuth: true
       })
       if (Number(res.code) === 200 && this.pageActive) {
-        this.setData({ bgmList: res.data || {} })
+        this.handleBgmList(res.data)
+        wx.setStorageSync('bgmList', res.data)
       }
     } catch (error) {
       if (!this.pageActive) return
       console.error('获取背景音乐列表失败:', error)
       showToast('none', '背景音乐加载失败')
     }
+  },
+
+  handleVoiceList(data) {
+    const voiceCatalog = data || {}
+    const homeVoices = Array.isArray(voiceCatalog.home) ? voiceCatalog.home : []
+    this.setData({
+      voiceMoreList: voiceCatalog,
+      voiceList: homeVoices,
+      voiceCheckInfo: homeVoices[0]
+    })
+  },
+
+  handleBgmList(data) {
+    this.setData({ bgmList: data || {} })
   },
 
   openTextEditor() {

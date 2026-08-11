@@ -65,6 +65,19 @@ Page({
  
   onShow(){
     this.data.deviceInfo = app.globalData.deviceInfo
+    wx.getStorage({
+      key: 'voiceList',
+      success: (res) => {
+        this.handleVoiceList(res.data)
+      }
+    })
+    wx.getStorage({
+      key: 'bgmList',
+      success: (res) => {
+        this.setData({ bgmList: res.data})
+      }
+    })
+    
     console.log("122....................")
   },
 
@@ -78,16 +91,9 @@ Page({
       if(res.code == 200){
         console.log('音色列表:', res.data)
         console.log('home...:', res.data.home)
-        const voiceCatalog = res.data || {}
-        const homeVoices = Array.isArray(voiceCatalog.home)
-          ? voiceCatalog.home
-          : []
-        this.setData({ 
-          voiceMoreList: voiceCatalog,
-          voiceList: homeVoices,
-          voiceCheckInfo: homeVoices[0],
-        })
-
+        this.handleVoiceList(res.data)
+        //把结果缓存起来
+        wx.setStorageSync('voiceList', res.data)
       }else{
         showToast('error','音色列表拉取失败')
       }
@@ -95,6 +101,17 @@ Page({
       console.error('获取失败:', err)
       showToast('error','音色列表拉取失败')
     } 
+  },
+  handleVoiceList(data){
+    const voiceCatalog = data || {}
+    const homeVoices = Array.isArray(voiceCatalog.home)
+      ? voiceCatalog.home
+      : []
+    this.setData({
+      voiceMoreList: voiceCatalog,
+      voiceList: homeVoices,
+      voiceCheckInfo: homeVoices[0],
+    })
   },
   async getBgmList(){
     try {
@@ -106,6 +123,8 @@ Page({
       if(res.code == 200){
         console.log('背景音乐列表:', res.data)
         this.setData({ bgmList: res.data })
+        //把结果缓存起来
+        wx.setStorageSync('bgmList', res.data)
       }else{
         showToast('error','背景音乐拉取失败')
       }
