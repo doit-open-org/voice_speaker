@@ -43,6 +43,16 @@ function createEventChannel() {
   }
 }
 
+function createVoiceCatalog() {
+  const home = [1, 2, 3, 4].map((id) => ({
+    id,
+    voice_id: `voice-${id}`,
+    voice_name: `Voice ${id}`,
+    audio_path: `media.local/voice-${id}.mp3`
+  }))
+  return { home, categories: [{ key: 'home', name: 'Home' }], voices: { home } }
+}
+
 function createPage(config, extra = {}) {
   return {
     ...config,
@@ -62,8 +72,12 @@ function loadPage(relativePath, options = {}) {
   const toastCalls = []
   const loadingCalls = []
   const audio = options.audio || createAudioDouble()
+  let audioContextCount = 0
   const wx = {
-    createInnerAudioContext: () => audio,
+    createInnerAudioContext: () => {
+      audioContextCount += 1
+      return audioContextCount === 1 ? audio : createAudioDouble()
+    },
     getStorageSync: () => '',
     setStorageSync: () => {},
     hideLoading: () => loadingCalls.push({ type: 'hide' }),
@@ -153,7 +167,9 @@ function createAudioDouble() {
   return {
     destroyed: false,
     paused: false,
+    playCount: 0,
     stopped: false,
+    stopCount: 0,
     src: '',
     destroy() {
       this.destroyed = true
@@ -175,10 +191,12 @@ function createAudioDouble() {
       if (handlers.pause) handlers.pause()
     },
     play() {
+      this.playCount += 1
       if (handlers.play) handlers.play()
     },
     stop() {
       this.stopped = true
+      this.stopCount += 1
     },
     trigger(name, payload) {
       if (handlers[name]) handlers[name](payload)
@@ -464,7 +482,7 @@ test('dialogue dubbing reuses home voice effect and BGM settings', async () => {
     request: async (options) => {
       requestCalls.push(options)
       if (options.url === '/user/voices/categories') {
-        return { code: 200, data: { categories: [], voices: {} } }
+        return { code: 200, data: createVoiceCatalog() }
       }
       if (options.url === '/user/bgms/categories') {
         return { code: 200, data: { categories: [], bgms: {} } }
@@ -606,13 +624,54 @@ test('dialogue and long text dubbing reuse cached catalogs and fetch missing cat
   }
 })
 
+test('home and dubbing voice cards stop the previous preview before playing the next one', () => {
+  const pages = [
+    ['pages/index/index.js', 'pages/index/index.wxml'],
+    ['pages/dialogueDubbing/dialogueDubbing.js', 'pages/dialogueDubbing/dialogueDubbing.wxml'],
+    ['pages/longTextDubbing/longTextDubbing.js', 'pages/longTextDubbing/longTextDubbing.wxml']
+  ]
+
+  for (const [pagePath, markupPath] of pages) {
+    const { audio, page } = loadPage(pagePath)
+    page.pageActive = true
+    page.createVoicePreviewAudio()
+    page.setData({
+      voiceList: [
+        { id: 1, audio_path: 'media.local/voice-a.mp3' },
+        { id: 2, audio_path: '' },
+        { id: 3, audio_path: 'http://media.local/voice-c.mp3' }
+      ]
+    })
+
+    page.changeStreamer({ currentTarget: { id: '0' } })
+    assert.equal(audio.stopCount, 1)
+    assert.equal(audio.playCount, 1)
+    assert.equal(audio.src, 'https://media.local/voice-a.mp3')
+
+    page.changeStreamer({ currentTarget: { id: '1' } })
+    assert.equal(audio.stopCount, 2)
+    assert.equal(audio.playCount, 1)
+
+    page.changeStreamer({ currentTarget: { id: '2' } })
+    assert.equal(audio.stopCount, 3)
+    assert.equal(audio.playCount, 2)
+    assert.equal(audio.src, 'http://media.local/voice-c.mp3')
+
+    page.onHide()
+    assert.equal(audio.stopCount, 4)
+    page.destroyVoicePreviewAudio()
+    assert.equal(audio.destroyed, true)
+    assert.equal(read(markupPath).includes('bindtap="changeStreamer"'), true)
+  }
+})
+
 test('dialogue dubbing generates playable segments and enforces list movement bounds', async () => {
   const requestCalls = []
   const { audio, loadingCalls, page } = loadPage('pages/dialogueDubbing/dialogueDubbing.js', {
     request: async (options) => {
       requestCalls.push(options)
       if (options.url === '/user/voices/categories') {
-        return { code: 200, data: { categories: [], voices: {} } }
+        return { code: 200, data: createVoiceCatalog() }
       }
       if (options.url === '/user/bgms/categories') {
         return { code: 200, data: { categories: [], bgms: {} } }
@@ -737,7 +796,7 @@ test('dialogue dubbing merges ordered downloaded audio files and opens the resul
       app,
       request: async (options) => {
         if (options.url === '/user/voices/categories') {
-          return { code: 200, data: { categories: [], voices: {} } }
+          return { code: 200, data: createVoiceCatalog() }
         }
         if (options.url === '/user/bgms/categories') {
           return { code: 200, data: { categories: [], bgms: {} } }
@@ -834,15 +893,15 @@ test('dialogue dubbing shows usage steps while the dialogue list is empty', () =
 
 test('voice conversion loads timbres with mapped types and a default avatar', async () => {
   const requestCalls = []
-  const { page } = loadPage('pages/voiceConvert/voiceConvert.js', {
+  const { audio, page } = loadPage('pages/voiceConvert/voiceConvert.js', {
     request: async (options) => {
       requestCalls.push(options)
       return {
         code: 200,
         data: [
-          { id: 1, name: 'Voice A', timbre_type: 'male', avatar_url: '' },
-          { id: 2, name: 'Voice B', timbre_type: 'female', avatar_url: 'https://media.local/b.jpg' },
-          { id: 3, name: 'Voice C', timbre_type: 'original', avatar_url: null }
+          { id: 1, name: 'Voice A', timbre_type: 'male', avatar_url: '', audio_url: '' },
+          { id: 2, name: 'Voice B', timbre_type: 'female', avatar_url: 'https://media.local/b.jpg', audio_url: 'media.local/b.mp3' },
+          { id: 3, name: 'Voice C', timbre_type: 'original', avatar_url: null, audio_url: 'http://media.local/c.mp3' }
         ]
       }
     }
@@ -867,6 +926,18 @@ test('voice conversion loads timbres with mapped types and a default avatar', as
   assert.equal(page.data.selectedTimbreId, 1)
   page.selectTimbre({ currentTarget: { dataset: { id: 2 } } })
   assert.equal(page.data.selectedTimbreId, 2)
+  assert.equal(audio.stopCount, 1)
+  assert.equal(audio.playCount, 1)
+  assert.equal(audio.src, 'https://media.local/b.mp3')
+  page.selectTimbre({ currentTarget: { dataset: { id: 3 } } })
+  assert.equal(audio.stopCount, 2)
+  assert.equal(audio.playCount, 2)
+  assert.equal(audio.src, 'http://media.local/c.mp3')
+  page.selectTimbre({ currentTarget: { dataset: { id: 1 } } })
+  assert.equal(audio.stopCount, 3)
+  assert.equal(audio.playCount, 2)
+  page.onHide()
+  assert.equal(audio.stopCount, 4)
 
   const markup = read('pages/voiceConvert/voiceConvert.wxml')
   assert.equal(markup.includes('wx:for="{{timbres}}"'), true)
@@ -874,6 +945,8 @@ test('voice conversion loads timbres with mapped types and a default avatar', as
   assert.equal(markup.includes('src="{{item.displayAvatar}}"'), true)
   assert.equal(markup.includes('{{item.name}}'), true)
   assert.equal(markup.includes('{{item.typeLabel}}'), true)
+  page.onUnload()
+  assert.equal(audio.destroyed, true)
 })
 
 test('voice conversion uploads recording, polls the task, and opens generate', async () => {
@@ -3114,7 +3187,7 @@ test('long text dubbing keeps its editing and voice effect controls', async () =
     request: async (options) => {
       requestCalls.push(options)
       if (options.url === '/user/voices/categories') {
-        return { code: 200, data: { categories: [], voices: {} } }
+        return { code: 200, data: createVoiceCatalog() }
       }
       if (options.url === '/user/bgms/categories') {
         return { code: 200, data: { categories: [], bgms: {} } }
@@ -3190,7 +3263,7 @@ test('long text dubbing submits, polls, and opens the generated audio', async ()
       request: async (options) => {
         requestCalls.push(options)
         if (options.url === '/user/voices/categories') {
-          return { code: 200, data: { categories: [], voices: {} } }
+          return { code: 200, data: createVoiceCatalog() }
         }
         if (options.url === '/user/bgms/categories') {
           return { code: 200, data: { categories: [], bgms: {} } }

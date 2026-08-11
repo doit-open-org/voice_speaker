@@ -43,6 +43,7 @@ Page({
 
   onLoad() {
     this.applyPendingVoiceText()
+    this.createVoicePreviewAudio()
     // 下面函数仅执行一次
     if(app.globalData.onlyOnce){ return }
     app.globalData.onlyOnce = true;
@@ -79,6 +80,14 @@ Page({
     })
     
     console.log("122....................")
+  },
+
+  onHide() {
+    this.stopVoicePreview()
+  },
+
+  onUnload() {
+    this.destroyVoicePreviewAudio()
   },
 
   async getVoiceList(){
@@ -334,10 +343,39 @@ Page({
   },
   changeStreamer(e){
     let index = e.currentTarget.id
+    const voiceCheckInfo = this.data.voiceList[index]
+    if (!voiceCheckInfo) return
     this.setData({
       voiceIndex: index,
-      voiceCheckInfo: this.data.voiceList[index]
+      voiceCheckInfo
     })
+    this.playVoicePreview(voiceCheckInfo)
+  },
+  createVoicePreviewAudio() {
+    this.voicePreviewAudioContext = wx.createInnerAudioContext()
+    this.voicePreviewAudioContext.onError(() => {
+      this.stopVoicePreview()
+      showToast('none', '音色试听失败')
+    })
+  },
+  playVoicePreview(voice) {
+    this.stopVoicePreview()
+    if (!voice || !voice.audio_path || !this.voicePreviewAudioContext) return
+    this.voicePreviewAudioContext.src = this.normalizeAudioUrl(voice.audio_path)
+    this.voicePreviewAudioContext.play()
+  },
+  stopVoicePreview() {
+    if (this.voicePreviewAudioContext) this.voicePreviewAudioContext.stop()
+  },
+  destroyVoicePreviewAudio() {
+    if (!this.voicePreviewAudioContext) return
+    this.voicePreviewAudioContext.stop()
+    this.voicePreviewAudioContext.destroy()
+    this.voicePreviewAudioContext = null
+  },
+  normalizeAudioUrl(audioUrl) {
+    if (!audioUrl) return ''
+    return /^https?:\/\//i.test(audioUrl) ? audioUrl : `https://${audioUrl}`
   },
   bgmPop(){
     this.setData({ bgmSetPop: !this.data.bgmSetPop })

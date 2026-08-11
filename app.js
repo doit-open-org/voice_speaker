@@ -27,8 +27,8 @@ App({
       // text: "智能音箱",
       // voice_id: "zh_female_shuangkuaisisi_moon_bigtts",
     },
-    // domain: 'https://ai-speaker.esp32.cn',
-    domain: 'http://192.168.5.245:9000',
+    domain: 'https://ai-speaker.esp32.cn',
+    // domain: 'http://192.168.5.245:9000',
     sendFlag: true, //发送暂停标志位
   },
   bletool:require("utils/bletool.js"),

@@ -32,12 +32,18 @@ Page({
 
   onLoad() {
     this.pageActive = true
+    this.createVoicePreviewAudio()
     this.setupRecorder()
     return this.loadTimbres()
   },
 
+  onHide() {
+    this.stopVoicePreview()
+  },
+
   onUnload() {
     this.pageActive = false
+    this.destroyVoicePreviewAudio()
     this.cancelPolling()
     if (this.data.recording && this.recorder) this.recorder.stop()
     if (this.uploadTask && this.uploadTask.abort) this.uploadTask.abort()
@@ -111,7 +117,42 @@ Page({
   },
 
   selectTimbre(e) {
-    this.setData({ selectedTimbreId: Number(e.currentTarget.dataset.id) })
+    const selectedTimbreId = Number(e.currentTarget.dataset.id)
+    const timbre = this.data.timbres.find((item) => item.id == selectedTimbreId)
+    if (!timbre) return
+    this.setData({ selectedTimbreId })
+    this.playVoicePreview(timbre)
+  },
+
+  createVoicePreviewAudio() {
+    this.voicePreviewAudioContext = wx.createInnerAudioContext()
+    this.voicePreviewAudioContext.onError(() => {
+      this.stopVoicePreview()
+      if (this.pageActive) showToast('none', '音色试听失败')
+    })
+  },
+
+  playVoicePreview(timbre) {
+    this.stopVoicePreview()
+    if (!timbre || !timbre.audio_url || !this.voicePreviewAudioContext) return
+    this.voicePreviewAudioContext.src = this.normalizeAudioUrl(timbre.audio_url)
+    this.voicePreviewAudioContext.play()
+  },
+
+  stopVoicePreview() {
+    if (this.voicePreviewAudioContext) this.voicePreviewAudioContext.stop()
+  },
+
+  destroyVoicePreviewAudio() {
+    if (!this.voicePreviewAudioContext) return
+    this.voicePreviewAudioContext.stop()
+    this.voicePreviewAudioContext.destroy()
+    this.voicePreviewAudioContext = null
+  },
+
+  normalizeAudioUrl(audioUrl) {
+    if (!audioUrl) return ''
+    return /^https?:\/\//i.test(audioUrl) ? audioUrl : `https://${audioUrl}`
   },
 
   bgmPop() {
@@ -173,6 +214,7 @@ Page({
       showToast('none', '当前设备不支持录音')
       return
     }
+    this.stopVoicePreview()
     this.recorder.start({
       duration: 180000,
       sampleRate: 16000,

@@ -45,16 +45,17 @@ Page({
 
   onLoad() {
     this.pageActive = true
+    this.createVoicePreviewAudio()
     const requests = []
     const voiceCatalog = wx.getStorageSync('voiceList')
     const bgmCatalog = wx.getStorageSync('bgmList')
 
-    if (voiceCatalog) {
+    if (voiceCatalog && typeof voiceCatalog === 'object') {
       this.handleVoiceList(voiceCatalog)
     } else {
       requests.push(this.getVoiceList())
     }
-    if (bgmCatalog) {
+    if (bgmCatalog && typeof bgmCatalog === 'object') {
       this.handleBgmList(bgmCatalog)
     } else {
       requests.push(this.getBgmList())
@@ -62,8 +63,13 @@ Page({
     return Promise.all(requests)
   },
 
+  onHide() {
+    this.stopVoicePreview()
+  },
+
   onUnload() {
     this.pageActive = false
+    this.destroyVoicePreviewAudio()
     this.cancelPolling()
     if (this.data.synthesizing) wx.hideLoading()
   },
@@ -196,6 +202,38 @@ Page({
     const voiceCheckInfo = this.data.voiceList[voiceIndex]
     if (!voiceCheckInfo) return
     this.setData({ voiceIndex, voiceCheckInfo })
+    this.playVoicePreview(voiceCheckInfo)
+  },
+
+  createVoicePreviewAudio() {
+    this.voicePreviewAudioContext = wx.createInnerAudioContext()
+    this.voicePreviewAudioContext.onError(() => {
+      this.stopVoicePreview()
+      if (this.pageActive) showToast('none', '音色试听失败')
+    })
+  },
+
+  playVoicePreview(voice) {
+    this.stopVoicePreview()
+    if (!voice || !voice.audio_path || !this.voicePreviewAudioContext) return
+    this.voicePreviewAudioContext.src = this.normalizeAudioUrl(voice.audio_path)
+    this.voicePreviewAudioContext.play()
+  },
+
+  stopVoicePreview() {
+    if (this.voicePreviewAudioContext) this.voicePreviewAudioContext.stop()
+  },
+
+  destroyVoicePreviewAudio() {
+    if (!this.voicePreviewAudioContext) return
+    this.voicePreviewAudioContext.stop()
+    this.voicePreviewAudioContext.destroy()
+    this.voicePreviewAudioContext = null
+  },
+
+  normalizeAudioUrl(audioUrl) {
+    if (!audioUrl) return ''
+    return /^https?:\/\//i.test(audioUrl) ? audioUrl : `https://${audioUrl}`
   },
 
   moreVoice() {

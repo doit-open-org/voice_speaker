@@ -50,16 +50,17 @@ Page({
     this.pageActive = true
     this.downloadTasks = []
     this.createAudio()
+    this.createVoicePreviewAudio()
     const requests = []
     const voiceCatalog = wx.getStorageSync('voiceList')
     const bgmCatalog = wx.getStorageSync('bgmList')
 
-    if (voiceCatalog) {
+    if (voiceCatalog && typeof voiceCatalog === 'object') {
       this.handleVoiceList(voiceCatalog)
     } else {
       requests.push(this.getVoiceList())
     }
-    if (bgmCatalog) {
+    if (bgmCatalog && typeof bgmCatalog === 'object') {
       this.handleBgmList(bgmCatalog)
     } else {
       requests.push(this.getBgmList())
@@ -69,6 +70,7 @@ Page({
 
   onHide() {
     this.pauseDialogue()
+    this.stopVoicePreview()
   },
 
   onUnload() {
@@ -82,6 +84,7 @@ Page({
       this.innerAudioContext.destroy()
       this.innerAudioContext = null
     }
+    this.destroyVoicePreviewAudio()
   },
 
   createAudio() {
@@ -271,6 +274,33 @@ Page({
     const voiceCheckInfo = this.data.voiceList[voiceIndex]
     if (!voiceCheckInfo) return
     this.setData({ voiceIndex, voiceCheckInfo })
+    this.playVoicePreview(voiceCheckInfo)
+  },
+
+  createVoicePreviewAudio() {
+    this.voicePreviewAudioContext = wx.createInnerAudioContext()
+    this.voicePreviewAudioContext.onError(() => {
+      this.stopVoicePreview()
+      if (this.pageActive) showToast('none', '音色试听失败')
+    })
+  },
+
+  playVoicePreview(voice) {
+    this.stopVoicePreview()
+    if (!voice || !voice.audio_path || !this.voicePreviewAudioContext) return
+    this.voicePreviewAudioContext.src = this.normalizeAudioUrl(voice.audio_path)
+    this.voicePreviewAudioContext.play()
+  },
+
+  stopVoicePreview() {
+    if (this.voicePreviewAudioContext) this.voicePreviewAudioContext.stop()
+  },
+
+  destroyVoicePreviewAudio() {
+    if (!this.voicePreviewAudioContext) return
+    this.voicePreviewAudioContext.stop()
+    this.voicePreviewAudioContext.destroy()
+    this.voicePreviewAudioContext = null
   },
 
   moreVoice() {
