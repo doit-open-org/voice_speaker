@@ -63,6 +63,7 @@
       <view
         class="voiceCard {{voiceIndex === index ? 'voiceCard--active' : ''}}"
         wx:for="{{voiceList}}"
+        wx:if="{{index < 4}}"
         wx:key="voice_id"
         id="{{index}}"
         bindtap="changeStreamer"
@@ -107,6 +108,14 @@
     bindtap="closeTextEditor"
   >
     <view class="textEditorDialog" catchtap="noop">
+      <view
+        class="textClose"
+        role="button"
+        aria-label="关闭文字编辑弹窗"
+        catchtap="closeTextEditor"
+      >
+        <van-icon name="cross" size="24px" color="#ccc" />
+      </view>
       <textarea
         class="textEditorInput"
         value="{{textDraft}}"

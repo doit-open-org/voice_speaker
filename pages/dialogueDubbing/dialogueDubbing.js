@@ -353,7 +353,7 @@ Page({
   },
 
   resolveVoiceAvatar(voice = {}) {
-    const avatar = voice.avatar_url || voice.avatar || voice.headImg || ''
+    const avatar = voice.icon ||voice.avatar_url || voice.avatar || voice.headImg || ''
     if (!avatar) return '/img/streamer1.jpg'
     if (/^https?:\/\//i.test(avatar) || avatar.startsWith('/')) return avatar
     return `/img/${avatar}`
