@@ -215,6 +215,7 @@ Page({
     //文件传输结束
     if(deviceData[0] == 12){
       this.setData({importMask: false})
+      this.setData({importPro: 0})
       if(deviceData[3] == 0){
         wx.showToast({
           icon:'success',

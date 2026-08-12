@@ -2,6 +2,7 @@
 const app = getApp()
 const { request, wechatLogin, checkLoginStatus, logout,checkLogin,showToast } = require('../../utils/request')
 let innerAudioContext = ''
+const TITLE_DISPLAY_LIMIT = 40
 Page({
 
   /**
@@ -79,6 +80,7 @@ Page({
           item.created_at = item.created_at.replace('T', ' ')
           // 把文件名称后缀去掉
           item.file_new_name = item.file_name.replace(/\.[^/.]+$/, '');
+          item.display_title = this.formatWorkTitle(item)
         })
         let list = this.data.list
         list.push(...data)
@@ -91,6 +93,14 @@ Page({
       console.error('获取失败:', err)
       showToast('error','作品拉取失败')
     }
+  },
+
+  formatWorkTitle(item = {}) {
+    const title = String(item.title || item.file_new_name || '')
+    const characters = Array.from(title)
+    return characters.length > TITLE_DISPLAY_LIMIT
+      ? `${characters.slice(0, TITLE_DISPLAY_LIMIT).join('')}...`
+      : title
   },
 
   playMusic(e){
@@ -195,6 +205,9 @@ Page({
         console.log('修改标题:', res.data)
         let list = this.data.list
         list[index]['file_name'] = newName
+        list[index]['file_new_name'] = newName.replace(/\.[^/.]+$/, '')
+        list[index]['title'] = newName
+        list[index]['display_title'] = this.formatWorkTitle(list[index])
         this.setData({ list })
       }else{
         showToast('error','修改标题失败')

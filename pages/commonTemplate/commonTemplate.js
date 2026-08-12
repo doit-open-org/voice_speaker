@@ -188,8 +188,14 @@ Page({
     const templates = source === 'mine' ? this.myTemplates : this.adTemplates
     const template = templates.find((item) => String(item.id) === idKey)
     if (!template) return
-    this.eventChannel.emit('templateSelected', { content: template.content })
-    wx.navigateBack()
+    const content = String(template.content || '')
+    if (this.eventChannel && typeof this.eventChannel.emit === 'function') {
+      this.eventChannel.emit('templateSelected', { content })
+      wx.navigateBack()
+      return
+    }
+    app.globalData.pendingVoiceText = content
+    wx.reLaunch({ url: '../index/index' })
   },
 
   async loadMyTemplates(force = false) {

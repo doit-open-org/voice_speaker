@@ -1578,22 +1578,34 @@ test('ad copy result uses a complete JSON response and supports regenerate copy 
 
 test('saved ad copy opens my templates and voice-home copy fills the text input', async () => {
   const template = { id: 41, content: 'Saved ad copy' }
-  const { page: templatePage } = loadPage('pages/commonTemplate/commonTemplate.js', {
+  const app = { globalData: { deviceInfo: {} } }
+  const reLaunchCalls = []
+  const { navigationCalls, page: templatePage } = loadPage('pages/commonTemplate/commonTemplate.js', {
+    app,
+    eventChannel: {},
     request: async (options) => ({
       code: 200,
       data: options.url === '/user/my-templates' ? [template] : [],
       total_pages: 1
-    })
+    }),
+    wx: {
+      reLaunch(options) {
+        reLaunchCalls.push(options)
+      }
+    }
   })
   await templatePage.onLoad({ category: 'mine' })
   assert.equal(templatePage.data.activeCategoryKey, 'mine')
   assert.equal(templatePage.data.currentTemplates[0].content, 'Saved ad copy')
+  templatePage.useTemplate({ currentTarget: { dataset: { id: 41, source: 'mine' } } })
+  assert.equal(app.globalData.pendingVoiceText, 'Saved ad copy')
+  assert.equal(reLaunchCalls.at(-1).url, '../index/index')
+  assert.equal(navigationCalls.some((call) => call.type === 'back'), false)
   templatePage.onUnload()
 
-  const app = { globalData: { deviceInfo: {}, pendingVoiceText: 'Voice-home ad copy' } }
   const { page: homePage } = loadPage('pages/index/index.js', { app })
   homePage.onLoad()
-  assert.equal(homePage.data.inputText, 'Voice-home ad copy')
+  assert.equal(homePage.data.inputText, 'Saved ad copy')
   assert.equal(app.globalData.pendingVoiceText, '')
 })
 
