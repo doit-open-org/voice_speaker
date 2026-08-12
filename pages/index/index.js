@@ -1,6 +1,7 @@
 // pages/tts/tts.js
 const app = getApp()
 const { request, checkLogin, showToast } = require('../../utils/request')
+const MAX_INPUT_LENGTH = 299
 Page({
   data: {
     bannerImages: ['/img/yinxiang.png', '/img/yinxiang1.png', '/img/yinxiang2.png'],
@@ -161,9 +162,13 @@ Page({
     })
   },
   onTextInput(e) {
-    this.setData({  
-      inputText: e.detail.value,
-      cursorPosition: e.detail.cursor
+    const inputText = String(e.detail.value || '').slice(0, MAX_INPUT_LENGTH)
+    const cursorPosition = e.detail.cursor === undefined
+      ? inputText.length
+      : Math.min(Number(e.detail.cursor) || 0, inputText.length)
+    this.setData({
+      inputText,
+      cursorPosition
     })
     console.log("122....................",this.data.inputText)
     
@@ -198,6 +203,10 @@ Page({
   },
   
   stopSet(){
+    if (!this.data.stopShow) {
+      const insertStr = this.buildStopText(this.data.stopVal)
+      if (!this.canInsertText(insertStr)) return
+    }
     this.setData({  stopShow: !this.data.stopShow   })
   },
 
@@ -226,25 +235,37 @@ Page({
   },
 
   stopPopConfirm(){
-    this.setData({  stopShow: false  })
     let {cursorPosition,stopVal,inputText} = this.data
     console.log('p...',cursorPosition)
     console.log('i...',inputText)
-    let stopValNew = Number(stopVal) * 1000
-    let insertStr = `[停${stopValNew}ms]`;
+    let insertStr = this.buildStopText(stopVal)
+    if (!this.canInsertText(insertStr)) return
     let  inputNewText = inputText.substring(0, cursorPosition) + insertStr + inputText.substring(cursorPosition);
-    this.setData({inputText: inputNewText})
+    this.setData({inputText: inputNewText, stopShow: false})
+  },
+
+  buildStopText(stopVal) {
+    const stopMilliseconds = Math.round(Number(stopVal) * 1000)
+    return `[停${stopMilliseconds}ms]`
+  },
+
+  canInsertText(insertStr) {
+    const inputText = String(this.data.inputText || '')
+    if (inputText.length + insertStr.length <= MAX_INPUT_LENGTH) return true
+    showToast('none', `最多输入${MAX_INPUT_LENGTH}个字符`)
+    return false
   },
 
   //插入叮咚
   insertDD(){
+    const insertStr = `[叮咚]`
+    if (!this.canInsertText(insertStr)) return
     this.setData({dingdongFlag: true})
     setTimeout(()=>{
       this.setData({dingdongFlag: false})
       let {cursorPosition,inputText} = this.data
       console.log('p...',cursorPosition)
       console.log('i...',inputText)
-      let insertStr = `[叮咚]`;
       let  inputNewText = inputText.substring(0, cursorPosition) + insertStr + inputText.substring(cursorPosition);
       this.setData({inputText: inputNewText})
     },20)
@@ -355,7 +376,7 @@ Page({
     this.voicePreviewAudioContext = wx.createInnerAudioContext()
     this.voicePreviewAudioContext.onError(() => {
       this.stopVoicePreview()
-      showToast('none', '音色试听失败')
+      // showToast('none', '音色试听失败')
     })
   },
   playVoicePreview(voice) {

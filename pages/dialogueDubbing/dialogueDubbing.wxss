@@ -285,6 +285,15 @@
   line-height: 1.6;
 }
 
+.textEditorCount {
+  position: absolute;
+  right: 94rpx;
+  bottom: 30rpx;
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 1;
+}
+
 .clearTextButton {
   position: absolute;
   right: 24rpx;

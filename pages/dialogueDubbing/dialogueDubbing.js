@@ -1,5 +1,6 @@
 const { request, showToast } = require('../../utils/request')
 const app = getApp()
+const MAX_INPUT_LENGTH = 299
 
 const DEFAULT_VOICES = [
   { voice_name: '艾琳', voice_id: 'zh_female_shuangkuaisisi_moon_bigtts', headImg: 'streamer1.jpg' },
@@ -160,20 +161,23 @@ Page({
   },
 
   openTextEditor() {
+    const textDraft = String(this.data.inputText || '').slice(0, MAX_INPUT_LENGTH)
     this.setData({
-      textDraft: this.data.inputText,
-      cursorPosition: this.data.inputText.length,
+      textDraft,
+      cursorPosition: textDraft.length,
       textEditorVisible: true,
       editorKeyboardHeight: 0
     })
   },
 
   onTextDraftInput(e) {
+    const textDraft = String(e.detail.value || '').slice(0, MAX_INPUT_LENGTH)
+    const cursorPosition = e.detail.cursor === undefined
+      ? textDraft.length
+      : Math.min(Number(e.detail.cursor) || 0, textDraft.length)
     this.setData({
-      textDraft: e.detail.value,
-      cursorPosition: e.detail.cursor === undefined
-        ? String(e.detail.value || '').length
-        : e.detail.cursor
+      textDraft,
+      cursorPosition
     })
   },
 
@@ -210,10 +214,11 @@ Page({
       url: '../commonTemplate/commonTemplate',
       events: {
         templateSelected: ({ content = '' } = {}) => {
+          const inputText = String(content).slice(0, MAX_INPUT_LENGTH)
           this.setData({
-            inputText: content,
-            textDraft: content,
-            cursorPosition: content.length
+            inputText,
+            textDraft: inputText,
+            cursorPosition: inputText.length
           })
         }
       }
@@ -281,7 +286,9 @@ Page({
     this.voicePreviewAudioContext = wx.createInnerAudioContext()
     this.voicePreviewAudioContext.onError(() => {
       this.stopVoicePreview()
-      if (this.pageActive) showToast('none', '音色试听失败')
+      if (this.pageActive){
+        // showToast('none', '音色试听失败')
+      }
     })
   },
 

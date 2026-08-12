@@ -1,7 +1,7 @@
 // 接口文档地址：https://ai-speaker.esp32.cn/docs#/
 // 接口基地址
-const BASE_URL = 'https://ai-speaker.esp32.cn/api/v1'
-// const BASE_URL = 'http://192.168.5.245:9000/api/v1'
+// const BASE_URL = 'https://ai-speaker.esp32.cn/api/v1'
+const BASE_URL = 'http://192.168.5.245:9000/api/v1'
 
 // Token 存储的 key
 const TOKEN_KEY = 'auth_token'

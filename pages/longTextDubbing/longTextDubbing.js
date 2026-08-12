@@ -3,6 +3,7 @@ const app = getApp()
 
 const LONG_TEXT_POLL_INTERVAL = 1500
 const LONG_TEXT_MAX_POLLS = 200
+const MAX_INPUT_LENGTH = 2000
 
 const DEFAULT_VOICES = [
   { voice_name: '智云', voice_id: 'zh_male_wenrouxiaoge_mars_bigtts', headImg: 'streamer2.jpg' },
@@ -125,7 +126,7 @@ Page({
   },
 
   onTextInput(e) {
-    const inputText = String(e.detail.value || '').slice(0, 2000)
+    const inputText = String(e.detail.value || '').slice(0, MAX_INPUT_LENGTH)
     const cursorPosition = e.detail.cursor === undefined
       ? inputText.length
       : Math.min(Number(e.detail.cursor) || 0, inputText.length)
@@ -146,7 +147,7 @@ Page({
       url: '../commonTemplate/commonTemplate',
       events: {
         templateSelected: ({ content = '' } = {}) => {
-          const inputText = String(content).slice(0, 2000)
+          const inputText = String(content).slice(0, MAX_INPUT_LENGTH)
           this.setData({ inputText, cursorPosition: inputText.length })
         }
       }
@@ -154,6 +155,10 @@ Page({
   },
 
   stopSet() {
+    if (!this.data.stopShow) {
+      const pauseText = this.buildPauseText(this.data.stopVal)
+      if (!this.canInsertText(pauseText)) return
+    }
     this.setData({ stopShow: !this.data.stopShow })
   },
 
@@ -164,14 +169,26 @@ Page({
   stopPopConfirm() {
     const inputText = this.data.inputText || ''
     const cursor = Math.max(0, Math.min(Number(this.data.cursorPosition) || 0, inputText.length))
-    const pauseMs = Math.round(Number(this.data.stopVal) * 1000)
-    const pauseText = `[停顿${pauseMs}ms]`
-    const nextText = `${inputText.slice(0, cursor)}${pauseText}${inputText.slice(cursor)}`.slice(0, 2000)
+    const pauseText = this.buildPauseText(this.data.stopVal)
+    if (!this.canInsertText(pauseText)) return
+    const nextText = `${inputText.slice(0, cursor)}${pauseText}${inputText.slice(cursor)}`
     this.setData({
       inputText: nextText,
-      cursorPosition: Math.min(cursor + pauseText.length, nextText.length),
+      cursorPosition: cursor + pauseText.length,
       stopShow: false
     })
+  },
+
+  buildPauseText(stopVal) {
+    const pauseMs = Math.round(Number(stopVal) * 1000)
+    return `[停顿${pauseMs}ms]`
+  },
+
+  canInsertText(insertText) {
+    const inputText = String(this.data.inputText || '')
+    if (inputText.length + insertText.length <= MAX_INPUT_LENGTH) return true
+    showToast('none', `最多输入${MAX_INPUT_LENGTH}个字符`)
+    return false
   },
 
   musicSet() {
@@ -209,7 +226,9 @@ Page({
     this.voicePreviewAudioContext = wx.createInnerAudioContext()
     this.voicePreviewAudioContext.onError(() => {
       this.stopVoicePreview()
-      if (this.pageActive) showToast('none', '音色试听失败')
+      if (this.pageActive) {
+        // showToast('none', '音色试听失败')
+      }
     })
   },
 

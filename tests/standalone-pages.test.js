@@ -464,6 +464,9 @@ test('dialogue text editor stays above the iOS keyboard', () => {
 
   assert.equal(page.data.editorKeyboardHeight, 0)
   page.openTextEditor()
+  page.onTextDraftInput({ detail: { value: '\u7c98'.repeat(320), cursor: 320 } })
+  assert.equal(page.data.textDraft.length, 299)
+  assert.equal(page.data.cursorPosition, 299)
   page.onEditorKeyboardHeightChange({ detail: { height: 312 } })
   assert.equal(page.data.editorKeyboardHeight, 312)
   page.closeTextEditor()
@@ -474,6 +477,8 @@ test('dialogue text editor stays above the iOS keyboard', () => {
   assert.equal(markup.includes('fixed="{{true}}"'), true)
   assert.equal(markup.includes('adjust-position="{{false}}"'), true)
   assert.equal(markup.includes('bindkeyboardheightchange="onEditorKeyboardHeightChange"'), true)
+  assert.equal(markup.includes('maxlength="299"'), true)
+  assert.equal(markup.includes('{{textDraft.length}}/299'), true)
 })
 
 test('dialogue dubbing reuses home voice effect and BGM settings', async () => {
@@ -1664,6 +1669,46 @@ test('home converts every ding-dong marker to a sound event', () => {
     page.convertDingDong('开场[叮咚]正文[叮咚]结束'),
     `开场${soundEvent}正文${soundEvent}结束`
   )
+})
+
+test('home keeps pause and ding-dong insertions within 299 characters', async () => {
+  const { page, toastCalls } = loadPage('pages/index/index.js')
+
+  page.onTextInput({ detail: { value: '\u7c98'.repeat(320), cursor: 320 } })
+  assert.equal(page.data.inputText.length, 299)
+  assert.equal(page.data.cursorPosition, 299)
+
+  page.setData({ inputText: 'a'.repeat(295), cursorPosition: 295 })
+  page.insertDD()
+  await waitFor(() => page.data.inputText.length === 299)
+  assert.equal(page.data.inputText.endsWith('[\u53ee\u549a]'), true)
+
+  const overLimitText = 'b'.repeat(296)
+  page.setData({ inputText: overLimitText, cursorPosition: 296 })
+  page.insertDD()
+  assert.equal(page.data.inputText, overLimitText)
+  assert.equal(toastCalls.at(-1).title, '\u6700\u591a\u8f93\u5165299\u4e2a\u5b57\u7b26')
+
+  page.setData({ inputText: 'c'.repeat(290), cursorPosition: 290, stopVal: 1, stopShow: false })
+  page.stopSet()
+  assert.equal(page.data.stopShow, true)
+  page.stopPopConfirm()
+  assert.equal(page.data.inputText.length, 299)
+  assert.equal(page.data.inputText.endsWith('[\u505c1000ms]'), true)
+
+  const pauseOverLimitText = 'd'.repeat(290)
+  page.setData({ inputText: pauseOverLimitText, cursorPosition: 290, stopVal: 10, stopShow: false })
+  page.stopSet()
+  assert.equal(page.data.stopShow, false)
+  assert.equal(page.data.inputText, pauseOverLimitText)
+
+  page.setData({ inputText: pauseOverLimitText, cursorPosition: 290, stopVal: 1, stopShow: false })
+  page.stopSet()
+  page.setData({ stopVal: 10 })
+  page.stopPopConfirm()
+  assert.equal(page.data.stopShow, true)
+  assert.equal(page.data.inputText, pauseOverLimitText)
+  assert.equal(toastCalls.at(-1).title, '\u6700\u591a\u8f93\u5165299\u4e2a\u5b57\u7b26')
 })
 
 test('standalone pages keep an unconditional safe-area navigation bar', () => {
@@ -3330,6 +3375,32 @@ test('long text dubbing submits, polls, and opens the generated audio', async ()
   assert.equal(loadingCalls.at(-1).type, 'hide')
   assert.equal(page.data.synthesizing, false)
   page.onUnload()
+})
+
+test('long text dubbing blocks pause insertion beyond 2000 characters', () => {
+  const { page, toastCalls } = loadPage('pages/longTextDubbing/longTextDubbing.js')
+
+  page.setData({ inputText: 'a'.repeat(1990), cursorPosition: 1990, stopVal: 1, stopShow: false })
+  page.stopSet()
+  assert.equal(page.data.stopShow, true)
+  page.stopPopConfirm()
+  assert.equal(page.data.inputText.length, 2000)
+  assert.equal(page.data.inputText.endsWith('[\u505c\u987f1000ms]'), true)
+
+  const overLimitText = 'b'.repeat(1991)
+  page.setData({ inputText: overLimitText, cursorPosition: 1991, stopVal: 1, stopShow: false })
+  page.stopSet()
+  assert.equal(page.data.stopShow, false)
+  assert.equal(page.data.inputText, overLimitText)
+  assert.equal(toastCalls.at(-1).title, '\u6700\u591a\u8f93\u51652000\u4e2a\u5b57\u7b26')
+
+  page.setData({ inputText: 'c'.repeat(1990), cursorPosition: 1990, stopVal: 1, stopShow: false })
+  page.stopSet()
+  page.setData({ stopVal: 10 })
+  page.stopPopConfirm()
+  assert.equal(page.data.stopShow, true)
+  assert.equal(page.data.inputText, 'c'.repeat(1990))
+  assert.equal(toastCalls.at(-1).title, '\u6700\u591a\u8f93\u51652000\u4e2a\u5b57\u7b26')
 })
 
 test('long text dubbing reports submit failure and hides loading', async () => {

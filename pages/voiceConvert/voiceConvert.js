@@ -128,7 +128,9 @@ Page({
     this.voicePreviewAudioContext = wx.createInnerAudioContext()
     this.voicePreviewAudioContext.onError(() => {
       this.stopVoicePreview()
-      if (this.pageActive) showToast('none', '音色试听失败')
+      if (this.pageActive) {
+        // showToast('none', '音色试听失败')
+      }
     })
   },
 

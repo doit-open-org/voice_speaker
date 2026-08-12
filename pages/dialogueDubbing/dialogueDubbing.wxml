@@ -52,7 +52,6 @@
     <view class="textComposer">
       <view class="textDisplay" bindtap="openTextEditor">
         <text wx:if="{{inputText}}">{{inputText}}</text>
-        <!-- <textarea class="textDisplayTxt" wx:if="{{inputText}}" value="{{inputText}}"></textarea> -->
         <text class="placeholder" wx:else>请输入...</text>
       </view>
       <button class="sendButton" bindtap="generateDialogue" disabled="{{generating}}">
@@ -111,7 +110,7 @@
       <textarea
         class="textEditorInput"
         value="{{textDraft}}"
-        maxlength="5000"
+        maxlength="299"
         auto-focus
         fixed="{{true}}"
         adjust-position="{{false}}"
@@ -121,6 +120,7 @@
         bindblur="cursorPosition"
         bindkeyboardheightchange="onEditorKeyboardHeightChange"
       />
+      <text class="textEditorCount">{{textDraft.length}}/299</text>
       <view class="clearTextButton" bindtap="clearTextDraft">
         <van-icon name="delete-o" size="24px" color="#C91818" />
       </view>
