@@ -2,11 +2,15 @@
   <view class="content flex_1 flex flex_d_c flex_jc_sb">
     <!-- 促销图片 -->
     <view class="bannerView" bindtap="jumpXxmini">
-      <swiper class="bannerSwiper" autoplay="{{true}}" circular="{{true}}" interval="5000" duration="1000">
+      <!-- <swiper class="bannerSwiper" autoplay="{{true}}" circular="{{true}}" interval="5000" duration="1000">
         <swiper-item wx:for="{{bannerImages}}" wx:key="*this">
-          <image class="bannerImg" src="{{item}}" mode="aspectFit"></image>
+          <view style="width: 100%;height: 100%; position: relative;">
+            <image class="bannerImg" src="{{item}}" mode="aspectFit"></image>
+            <view class="bannerTxt">{{bannerImagesTxt[index]}}</view>
+          </view>
         </swiper-item>
-      </swiper>
+      </swiper> -->
+      <image class="bannerImg" src="/img/yinxiang.png" mode="aspectFit"></image>
     </view>
     <!-- 文字输入 -->
     <view class="textView w100 flexCC">

@@ -4,7 +4,12 @@ const { request, checkLogin, showToast } = require('../../utils/request')
 const MAX_INPUT_LENGTH = 299
 Page({
   data: {
-    bannerImages: ['/img/yinxiang.png', '/img/yinxiang1.png', '/img/yinxiang2.png'],
+    // bannerImages: ['/img/yinxiang.png', '/img/yinxiang1.png', '/img/yinxiang2.png'],
+    // bannerImagesTxt:[
+    //   "不想让孩子总盯着屏幕？我们做了这款音箱让孩子多听、少看",
+    //   "古诗、单词、故事一键走进音箱上学路上放着听不用一键可屏蔽",
+    //   "37万首诗词小学全科同步免费使用、无广告不套路，用起来更安心",
+    // ],
     inputText: '',
     voiceIndex: 0,
     voiceList: [
