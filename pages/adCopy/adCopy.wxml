@@ -2,7 +2,7 @@
   <scroll-view class="formScroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="keywordPanel">
       <view class="keywordHeader">
-        <text class="keywordTitle">关键词描述</text>
+        <text class="keywordTitle">关键词描述<text class="subkeywordTitle">(结果由AI生成)</text></text>
         <button class="resetButton" bindtap="resetOptions">重置选项</button>
       </view>
       <textarea

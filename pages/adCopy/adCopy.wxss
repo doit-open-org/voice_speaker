@@ -30,7 +30,11 @@
   font-size: 34rpx;
   font-weight: 600;
 }
-
+.subkeywordTitle{
+  font-size: 28rpx;
+  font-weight: 300;
+  margin-left: 15rpx;
+}
 .resetButton,
 .compactButton {
   width: auto;

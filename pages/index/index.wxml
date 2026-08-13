@@ -33,6 +33,12 @@
         <text>创作</text>
         <view class="textViewAiView"></view>
       </viwe>
+      <!-- 学习宝 -->
+      <viwe class="textViewAi textViewXxb" bindtap="jumpXxmini">
+        <text>四博</text>
+        <text>学习宝</text>
+        <view class="textViewAiView"></view>
+      </viwe>
     </view>
     <!-- 当前主播 -->
     <view class="streamerView flex_C_SB w90" style="margin-left: 5%;">

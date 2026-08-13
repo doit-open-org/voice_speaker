@@ -35,6 +35,11 @@
   border-radius: 50%;
   font-size: 0.8rem;
 }
+.textViewXxb{
+  top: -70rpx;
+  right: 150rpx;
+  font-size: 0.7rem;
+}
 .textViewAiView{
   position: absolute;
   width: 90%;
