@@ -1,7 +1,7 @@
 {
   "enablePullDownRefresh": false,
   "disableScroll": true,
-  "navigationBarTitleText": "AI广告词创作",
+  "navigationBarTitleText": "AI广告词创作(AI生成)",
   "navigationBarBackgroundColor": "#E20E0E",
   "navigationBarTextStyle": "black",
   "usingComponents": {

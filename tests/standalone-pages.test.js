@@ -2809,6 +2809,107 @@ test('recorder component exposes speed and volume controls in its upload event',
   assert.equal(markup.includes('bindchange="changeVolume"'), true)
 })
 
+test('recorder component asks for microphone permission before its first recording', () => {
+  let authorizeOptions
+  let startOptions
+  const recorder = {
+    onStart() {},
+    onStop() {},
+    onError() {},
+    start(options) { startOptions = options }
+  }
+  const { component, componentConfig } = loadComponent('components/recorder/recorder.js', {
+    getRecorderManager: () => recorder,
+    getSetting(options) {
+      options.success({ authSetting: {} })
+    },
+    authorize(options) {
+      authorizeOptions = options
+      options.success()
+      options.complete()
+    },
+    showToast() {}
+  })
+
+  componentConfig.lifetimes.attached.call(component)
+  component.startRecorder()
+  assert.equal(component.data.recordPermissionVisible, true)
+  component.confirmRecordPermission()
+
+  assert.equal(authorizeOptions.scope, 'scope.record')
+  assert.equal(startOptions.duration, 180000)
+  assert.equal(component.data.recorderMask, true)
+  assert.equal(read('components/recorder/recorder.wxml').includes('同意并开始录制'), true)
+})
+
+test('recorder component starts immediately when microphone permission exists', () => {
+  let authorizeCalls = 0
+  let modalCalls = 0
+  let startCalls = 0
+  const recorder = {
+    onStart() {},
+    onStop() {},
+    onError() {},
+    start() { startCalls += 1 }
+  }
+  const { component, componentConfig } = loadComponent('components/recorder/recorder.js', {
+    getRecorderManager: () => recorder,
+    getSetting(options) {
+      options.success({ authSetting: { 'scope.record': true } })
+    },
+    showModal() { modalCalls += 1 },
+    authorize() { authorizeCalls += 1 },
+    showToast() {}
+  })
+
+  componentConfig.lifetimes.attached.call(component)
+  component.startRecorder()
+
+  assert.equal(modalCalls, 0)
+  assert.equal(authorizeCalls, 0)
+  assert.equal(startCalls, 1)
+})
+
+test('recorder component opens settings after microphone permission is denied', () => {
+  let modalCalls = 0
+  let openSettingCalls = 0
+  let startCalls = 0
+  const recorder = {
+    onStart() {},
+    onStop() {},
+    onError() {},
+    start() { startCalls += 1 }
+  }
+  const { component, componentConfig } = loadComponent('components/recorder/recorder.js', {
+    getRecorderManager: () => recorder,
+    getSetting(options) {
+      options.success({ authSetting: {} })
+    },
+    showModal(options) {
+      modalCalls += 1
+      options.success({ confirm: true, cancel: false })
+      if (options.complete) options.complete()
+    },
+    authorize(options) {
+      options.fail()
+      options.complete()
+    },
+    openSetting(options) {
+      openSettingCalls += 1
+      options.success({ authSetting: { 'scope.record': true } })
+    },
+    showToast() {}
+  })
+
+  componentConfig.lifetimes.attached.call(component)
+  component.startRecorder()
+  component.confirmRecordPermission()
+
+  assert.equal(modalCalls, 1)
+  assert.equal(openSettingCalls, 1)
+  assert.equal(startCalls, 1)
+})
+
 test('home banner uses a three-image native carousel', () => {
   const { page } = loadPage('pages/index/index.js')
   const markup = read('pages/index/index.wxml')

@@ -1,7 +1,7 @@
 {
   "enablePullDownRefresh": false,
   "disableScroll": true,
-  "navigationBarTitleText": "对话配音",
+  "navigationBarTitleText": "对话配音AI生成",
   "navigationBarBackgroundColor": "#E20E0E",
   "navigationBarTextStyle": "black",
   "usingComponents": {

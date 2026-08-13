@@ -60,6 +60,7 @@ Component({
   data: {
     audioPath: '',
     recorderMask: false,
+    recordPermissionVisible: false,
     speed: 1,
     speedDisplay: '1.0',
     volume: 2,
@@ -70,6 +71,7 @@ Component({
    * 组件的方法列表
    */
   methods: {
+    preventTouchMove(){},
     backIndex(){
       this.triggerEvent('showRecorderPop')
     },
@@ -89,7 +91,65 @@ Component({
         wx.showToast({ icon: 'none', title: '录音正在上传中' })
         return
       }
-      if (!this.recorder) return
+      if (!this.recorder || this._requestingRecordPermission || this.data.recordPermissionVisible) return
+      wx.getSetting({
+        success: (res) => {
+          if (this._isDetached) return
+          if (res.authSetting && res.authSetting['scope.record']) {
+            this.beginRecording()
+            return
+          }
+          this.showRecordPermissionPrompt()
+        },
+        fail: () => {
+          if (!this._isDetached) this.showRecordPermissionPrompt()
+        }
+      })
+    },
+    showRecordPermissionPrompt(){
+      if (this._requestingRecordPermission || this.data.recordPermissionVisible) return
+      this.setData({ recordPermissionVisible: true })
+    },
+    cancelRecordPermission(){
+      this.setData({ recordPermissionVisible: false })
+    },
+    confirmRecordPermission(){
+      if (this._requestingRecordPermission) return
+      this.setData({ recordPermissionVisible: false })
+      this._requestingRecordPermission = true
+      wx.authorize({
+        scope: 'scope.record',
+        success: () => {
+          if (!this._isDetached) this.beginRecording()
+        },
+        fail: () => {
+          if (!this._isDetached) this.showRecordSettingPrompt()
+        },
+        complete: () => {
+          this._requestingRecordPermission = false
+        }
+      })
+    },
+    showRecordSettingPrompt(){
+      wx.showModal({
+        title: '麦克风权限未开启',
+        content: '请在微信设置中允许使用麦克风，开启后即可开始录音。',
+        confirmText: '去设置',
+        cancelText: '取消',
+        success: (res) => {
+          if (!res.confirm || this._isDetached) return
+          wx.openSetting({
+            success: (settingRes) => {
+              if (!this._isDetached && settingRes.authSetting && settingRes.authSetting['scope.record']) {
+                this.beginRecording()
+              }
+            }
+          })
+        }
+      })
+    },
+    beginRecording(){
+      if (!this.recorder || this.data.disabled || this.data.recorderMask) return
       this.setData({recorderMask: true})
       // 最长录3分钟
       this.recorder.start({

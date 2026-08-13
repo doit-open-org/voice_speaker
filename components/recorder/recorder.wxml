@@ -55,6 +55,20 @@
 			<text class="settingValue">{{volumeDisplay}}</text>
 		</view>
 	</view>
+	<view
+		wx:if="{{recordPermissionVisible}}"
+		class="permissionMask flexCC"
+		catchtouchmove="preventTouchMove"
+	>
+		<view class="permissionModal">
+			<view class="permissionTitle">麦克风权限</view>
+			<view class="permissionContent">录音需要使用你的麦克风，录制的音频将用于生成语音作品。</view>
+			<view class="permissionActions">
+				<button class="permissionButton permissionCancel" bindtap="cancelRecordPermission">暂不录制</button>
+				<button class="permissionButton permissionConfirm" bindtap="confirmRecordPermission">同意并开始录制</button>
+			</view>
+		</view>
+	</view>
 	<!-- 录音弹窗  -->
 	<view class="reTanchuang flexCC" wx:if="{{recorderMask}}">
 		 <view class="reModal flexCC flex_d_c">
