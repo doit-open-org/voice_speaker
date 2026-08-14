@@ -48,13 +48,13 @@ Page({
     this.pageActive = true
     this.createVoicePreviewAudio()
     const requests = []
-    const voiceCatalog = wx.getStorageSync('voiceList')
+    const voiceCatalog = wx.getStorageSync('voiceLongList')
     const bgmCatalog = wx.getStorageSync('bgmList')
 
     if (voiceCatalog && typeof voiceCatalog === 'object') {
       this.handleVoiceList(voiceCatalog)
     } else {
-      requests.push(this.getVoiceList())
+      requests.push(this.getVoiceLongList())
     }
     if (bgmCatalog && typeof bgmCatalog === 'object') {
       this.handleBgmList(bgmCatalog)
@@ -75,16 +75,17 @@ Page({
     if (this.data.synthesizing) wx.hideLoading()
   },
 
-  async getVoiceList() {
+  async getVoiceLongList() {
     try {
       const res = await request({
-        url: '/user/voices/categories',
+        // url: '/user/voices/categories',
+        url: '/user/voices/long-text/categories',
         method: 'GET',
         needAuth: true
       })
       if (Number(res.code) === 200 && this.pageActive) {
         this.handleVoiceList(res.data)
-        wx.setStorageSync('voiceList', res.data)
+        wx.setStorageSync('voiceLongList', res.data)
       }
     } catch (error) {
       if (!this.pageActive) return

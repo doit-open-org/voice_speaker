@@ -27,7 +27,8 @@ Page({
     activeVoiceId: 0,
     hasVoiceList: false,
     emptyText: '主播加载中...',
-    playingId: 0
+    playingId: 0,
+    longTxtFlag: false, //长文本
   },
 
   onLoad() {
