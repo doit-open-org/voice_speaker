@@ -595,7 +595,7 @@ Page({
         title: '删除音乐',
         content: '确定删除该上传音乐吗？',
         confirmText: '删除',
-        confirmColor: '#E20E0E',
+        confirmColor: '#C0392B',
         success: (result) => resolve(Boolean(result.confirm)),
         fail: () => resolve(false)
       })

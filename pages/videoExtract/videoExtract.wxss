@@ -3,7 +3,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #E20E0E 0%, #EF4343 21%, #F8DBD1 43%, #F9F6E4 59%, #F9F6E4 100%);
+  background: linear-gradient(180deg, #C0392B 0%, #EF4343 21%, #F8DBD1 43%, #F9F6E4 59%, #F9F6E4 100%);
   color: #292929;
 }
 

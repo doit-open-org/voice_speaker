@@ -1,0 +1,18 @@
+<view class="page-shell">
+  <!-- <navigation-bar title="更多主播" back="{{true}}" color="#111" background="#fff" /> -->
+  <view class="page-content">
+    <voicelist
+      wx:if="{{hasVoiceList}}"
+      id="voiceListCom"
+      voiceList="{{voiceList}}"
+      activeId="{{activeVoiceId}}"
+      showBack="{{false}}"
+      bind:moreVoice="goBack"
+      bind:chooseVoice="chooseVoice"
+      bind:playVoice="playVoice"
+      bind:pauseMusic="pauseMusic"
+      bind:favoriteVoice="toggleFavorite"
+    />
+    <view wx:else class="empty-state">{{emptyText}}</view>
+  </view>
+</view>

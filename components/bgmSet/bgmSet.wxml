@@ -13,7 +13,7 @@
         <view class="reset" bindtap="reset">还原</view>
         <view bindtap="changeMusic" class="flexCC">
           <view class="bgmName">{{activeBgmInfo.name}}</view>
-          <view class="exchange"><van-icon name="exchange" color="#E20E0E" /></view>
+          <view class="exchange"><van-icon name="exchange" color="#C0392B" /></view>
         </view>
       </view>
     </view>
@@ -26,7 +26,7 @@
           class="slider" 
           value="{{bgm.bgm_volume * 100}}" 
           max="100" 
-          activeColor="#E20E0E" 
+          activeColor="#C0392B" 
           backgroundColor="#eee"
           block-size="20"
           bindchange="onVolumeChange"

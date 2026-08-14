@@ -87,7 +87,7 @@
 .uploadProgressFill {
   height: 100%;
   border-radius: 6rpx;
-  background: #E20E0E;
+  background: #C0392B;
 }
 
 .uploadProgressValue {

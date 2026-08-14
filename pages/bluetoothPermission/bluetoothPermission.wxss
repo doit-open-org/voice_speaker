@@ -1,0 +1,353 @@
+/* 移植自福宝拼豆的 pages/bluetooth-permission，配色原样保留。
+   蓝色在这个通体是红的小程序里是特意留的：这一页不是配音功能，
+   是台设备的排障工具，而蓝色本来就是 Bluetooth 自己的标准色。
+   绿/橙/红三色是有含义的（就绪 / 可选未开 / 必需未开），不能动。 */
+
+page {
+  min-height: 100%;
+  background: linear-gradient(180deg, #eef8ff 0%, #f8fbff 45%, #fff7ed 100%);
+}
+
+/* 页面 disableScroll，滚动交给里面的 scroll-view——本仓库所有页面都是这么写的。
+   外层必须给死高度，否则 scroll-view 撑不开也就滚不动。 */
+.permission-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.permission-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.permission-body {
+  box-sizing: border-box;
+  padding: 32rpx 28rpx 84rpx;
+}
+
+.permission-hero {
+  min-height: 164rpx;
+  padding: 28rpx;
+  border: 2rpx solid rgba(14, 165, 233, 0.14);
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  background: #ffffff;
+  box-shadow: 0 18rpx 42rpx rgba(15, 23, 42, 0.08);
+}
+
+.hero-mark {
+  width: 86rpx;
+  height: 86rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  font-size: 24rpx;
+  font-weight: 900;
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+
+.hero-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.hero-title {
+  color: #0f172a;
+  font-size: 38rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.hero-desc {
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.hero-status {
+  min-width: 132rpx;
+  height: 58rpx;
+  padding: 0 18rpx;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.summary-panel {
+  margin-top: 24rpx;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.06);
+}
+
+.summary-item {
+  width: 96rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  flex-shrink: 0;
+}
+
+.summary-number {
+  color: #16a34a;
+  font-size: 34rpx;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.summary-item.problem .summary-number {
+  color: #f97316;
+}
+
+.summary-label {
+  color: #94a3b8;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.summary-divider {
+  width: 2rpx;
+  height: 54rpx;
+  background: #e2e8f0;
+  flex-shrink: 0;
+}
+
+.check-button {
+  flex: 1;
+  min-width: 228rpx;
+  height: 72rpx;
+  margin: 0;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  box-shadow: 0 12rpx 24rpx rgba(37, 99, 235, 0.22);
+  font-size: 28rpx;
+  font-weight: 900;
+  line-height: 72rpx;
+}
+
+.check-button[disabled] {
+  opacity: 0.72;
+}
+
+.check-button::after {
+  border: 0;
+}
+
+.permission-list {
+  margin-top: 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.permission-row {
+  min-height: 108rpx;
+  padding: 22rpx 24rpx;
+  border: 2rpx solid rgba(226, 232, 240, 0.9);
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8rpx 22rpx rgba(15, 23, 42, 0.04);
+}
+
+.permission-ok {
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
+.permission-warn {
+  border-color: rgba(245, 158, 11, 0.26);
+}
+
+.permission-bad {
+  border-color: rgba(239, 68, 68, 0.26);
+}
+
+.permission-dot {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.permission-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.permission-label {
+  display: block;
+  color: #0f172a;
+  font-size: 30rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.permission-detail {
+  display: block;
+  margin-top: 8rpx;
+  color: #94a3b8;
+  font-size: 22rpx;
+  line-height: 1.35;
+}
+
+.status-badge {
+  min-width: 118rpx;
+  height: 56rpx;
+  padding: 0 18rpx;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 25rpx;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.status-ok {
+  background: #16a34a;
+}
+
+.status-warn {
+  background: #f59e0b;
+}
+
+.status-bad {
+  background: #ef4444;
+}
+
+.status-unknown {
+  background: #94a3b8;
+}
+
+.setting-card {
+  margin-top: 28rpx;
+  padding: 24rpx;
+  border: 2rpx solid rgba(245, 158, 11, 0.22);
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background: #fffbeb;
+}
+
+.setting-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.setting-title {
+  color: #92400e;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.setting-desc {
+  color: #b45309;
+  font-size: 23rpx;
+  line-height: 1.4;
+}
+
+.setting-button {
+  min-width: 172rpx;
+  height: 62rpx;
+  padding: 0 22rpx;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: #f97316;
+  font-size: 25rpx;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.permission-note {
+  margin: 20rpx 8rpx 0;
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+/* 没就绪的行才可点（点了直奔对应设置页），所以只有那些行有按下反馈。
+   已就绪的行 hover-class 传 none——传空串微信会走它自己的默认高亮，
+   看着像能点，其实点了什么也不会发生。 */
+.permission-row--pressed {
+  background: #f1f5f9;
+}
+
+/* 开发者工具里测不了时的说明卡 */
+.runtime-card {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border: 2rpx solid rgba(245, 158, 11, 0.22);
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background: #fffbeb;
+}
+
+.runtime-mark {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: #f59e0b;
+  font-size: 32rpx;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.runtime-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.runtime-title {
+  color: #92400e;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.runtime-text {
+  color: #b45309;
+  font-size: 23rpx;
+  line-height: 1.45;
+}

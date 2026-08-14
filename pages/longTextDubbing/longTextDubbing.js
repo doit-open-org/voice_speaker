@@ -1,8 +1,9 @@
 const { request, showToast } = require('../../utils/request')
+const share = require('../../utils/share')
 const app = getApp()
 
 const LONG_TEXT_POLL_INTERVAL = 1500
-const LONG_TEXT_MAX_POLLS = 200
+const LONG_TEXT_MAX_POLLS = 400 //轮询限制次数
 const MAX_INPUT_LENGTH = 2000
 
 const DEFAULT_VOICES = [
@@ -258,7 +259,7 @@ Page({
 
   moreVoice() {
     wx.navigateTo({
-      url: '../voiceSelect/voiceSelect',
+      url: '../voiceSelect/voiceSelect?longTxtFlag=1',
       events: {
         voiceSelected: (voice) => this.setData({ voiceIndex: -1, voiceCheckInfo: voice })
       },
@@ -349,6 +350,7 @@ Page({
     } catch (error) {
       if (this.pageActive) {
         console.error('长文本配音失败:', error)
+        this.finishSynthesis()
         showToast('none', error.message || '长文本配音失败')
       }
     } finally {
@@ -385,9 +387,11 @@ Page({
         if (!detail.audio_url) throw new Error('合成结果缺少音频地址')
         return detail
       }
-      await this.waitForNextPoll()
+      if (attempt < LONG_TEXT_MAX_POLLS - 1) {
+        await this.waitForNextPoll()
+      }
     }
-    throw new Error('长文本配音超时，请稍后重试')
+    throw new Error('合成失败')
   },
 
   waitForNextPoll() {
@@ -412,5 +416,13 @@ Page({
     if (!this.data.synthesizing) return
     this.setData({ synthesizing: false })
     wx.hideLoading()
+  },
+
+  onShareAppMessage() {
+    return share.toPage('长文本也能一次配好，几千字不用分段', '/pages/longTextDubbing/longTextDubbing')
+  },
+
+  onShareTimeline() {
+    return share.timeline('长文本也能一次配好，几千字不用分段')
   }
 })

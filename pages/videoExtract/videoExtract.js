@@ -1,3 +1,4 @@
+const share = require('../../utils/share')
 const app = getApp()
 const API_ORIGIN =  getApp().globalData.domain
 const API_BASE_URL = `${API_ORIGIN}/api/v1`
@@ -145,5 +146,13 @@ Page({
       this.uploadTask = null
       if (this.pageActive) this.setData({ processing: false })
     }
+  },
+
+  onShareAppMessage() {
+    return share.toPage('视频里的话，一键提成文字', '/pages/videoExtract/videoExtract')
+  },
+
+  onShareTimeline() {
+    return share.timeline('视频里的话，一键提成文字')
   }
 })

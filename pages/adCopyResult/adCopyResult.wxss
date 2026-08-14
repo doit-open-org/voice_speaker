@@ -43,7 +43,7 @@
 }
 
 .fontButton--active {
-  color: #c91c1c;
+  color: #ae3327;
   font-weight: 600;
 }
 
@@ -111,7 +111,7 @@
   border: 1rpx solid #eeeeee;
   border-radius: 36rpx;
   background: #ffffff;
-  color: #c91c1c;
+  color: #ae3327;
   font-size: 27rpx;
   line-height: 72rpx;
 }
@@ -121,7 +121,7 @@
   height: 96rpx;
   margin: 0 auto 28rpx;
   border-radius: 48rpx;
-  background: #c91c1c;
+  background: #ae3327;
   color: #ffffff;
   font-size: 32rpx;
   font-weight: 600;

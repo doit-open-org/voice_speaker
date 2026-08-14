@@ -7,10 +7,11 @@
     </view>
 
     <view class="pageContent">
+      <ai-notice text="本页音频由人工智能生成，请注意甄别" />
       <view class="textPanel">
         <view class="usageGuide" wx:if="{{!inputText}}">
           <view class="usageTitle">
-            <van-icon name="description-o" size="17px" color="#C91818" />
+            <van-icon name="description-o" size="17px" color="#AE3327" />
             <text>使用步骤</text>
           </view>
           <text>1. 输入或粘贴需要合成的文字</text>
@@ -32,7 +33,7 @@
           <view class="textMeta">
             <text>{{inputText.length}}/2000</text>
             <view class="clearButton" bindtap="clearText">
-              <van-icon name="delete-o" size="21px" color="#C91818" />
+              <van-icon name="delete-o" size="21px" color="#AE3327" />
             </view>
           </view>
         </view>
@@ -52,7 +53,7 @@
         </view>
         <view class="voiceCard {{voiceIndex === -1 ? 'voiceCard--active' : ''}}" bindtap="moreVoice">
           <view class="moreVoiceIcon">
-            <van-icon name="friends-o" size="32px" color="#C91818" />
+            <van-icon name="friends-o" size="32px" color="#AE3327" />
           </view>
           <text class="voiceName">更多主播</text>
         </view>
@@ -60,11 +61,11 @@
 
       <view class="toolRow">
         <button class="toolButton" bindtap="musicSet">
-          <van-icon name="setting-o" size="22px" color="#C91818" />
+          <van-icon name="setting-o" size="22px" color="#AE3327" />
           <text>音效设置</text>
         </button>
         <button class="toolButton" bindtap="openTemplate">
-          <van-icon name="description-o" size="22px" color="#C91818" />
+          <van-icon name="description-o" size="22px" color="#AE3327" />
           <text>广告模板</text>
         </button>
         <!-- <button class="toolButton toolButton--disabled" disabled>
@@ -96,8 +97,8 @@
           step="0.1"
           value="{{speed}}"
           show-value
-          activeColor="#E20E0E"
-          block-color="#E20E0E"
+          activeColor="#C0392B"
+          block-color="#C0392B"
           block-size="20"
           bindchange="musicSliderChange"
         />
@@ -111,8 +112,8 @@
           step="0.1"
           value="{{yxVoice}}"
           show-value
-          activeColor="#E20E0E"
-          block-color="#E20E0E"
+          activeColor="#C0392B"
+          block-color="#C0392B"
           block-size="20"
           bindchange="voiceSliderChange"
         />
@@ -134,8 +135,8 @@
         max="10"
         step="0.1"
         value="{{stopVal}}"
-        activeColor="#E20E0E"
-        block-color="#E20E0E"
+        activeColor="#C0392B"
+        block-color="#C0392B"
         block-size="20"
         bindchanging="stopSliderChange"
         bindchange="stopSliderChange"

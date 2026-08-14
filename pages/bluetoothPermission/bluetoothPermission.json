@@ -1,0 +1,8 @@
+{
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
+  "navigationBarTitleText": "蓝牙权限检查",
+  "navigationBarBackgroundColor": "#C0392B",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {}
+}

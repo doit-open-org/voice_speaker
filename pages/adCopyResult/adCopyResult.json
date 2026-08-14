@@ -2,9 +2,10 @@
   "enablePullDownRefresh": false,
   "disableScroll": true,
   "navigationBarTitleText": "广告词创作",
-  "navigationBarBackgroundColor": "#E20E0E",
+  "navigationBarBackgroundColor": "#C0392B",
   "navigationBarTextStyle": "black",
   "usingComponents": {
-    "van-loading": "@vant/weapp/loading/index"
+    "van-loading": "@vant/weapp/loading/index",
+    "ai-notice": "../../components/aiNotice/aiNotice"
   }
 }

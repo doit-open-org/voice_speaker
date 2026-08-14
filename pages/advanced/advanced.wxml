@@ -22,7 +22,7 @@
           <view class="featureDescription">{{item.description}}</view>
         </view>
         <view class="featureIcon">
-          <van-icon name="{{item.icon}}" size="30px" color="#C91C1C" />
+          <van-icon name="{{item.icon}}" size="30px" color="#AE3327" />
         </view>
       </view>
     </view>

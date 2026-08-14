@@ -2,11 +2,11 @@
   <!-- <navigation-bar title="添加背景音乐" back="{{true}}" color="#111" background="#fff" /> -->
   <view class="importToolbar">
     <button class="importAction" disabled="{{importing}}" bindtap="importMusic">
-      <van-icon name="music-o" size="22px" color="#E20E0E" />
+      <van-icon name="music-o" size="22px" color="#C0392B" />
       <text>导入音乐</text>
     </button>
     <button class="importAction" disabled="{{importing}}" bindtap="extractVideoMusic">
-      <van-icon name="video-o" size="22px" color="#E20E0E" />
+      <van-icon name="video-o" size="22px" color="#C0392B" />
       <text>视频提取</text>
     </button>
   </view>
@@ -29,7 +29,7 @@
 
   <view class="uploadProgressMask" wx:if="{{importing}}">
     <view class="uploadProgressPanel">
-      <van-icon name="upgrade" size="32px" color="#E20E0E" />
+      <van-icon name="upgrade" size="32px" color="#C0392B" />
       <view class="uploadProgressTitle">{{importLabel}}</view>
       <view class="uploadProgressTrack">
         <view class="uploadProgressFill" style="width: {{uploadProgress}}%;"></view>

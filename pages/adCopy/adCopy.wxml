@@ -1,5 +1,6 @@
 <view class="adCopyPage">
   <scroll-view class="formScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <ai-notice />
     <view class="keywordPanel">
       <view class="keywordHeader">
         <text class="keywordTitle">关键词描述</text>

@@ -1,0 +1,9 @@
+{
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
+  "usingComponents": {
+    "navigation-bar": "../../components/navigation-bar/navigation-bar",
+    "voicelist": "../../components/voiceList/voiceList"
+  },
+  "navigationBarTitleText": "更多主播"
+}

@@ -10,12 +10,12 @@
 .advancedScroll {
   flex: 1;
   min-height: 0;
-  background: linear-gradient(#E20E0E,#F9F6E4);
+  background: linear-gradient(#C0392B,#F9F6E4);
 }
 
 .advancedHeader {
   height: 176rpx;
-  background: #E20E0E;
+  background: #C0392B;
 }
 
 .featureList {

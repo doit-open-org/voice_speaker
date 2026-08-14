@@ -2,10 +2,11 @@
   "enablePullDownRefresh": false,
   "disableScroll": true,
   "navigationBarTitleText": "AI广告词创作(AI生成)",
-  "navigationBarBackgroundColor": "#E20E0E",
+  "navigationBarBackgroundColor": "#C0392B",
   "navigationBarTextStyle": "black",
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index",
-    "van-popup": "@vant/weapp/popup/index"
+    "van-popup": "@vant/weapp/popup/index",
+    "ai-notice": "../../components/aiNotice/aiNotice"
   }
 }

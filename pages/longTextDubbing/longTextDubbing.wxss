@@ -1,6 +1,6 @@
 .longTextPage {
   min-height: 100vh;
-  background: linear-gradient(#e20e0e 0, #f35b5b 31%, #f9f6e4 100%);
+  background: linear-gradient(#c0392b 0, #f35b5b 31%, #f9f6e4 100%);
   color: #303030;
 }
 
@@ -103,7 +103,7 @@
   padding: 0 20rpx;
   border-radius: 24rpx;
   background: #fff6da;
-  color: #c91818;
+  color: #ae3327;
   font-size: 23rpx;
   line-height: 48rpx;
 }
@@ -240,7 +240,7 @@
 }
 
 .synthesisButton {
-  background: #c91818;
+  background: #ae3327;
   color: #ffffff;
   opacity: 1;
 }
@@ -257,7 +257,7 @@
 }
 
 .settingTitle {
-  color: #c91818;
+  color: #ae3327;
   font-size: 31rpx;
   font-weight: 600;
 }
@@ -280,7 +280,7 @@
   padding: 8rpx 22rpx;
   border-radius: 8rpx;
   background: #f4dddd;
-  color: #c91818;
+  color: #ae3327;
 }
 
 .pauseSlider {
@@ -293,7 +293,7 @@
   height: 70rpx;
   margin-top: 32rpx;
   border-radius: 10rpx;
-  background: #e20e0e;
+  background: #c0392b;
   color: #ffffff;
   font-size: 27rpx;
   line-height: 70rpx;

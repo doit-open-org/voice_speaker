@@ -21,13 +21,13 @@
 			</view>
 			<view class="voiceOp flex_C_SB">
 				<view class="voicePlay" bindtap="voicePlay" id="{{item.id}}">
-					<van-icon size='30px' color="#E20E0E" name="{{item.id == palyId?'pause-circle':'play-circle'}}" />
+					<van-icon size='30px' color="#C0392B" name="{{item.id == palyId?'pause-circle':'play-circle'}}" />
 				</view>
 				<view class="voiceCheck br50 flexCC" style="border: {{item.id == activeId?'0px':'1px solid #ccc'}};" id="{{item.id}}" bindtap="chooseVoice">
-					<van-icon size='30px' color="#E20E0E" wx:if="{{item.id == activeId}}" name="checked" />
+					<van-icon size='30px' color="#C0392B" wx:if="{{item.id == activeId}}" name="checked" />
 				</view>
 				<view class="favoriteButton flexCC" data-id="{{item.id}}" catchtap="toggleFavorite">
-					<van-icon size="24px" color="{{item.isFavorite ? '#E20E0E' : '#D8D8D8'}}" name="star" />
+					<van-icon size="24px" color="{{item.isFavorite ? '#C0392B' : '#D8D8D8'}}" name="star" />
 				</view>
 			</view>
 		</view>

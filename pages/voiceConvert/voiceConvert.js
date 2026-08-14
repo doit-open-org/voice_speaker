@@ -1,4 +1,6 @@
 const { request, showToast } = require('../../utils/request')
+const voiceConsent = require('../../utils/voiceConsent')
+const share = require('../../utils/share')
 const app = getApp()
 
 const DEFAULT_AVATAR = '../../img/streamer1.jpg'
@@ -14,6 +16,7 @@ const VOICE_CONVERT_MAX_POLLS = 200
 
 Page({
   data: {
+    voiceAuthVisible: false,
     timbres: [],
     selectedTimbreId: 0,
     emptyText: '音色加载中...',
@@ -216,6 +219,19 @@ Page({
       showToast('none', '当前设备不支持录音')
       return
     }
+    if (this.data.voiceAuthVisible) return
+    // **声纹授权要问在开麦前面。** 这一页是音色转换——把用户的录音换成别的
+    // 音色，处理的正是审核所说的「声纹」，所以跟首页录音一样要过这道闸门。
+    // 见 utils/voiceConsent.js。
+    if (!voiceConsent.granted()) {
+      this.setData({ voiceAuthVisible: true })
+      return
+    }
+    this.beginRecordingNow()
+  },
+
+  /** 拿到声纹授权之后的那一段。 */
+  beginRecordingNow() {
     this.stopVoicePreview()
     this.recorder.start({
       duration: 180000,
@@ -224,6 +240,20 @@ Page({
       encodeBitRate: 96000,
       format: 'mp3'
     })
+  },
+
+  onVoiceAuthAgree() {
+    this.setData({ voiceAuthVisible: false })
+    // **直接开录，不要再回头调 startRecording()。** 授权是弹窗组件写进存储的，
+    // 这儿再查一遍 granted() 看着更严谨，其实是个死循环隐患：存储写失败时
+    // granted() 仍是 false，于是弹窗→同意→弹窗→同意，用户永远录不上。
+    // 同上，见 components/recorder/recorder.js。
+    this.beginRecordingNow()
+  },
+
+  onVoiceAuthReject() {
+    // 不同意就到此为止，麦克风一次都没开过
+    this.setData({ voiceAuthVisible: false })
   },
 
   stopRecording() {
@@ -375,5 +405,13 @@ Page({
     if (!this.data.uploading) return
     this.setData({ uploading: false })
     wx.hideLoading()
+  },
+
+  onShareAppMessage() {
+    return share.toPage('把自己的录音换成别的声音', '/pages/voiceConvert/voiceConvert')
+  },
+
+  onShareTimeline() {
+    return share.timeline('把自己的录音换成别的声音')
   }
 })

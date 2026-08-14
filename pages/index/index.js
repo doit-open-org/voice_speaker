@@ -1,6 +1,7 @@
 // pages/tts/tts.js
 const app = getApp()
 const { request, checkLogin, showToast } = require('../../utils/request')
+const share = require('../../utils/share')
 const MAX_INPUT_LENGTH = 299
 Page({
   data: {
@@ -45,6 +46,17 @@ Page({
     activeBgmInfo: {}, //选中的背景音乐
     bgmSetDetail: {}, //背景音乐设置明细
     dingdongFlag: false, //叮咚标志
+
+    // 顶部绿条里轮播的四博学习宝功能点。
+    // 一条一句、都能独立看懂——用户扫到哪条就是哪条，不能指望他看完四条。
+    // 顺序有讲究：先说它是干什么的，再给量，最后放最有说服力的那句。
+    // 「免费，无广告，不卖课」放在最后，是因为它最容易让人愿意点进去。
+    xxbPoints: [
+      '37 万首诗词、210 篇故事',
+      '小学全科同步 2166 节课',
+      '一键装进去，路上离线听',
+      '免费，无广告，不卖课'
+    ],
   },
 
   onLoad() {
@@ -193,13 +205,31 @@ Page({
     })
   },
 
+  /**
+   * 跳到四博学习宝（另一个小程序）。
+   *
+   * 两处以前是坏的：
+   *   1. app.json 里没有 navigateToMiniProgramAppIdList，微信直接拒绝，
+   *      报 "appId is not in navigateToMiniProgramAppIdList"。已补上白名单。
+   *   2. fail 是个空函数——跳不过去时用户什么反馈都没有，
+   *      只会觉得「这个按钮点了没反应」。现在失败要说话。
+   *
+   * 用户主动取消（cancel）不算失败，别去打扰他。
+   */
   jumpXxmini(){
     wx.navigateToMiniProgram({
       appId: 'wx7fa7b99ba9bd3ba7',
       envVersion: 'release',
-      success: (res) => {},
-      fail: (res) => {},
-      complete: (res) => {},
+      fail: (res) => {
+        const msg = String((res && res.errMsg) || '')
+        if (/cancel/i.test(msg)) return          // 他自己取消的，不用提示
+        console.warn('[index] 跳转四博学习宝失败', msg)
+        wx.showToast({
+          title: '打不开四博学习宝，可以在微信里搜一下',
+          icon: 'none',
+          duration: 2500
+        })
+      }
     })
   },
 
@@ -466,6 +496,13 @@ Page({
         })
       }
     })
-  }
+  },
 
+  onShareAppMessage() {
+    return share.toPage('四博配音宝：文字转语音，还能自己录', '/pages/index/index')
+  },
+
+  onShareTimeline() {
+    return share.timeline('四博配音宝：文字转语音，还能自己录')
+  }
 })

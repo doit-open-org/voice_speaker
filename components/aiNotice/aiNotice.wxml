@@ -1,0 +1,4 @@
+<view class="aiNotice">
+  <text class="aiNoticeTag">AI生成</text>
+  <text class="aiNoticeText">{{text}}</text>
+</view>

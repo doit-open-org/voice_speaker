@@ -2,6 +2,6 @@
   "enablePullDownRefresh": false,
   "disableScroll": true,
   "navigationBarTitleText": "创作分类",
-  "navigationBarBackgroundColor": "#E20E0E",
+  "navigationBarBackgroundColor": "#C0392B",
   "navigationBarTextStyle": "black"
 }

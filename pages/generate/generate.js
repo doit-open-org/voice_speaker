@@ -1,3 +1,4 @@
+const share = require('../../utils/share')
 import {downloadAudio , readAudioFile, buildCMD10Data,buildCMD11Data,textToUnicode,sendFileToDevice} from '../../utils/operationFile'
 let app = getApp()
 Page({
@@ -308,5 +309,11 @@ Page({
         })
       }
     })
+  },
+
+  // 本页数据经 app.globalData 交接，接收方点开是空壳，
+  // 所以转发落回首页；同理不挂 onShareTimeline
+  onShareAppMessage() {
+    return share.toHome('这段配音是用四博配音宝做的')
   }
 })

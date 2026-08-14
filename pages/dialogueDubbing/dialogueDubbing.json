@@ -2,11 +2,12 @@
   "enablePullDownRefresh": false,
   "disableScroll": true,
   "navigationBarTitleText": "对话配音AI生成",
-  "navigationBarBackgroundColor": "#E20E0E",
+  "navigationBarBackgroundColor": "#C0392B",
   "navigationBarTextStyle": "black",
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index",
     "van-popup": "@vant/weapp/popup/index",
-    "bgmset": "../../components/bgmSet/bgmSet"
+    "bgmset": "../../components/bgmSet/bgmSet",
+    "ai-notice": "../../components/aiNotice/aiNotice"
   }
 }

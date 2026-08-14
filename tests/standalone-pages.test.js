@@ -71,6 +71,7 @@ function loadPage(relativePath, options = {}) {
   const navigationCalls = []
   const toastCalls = []
   const loadingCalls = []
+  const uiCalls = []
   const audio = options.audio || createAudioDouble()
   let audioContextCount = 0
   const wx = {
@@ -80,7 +81,10 @@ function loadPage(relativePath, options = {}) {
     },
     getStorageSync: () => '',
     setStorageSync: () => {},
-    hideLoading: () => loadingCalls.push({ type: 'hide' }),
+    hideLoading: () => {
+      loadingCalls.push({ type: 'hide' })
+      uiCalls.push('hideLoading')
+    },
     navigateBack: () => navigationCalls.push({ type: 'back' }),
     navigateTo(navigationOptions) {
       const childChannel = createEventChannel()
@@ -93,8 +97,14 @@ function loadPage(relativePath, options = {}) {
     redirectTo(navigationOptions) {
       navigationCalls.push({ type: 'redirect', options: navigationOptions })
     },
-    showLoading: (loadingOptions) => loadingCalls.push({ type: 'show', options: loadingOptions }),
-    showToast: (toastOptions) => toastCalls.push(toastOptions),
+    showLoading: (loadingOptions) => {
+      loadingCalls.push({ type: 'show', options: loadingOptions })
+      uiCalls.push('showLoading')
+    },
+    showToast: (toastOptions) => {
+      toastCalls.push(toastOptions)
+      uiCalls.push('showToast')
+    },
     uploadFile: options.uploadFile || (() => {}),
     ...options.wx
   }
@@ -105,8 +115,14 @@ function loadPage(relativePath, options = {}) {
     checkLoginStatus: () => true,
     logout: () => {},
     checkLogin: () => {},
-    showToast: (icon, title) => toastCalls.push({ icon, title })
+    showToast: (icon, title) => {
+      toastCalls.push({ icon, title })
+      uiCalls.push('showToast')
+    }
   }
+
+  const consent = options.consent || createVoiceConsentDouble()
+  const resolveShared = createModuleResolver(consent)
 
   const source = read(relativePath).replace(/^import .*$/gm, '')
   vm.runInNewContext(source, {
@@ -115,6 +131,7 @@ function loadPage(relativePath, options = {}) {
     },
     clearTimeout,
     console: { log() {}, error() {} },
+    Date,
     getApp: () => app,
     require(modulePath) {
       if (modulePath.endsWith('/utils/request') || modulePath.endsWith('utils/request')) {
@@ -123,6 +140,8 @@ function loadPage(relativePath, options = {}) {
       if (modulePath.endsWith('/utils/http_request') || modulePath.endsWith('utils/http_request')) {
         return { httpReq: {} }
       }
+      const resolved = resolveShared(modulePath)
+      if (resolved) return resolved
       throw new Error(`Unexpected module: ${modulePath}`)
     },
     setTimeout,
@@ -135,22 +154,84 @@ function loadPage(relativePath, options = {}) {
     selectComponent: options.selectComponent || (() => ({ setData() {} }))
   })
 
-  return { app, audio, eventChannel, loadingCalls, navigationCalls, page, toastCalls, wx }
+  return { app, audio, consent, eventChannel, loadingCalls, navigationCalls, page, toastCalls, uiCalls, wx }
 }
 
-function loadComponent(relativePath, wx) {
+/**
+ * 声纹授权状态的替身。
+ *
+ * 真模块要读 wx.setStorageSync，而这两个 load* 沙箱里的 wx 是各用例自己拼的，
+ * 塞进去会让「录音闸门有没有拦住」的用例变成在测存储。
+ * 所以调用点用替身测**时序**（授权问没问在开麦前面），
+ * 存储语义另有一条用例直接跑真模块（见 'voice consent survives...'）。
+ *
+ * 默认 granted = true：老的那几条麦克风权限用例测的是麦克风流程，
+ * 不该因为多了一道闸门就得改写。不给授权的路径另写用例。
+ */
+function createVoiceConsentDouble(granted = true) {
+  const real = require('../utils/voiceConsent')
+  const state = { granted, at: granted ? '2026-08-14 10:00:00' : '', grants: 0, revokes: 0 }
+  return {
+    state,
+    module: {
+      STORAGE_KEY: real.STORAGE_KEY,
+      VERSION: real.VERSION,
+      AGREEMENT: real.AGREEMENT,
+      PAGE_PATH: real.PAGE_PATH,
+      granted: () => state.granted,
+      grant(at) {
+        state.granted = true
+        state.at = at || ''
+        state.grants += 1
+        return true
+      },
+      revoke() {
+        state.granted = false
+        state.at = ''
+        state.revokes += 1
+        return true
+      },
+      grantedAt: () => state.at
+    }
+  }
+}
+
+function createModuleResolver(consentDouble) {
+  return function resolve(modulePath) {
+    // 声纹授权：用替身，理由见 createVoiceConsentDouble
+    if (modulePath.endsWith('utils/voiceConsent')) return consentDouble.module
+    // 转发卡。用真模块而不是打桩——它是纯函数、不碰 wx，
+    // 而且「转发落到哪个页面」正是这套用例该守住的东西，桩掉就测不到了。
+    if (modulePath.endsWith('utils/share')) return require('../utils/share')
+    return null
+  }
+}
+
+function loadComponent(relativePath, wx, options = {}) {
   let componentConfig
   const source = read(relativePath)
+  const consent = options.consent || createVoiceConsentDouble()
+  const resolve = createModuleResolver(consent)
   vm.runInNewContext(source, {
     Component(config) {
       componentConfig = config
     },
     console: { log() {}, error() {} },
+    Date,
+    // 组件也会 require（比如 recorder 要拿声纹授权状态）。
+    // 这个壳一开始是没有的，加 require 的那天三条用例会一起变红——
+    // 这个仓库已经在「沙箱 require 白名单漏了新模块」上栽过两次了。
+    require(modulePath) {
+      const resolved = resolve(modulePath)
+      if (resolved) return resolved
+      throw new Error(`Unexpected module: ${modulePath}`)
+    },
     wx
   }, { filename: relativePath })
 
   assert.ok(componentConfig, `${relativePath} did not call Component()`)
   const component = {
+    consent,
     ...componentConfig.methods,
     data: JSON.parse(JSON.stringify(componentConfig.data || {})),
     properties: {},
@@ -2073,7 +2154,7 @@ test('favorite star emits a toggle and exposes confirmed colors in markup', () =
   const componentMarkup = read('components/voiceList/voiceList.wxml')
   const pageMarkup = read('pages/voiceSelect/voiceSelect.wxml')
   assert.equal(componentMarkup.includes('name="star"'), true)
-  assert.equal(componentMarkup.includes("#E20E0E"), true)
+  assert.equal(componentMarkup.includes("#C0392B"), true)
   assert.equal(componentMarkup.includes("#D8D8D8"), true)
   assert.equal(pageMarkup.includes('bind:favoriteVoice="toggleFavorite"'), true)
 
@@ -2306,7 +2387,7 @@ test('BGM list emits favorite and delete actions with confirmed icon colors', ()
   const componentMarkup = read('components/bgmList/bgmList.wxml')
   const pageMarkup = read('pages/bgmSelect/bgmSelect.wxml')
   assert.equal(componentMarkup.includes('name="star"'), true)
-  assert.equal(componentMarkup.includes("'#E20E0E'"), true)
+  assert.equal(componentMarkup.includes("'#C0392B'"), true)
   assert.equal(componentMarkup.includes("'#D8D8D8'"), true)
   assert.equal(componentMarkup.includes('name="delete-o"'), true)
   assert.equal(pageMarkup.includes('bindtap="importMusic"'), true)
@@ -3576,14 +3657,48 @@ test('long text dubbing reports failed polling and hides loading', async () => {
   assert.equal(page.data.synthesizing, false)
 })
 
+test('long text dubbing stops after 40 polls and reports synthesis failure', async () => {
+  const taskId = 'long-text-task-poll-limit'
+  let queryCount = 0
+  let waitCount = 0
+  const { loadingCalls, navigationCalls, page, toastCalls, uiCalls } = loadPage(
+    'pages/longTextDubbing/longTextDubbing.js',
+    {
+      request: async (options) => {
+        if (options.url === '/user/tts/long-text/submit') {
+          return { code: 200, data: { task_id: taskId, status: 'running' } }
+        }
+        if (options.url === '/user/tts/long-text/query') {
+          queryCount += 1
+          return { code: 200, data: { task_id: taskId, status: 'processing' } }
+        }
+        return { code: 200, data: {} }
+      }
+    }
+  )
+  page.pageActive = true
+  page.waitForNextPoll = async () => {
+    waitCount += 1
+  }
+  page.setData({ inputText: '需要测试轮询次数上限的长文本内容' })
+
+  await page.convertToSpeech()
+
+  assert.equal(queryCount, 40)
+  assert.equal(waitCount, 39)
+  assert.equal(toastCalls.at(-1).title, '合成失败')
+  assert.deepEqual(uiCalls.slice(-2), ['hideLoading', 'showToast'])
+  assert.equal(navigationCalls.length, 0)
+  assert.equal(loadingCalls.at(-1).type, 'hide')
+  assert.equal(page.data.synthesizing, false)
+})
+
 test('mine pages are registered', () => {
   const appConfig = JSON.parse(read('app.json'))
   assert.equal(appConfig.pages.includes('pages/mine/mine'), true)
-  assert.equal(appConfig.pages.includes('pages/profile/profile'), true)
 
   for (const pageName of [
     'mine/mine',
-    'profile/profile',
     'faq/faq',
     'faqDetail/faqDetail',
     'feedback/feedback'
@@ -3595,37 +3710,40 @@ test('mine pages are registered', () => {
 
 })
 
-test('mine page loads the profile and all identity controls open the profile editor', async () => {
-  const requestCalls = []
-  const { navigationCalls, page } = loadPage('pages/mine/mine.js', {
-    request: async (options) => {
-      requestCalls.push(options)
-      return {
-        code: 200,
-        data: { nickname: '\u7528\u6237BpbU', avatar_url: '/uploads/avatar.png' }
-      }
-    }
-  })
-
-  await page.onShow()
-
-  assert.equal(requestCalls[0].url, '/user/profile')
-  assert.equal(requestCalls[0].method, 'GET')
-  assert.equal(requestCalls[0].needAuth, true)
-  assert.equal(page.data.nickname, '\u7528\u6237BpbU')
-  assert.equal(page.data.avatarUrl, 'http://192.168.5.245:9000/uploads/avatar.png')
-
-  page.openProfile()
-  page.openProfile()
-  page.openProfile()
-  assert.deepEqual(
-    navigationCalls.map((call) => call.options.url),
-    ['../profile/profile', '../profile/profile', '../profile/profile']
-  )
+test('mine page carries no user-authored profile at all', () => {
+  // 2026-08 审核打回：「存在信息安全风险，请尽快完善内容机制：确保已接入
+  // 内容安全API并要求所调用API可在小程序内任意发布的场景生效」，指的就是
+  // 原来的头像上传 + 昵称编辑。这个小程序不靠用户身份做事，所以整套删了。
+  //
+  // 这条用例守的是**别加回来**：任何让用户填字、传图的入口，
+  // 都会把那条审核意见原样带回来，而那要接一整条 imgSecCheck/msgSecCheck 链路。
+  const appConfig = JSON.parse(read('app.json'))
+  assert.equal(appConfig.pages.includes('pages/profile/profile'), false)
+  assert.equal(fs.existsSync(path.join(projectRoot, 'pages/profile')), false)
 
   const markup = read('pages/mine/mine.wxml')
-  assert.equal((markup.match(/bindtap="openProfile"/g) || []).length >= 3, true)
+  const script = read('pages/mine/mine.js')
+  for (const banned of ['openProfile', 'chooseAvatar', 'avatarUrl', 'nickname']) {
+    assert.equal(markup.includes(banned), false)
+  }
+  // 注释里会提到「昵称/头像」解释为什么没有，所以只查可执行的部分——
+  // 这个仓库已经被「断言撞上自己的注释」坑过四次了。
+  const code = script.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+  for (const banned of ['profile', 'avatar', 'nickname']) {
+    assert.equal(code.includes(banned), false)
+  }
+  // 首页不该再去拉 /user/profile
+  assert.equal(code.includes('/user/profile'), false)
 
+  const { navigationCalls, page } = loadPage('pages/mine/mine.js')
+  page.openFaq()
+  page.openFeedback()
+  page.openContact()
+  page.openAbout()
+  assert.deepEqual(
+    navigationCalls.map((call) => call.options.url),
+    ['../faq/faq', '../feedback/feedback', '../contact/contact', '../about/about']
+  )
 })
 
 test('contact and about pages are registered and open from mine settings', () => {
@@ -3804,77 +3922,575 @@ test('about page follows the reference copy and uses an existing product image',
   assert.equal(styles.includes('linear-gradient'), true)
 })
 
-test('profile page loads and updates a trimmed nickname', async () => {
-  const requestCalls = []
-  const { page, toastCalls } = loadPage('pages/profile/profile.js', {
-    request: async (options) => {
-      requestCalls.push(options)
-      if (options.method === 'GET') {
-        return { code: 200, data: { nickname: '\u65e7\u6635\u79f0', avatar_url: null } }
-      }
-      return { code: 200, data: { nickname: '\u65b0\u6635\u79f0', avatar_url: null } }
-    }
-  })
+test('every AI generation page carries a visible AI-generated notice', () => {
+  // 2026-08 审核：「你的小程序涉及提供文本深度合成技术（如：AI创作）等相关服务，
+  // 请补充选择：深度合成-AI创作类目，并在AI生成页面增加显著说明
+  // "AI生成、人工智能生成"或同等含义字样。」
+  //
+  // 上一轮只把「(AI生成)」塞进了 navigationBarTitleText，然后又被打回了——
+  // 导航栏标题不算显著。所以现在是页面里的一条实体说明，跟内容挨着放。
+  //
+  // 清单的判断标准：**产出物不是用户自己写的/录的，就得标**。
+  const pages = [
+    'adCopy/adCopy',            // 文案生成入口（审核点名的那条）
+    'adCopyResult/adCopyResult', // 生成出来的文案就显示在这儿
+    'index/index',              // 首页「合成配音」
+    'generate/generate',        // 合成结果
+    'longTextDubbing/longTextDubbing',
+    'dialogueDubbing/dialogueDubbing',
+    'voiceConvert/voiceConvert'
+  ]
 
-  await page.onLoad()
-  page.openNicknameEditor()
-  page.onNicknameInput({ detail: { value: '  \u65b0\u6635\u79f0  ' } })
-  await page.saveNickname()
+  for (const pagePath of pages) {
+    const config = JSON.parse(read(`pages/${pagePath}.json`))
+    assert.equal(
+      config.usingComponents['ai-notice'],
+      '../../components/aiNotice/aiNotice',
+      `${pagePath} 没注册 ai-notice`
+    )
+    const markup = read(`pages/${pagePath}.wxml`).replace(/<!--[\s\S]*?-->/g, '')
+    assert.equal(markup.includes('<ai-notice'), true, `${pagePath} 没挂 ai-notice`)
+  }
 
-  assert.equal(requestCalls[1].url, '/user/profile/nickname')
-  assert.equal(requestCalls[1].method, 'PUT')
-  assert.equal(requestCalls[1].data.nickname, '\u65b0\u6635\u79f0')
-  assert.equal(requestCalls[1].needAuth, true)
-  assert.equal(page.data.nickname, '\u65b0\u6635\u79f0')
-  assert.equal(page.data.editingNickname, false)
-  assert.equal(toastCalls.at(-1).title, '\u6635\u79f0\u5df2\u66f4\u65b0')
+  for (const extension of ['js', 'json', 'wxml', 'wxss']) {
+    assert.equal(
+      fs.existsSync(path.join(projectRoot, `components/aiNotice/aiNotice.${extension}`)),
+      true
+    )
+  }
+
+  // 字样必须真的出现在渲染出来的东西里，不能只活在注释或文件名中
+  const componentMarkup = read('components/aiNotice/aiNotice.wxml')
+  assert.equal(componentMarkup.includes('AI生成'), true)
+  const componentScript = read('components/aiNotice/aiNotice.js')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '')
+  assert.match(componentScript, /人工智能生成/)
 })
 
-test('profile page uploads an avatar as authenticated multipart PUT', async () => {
-  const uploadCalls = []
-  const fileBytes = Uint8Array.from([137, 80, 78, 71]).buffer
-  const { page, toastCalls } = loadPage('pages/profile/profile.js', {
-    request: async () => ({ code: 200, data: { nickname: '\u7528\u6237BpbU', avatar_url: null } }),
-    wx: {
-      chooseMedia(options) {
-        options.success({ tempFiles: [{ tempFilePath: 'wxfile://tmp/avatar.png' }] })
-      },
-      getFileSystemManager() {
-        return {
-          readFile(options) {
-            options.success({ data: fileBytes })
-          }
-        }
-      },
-      getStorageSync(key) {
-        return key === 'auth_token' ? 'test-token' : ''
-      },
-      request(options) {
-        uploadCalls.push(options)
-        options.success({
-          statusCode: 200,
-          data: {
-            code: 200,
-            data: { nickname: '\u7528\u6237BpbU', avatar_url: '/uploads/new-avatar.png' }
-          }
-        })
+// ---------------------------------------------------------------- 蓝牙权限检查
+//
+// 移植自福宝拼豆（E:\mini\福宝拼豆图纸制作-…）的 pages/bluetooth-permission。
+// 界面照搬，检测逻辑改了三处——下面每一处都单独有一条用例守着，
+// 因为它们全都是「不改也能跑、改错了只会误导用户」的那种，光看代码看不出来。
+
+function loadBluetoothPermissionPage(overrides = {}) {
+  const opened = []
+  const wx = {
+    getSystemInfoSync: () => ({ platform: overrides.platform === undefined ? 'ios' : overrides.platform }),
+    getSystemSetting: () => overrides.system || { bluetoothEnabled: true, locationEnabled: true },
+    getAppAuthorizeSetting: () => overrides.appAuthorize || {
+      bluetoothAuthorized: 'authorized',
+      locationAuthorized: 'authorized'
+    },
+    getSetting: ({ success }) => success({ authSetting: overrides.authSetting || {} }),
+    openBluetoothAdapter: (options) => {
+      if (overrides.adapterFail) {
+        options.fail(overrides.adapterFail)
+        return
       }
+      options.success({})
+    },
+    getBluetoothAdapterState: ({ success }) =>
+      success({ available: overrides.adapterAvailable !== false }),
+    authorize: ({ success }) => success({}),
+    openSetting: (options) => {
+      opened.push('openSetting')
+      if (options && options.complete) options.complete()
+    },
+    openAppAuthorizeSetting: (options) => {
+      opened.push('openAppAuthorizeSetting')
+      if (options && options.complete) options.complete()
+    },
+    showModal: (options) => {
+      opened.push('showModal:' + options.title)
     }
+  }
+  const loaded = loadPage('pages/bluetoothPermission/bluetoothPermission.js', { wx })
+  return { ...loaded, opened }
+}
+
+function itemOf(page, key) {
+  return page.data.items.find((entry) => entry.key === key)
+}
+
+test('bluetooth permission page is registered and reachable from the mine tab', () => {
+  const appConfig = JSON.parse(read('app.json'))
+  assert.equal(appConfig.pages.includes('pages/bluetoothPermission/bluetoothPermission'), true)
+
+  for (const extension of ['js', 'json', 'wxml', 'wxss']) {
+    assert.equal(
+      fs.existsSync(path.join(projectRoot, 'pages/bluetoothPermission/bluetoothPermission.' + extension)),
+      true
+    )
+  }
+
+  const pageConfig = JSON.parse(read('pages/bluetoothPermission/bluetoothPermission.json'))
+  assert.equal(pageConfig.navigationBarTitleText, '蓝牙权限检查')
+
+  // 入口在「我的」，而且排在「常见问题」前面——连不上是最常见的求助，
+  // 这一页要比 FAQ 更好找。
+  const markup = read('pages/mine/mine.wxml')
+  assert.equal(markup.includes('bindtap="openBluetoothPermission"'), true)
+  assert.equal(markup.includes('蓝牙权限检查'), true)
+  // 先剥注释再比位置。上面那段注释里就写着「常见问题」四个字，
+  // 不剥的话断言撞上的是注释而不是界面——这个仓库已经栽在这上面五次了。
+  const rows = markup.replace(/<!--[\s\S]*?-->/g, '')
+  assert.ok(
+    rows.indexOf('蓝牙权限检查') < rows.indexOf('常见问题'),
+    '蓝牙权限检查要排在常见问题前面'
+  )
+
+  const { navigationCalls, page } = loadPage('pages/mine/mine.js')
+  page.openBluetoothPermission()
+  assert.equal(navigationCalls.at(-1).options.url, '../bluetoothPermission/bluetoothPermission')
+})
+
+test('the mine list icon is visible against a white row, and the AI bubble clears the banner', () => {
+  // 两个都是「代码没错、看着不对」的毛病，只有把约束写成断言才拦得住。
+
+  // 一、bluetooth.png 是纯白图标（原本贴在 generate 页那个 #9E9E9E 灰圆上），
+  //     放进白色设置列表里就是隐形的——那一行会只剩文字。用重新上色的红版。
+  const mineMarkup = read('pages/mine/mine.wxml').replace(/<!--[\s\S]*?-->/g, '')
+  assert.equal(mineMarkup.includes('/img/bluetooth_red.png'), true)
+  assert.equal(mineMarkup.includes('/img/bluetooth.png'), false, '白图标在白底上是隐形的')
+  assert.equal(fs.existsSync(path.join(projectRoot, 'img/bluetooth_red.png')), true)
+
+  // 二、「AI 创作」悬浮球是 absolute + 负 top，靠 .textView 的上边距才躲得开
+  //     横幅右下角那颗「进入」按钮。这段边距没了，两个按钮就重叠。
+  const homeStyles = read('pages/index/index.wxss').replace(/\/\*[\s\S]*?\*\//g, '')
+  const textView = homeStyles.match(/\.textView\s*\{[^}]*\}/)
+  assert.ok(textView, '.textView 规则不见了')
+  const marginTop = textView[0].match(/margin-top:\s*(\d+)rpx/)
+  assert.ok(marginTop, '.textView 少了 margin-top，AI 创作会压住横幅的「进入」')
+  assert.ok(Number(marginTop[1]) >= 40, '缝小于 40rpx 就躲不开，实测过')
+})
+
+test('bluetooth permission page lights up all six layers when everything is granted', async () => {
+  const { page } = loadBluetoothPermissionPage()
+  await page.runCheck()
+
+  // 页面跑在 vm 沙箱里，它造的数组跟这边的 Array 不是同一个原型，
+  // deepStrictEqual 会因为「结构一样但引用不等」挂掉。比字符串就没这问题。
+  assert.equal(
+    page.data.items.map((item) => item.key).join(','),
+    'systemBluetooth,systemLocation,wechatBluetooth,wechatLocation,miniBluetooth,miniLocation'
+  )
+  assert.equal(page.data.okCount, 6)
+  assert.equal(page.data.problemCount, 0)
+  assert.equal(page.data.hasProblem, false)
+  assert.equal(page.data.showSettingButton, false)
+  assert.equal(page.data.summaryText, '全部就绪')
+  // 系统开关说「已打开」，授权类说「已授权」——两种东西别混着说
+  assert.equal(itemOf(page, 'systemBluetooth').status, '已打开')
+  assert.equal(itemOf(page, 'miniBluetooth').status, '已授权')
+})
+
+test('bluetooth permission page treats location as optional on iOS but required on Android', async () => {
+  // 移植时改的第一处：原版对定位一视同仁，于是 iPhone 上永远显示「有问题」，
+  // 用户照着修还修不好——iOS 搜蓝牙压根不需要定位。
+  const locationOff = { bluetoothEnabled: true, locationEnabled: false }
+
+  const ios = loadBluetoothPermissionPage({ platform: 'ios', system: locationOff })
+  await ios.page.runCheck()
+  assert.equal(itemOf(ios.page, 'systemLocation').ok, false)
+  assert.equal(itemOf(ios.page, 'systemLocation').optional, true)
+  assert.equal(itemOf(ios.page, 'systemLocation').level, 'warn', '可选项没开是橙灯，不是红灯')
+  assert.equal(ios.page.data.problemCount, 0, 'iOS 上定位没开不算拦路虎')
+  assert.equal(ios.page.data.summaryText, '全部就绪')
+
+  const android = loadBluetoothPermissionPage({ platform: 'android', system: locationOff })
+  await android.page.runCheck()
+  assert.equal(itemOf(android.page, 'systemLocation').optional, false)
+  assert.equal(itemOf(android.page, 'systemLocation').level, 'bad')
+  assert.equal(android.page.data.problemCount, 1)
+  assert.equal(android.page.data.summaryText, '待处理 1 项')
+
+  // 拿不到平台按「需要定位」处理：多报一项待办，好过漏掉安卓上真正的拦路虎
+  const unknown = loadBluetoothPermissionPage({ platform: '', system: locationOff })
+  await unknown.page.runCheck()
+  assert.equal(itemOf(unknown.page, 'systemLocation').optional, false)
+})
+
+test('bluetooth permission page rechecks adapter state instead of trusting a cached open', async () => {
+  // 移植时改的第二处：openBluetoothAdapter 打开过一次后会走缓存直接 success，
+  // 用户中途关掉系统蓝牙它照样成功。只信 success 的话，「重新检查权限」
+  // 对这一项就是个假绿灯——正好是这一页最不该出错的地方。
+  const source = read('pages/bluetoothPermission/bluetoothPermission.js')
+  assert.equal(source.includes('getBluetoothAdapterState'), true)
+
+  // 适配器 open 成功、但实时状态是不可用：不能算就绪
+  const { page } = loadBluetoothPermissionPage({
+    platform: 'android',
+    system: {},                 // 旧基础库拿不到 bluetoothEnabled
+    adapterAvailable: false
+  })
+  await page.runCheck()
+  assert.equal(itemOf(page, 'systemBluetooth').ok, false, 'open 成功但适配器不可用，仍要报出来')
+})
+
+test('bluetooth permission page blames the system switch, not the mini program, on errCode 10001', async () => {
+  // 移植时改的第三处：原版把「适配器打不开」一律算成小程序没授权。
+  // 但 10001 是系统蓝牙没开，那是第一项的事——归错了用户会去点小程序设置，
+  // 在那儿翻半天也修不好。
+  const { page } = loadBluetoothPermissionPage({
+    platform: 'android',
+    system: {},
+    adapterFail: { errCode: 10001, errMsg: 'openBluetoothAdapter:fail not available' }
+  })
+  await page.runCheck()
+
+  assert.equal(itemOf(page, 'systemBluetooth').ok, false, '系统蓝牙这一项要报红')
+  assert.equal(itemOf(page, 'miniBluetooth').ok, true, '小程序授权没问题，别跟着一起报红')
+
+  // 反过来：确实是被拒，就该算在小程序头上
+  const denied = loadBluetoothPermissionPage({
+    platform: 'android',
+    system: { bluetoothEnabled: true, locationEnabled: true },
+    adapterFail: { errMsg: 'openBluetoothAdapter:fail auth denied' }
+  })
+  await denied.page.runCheck()
+  assert.equal(itemOf(denied.page, 'miniBluetooth').ok, false)
+  assert.equal(itemOf(denied.page, 'systemBluetooth').ok, true)
+})
+
+test('bluetooth permission page refuses to fake a result inside devtools', async () => {
+  // 工具里蓝牙是停用的，原版会老老实实报出六个「未打开」，看着像一堆真问题。
+  const { page } = loadBluetoothPermissionPage({ platform: 'devtools' })
+  await page.runCheck()
+
+  assert.equal(page.data.runtimeSupported, false)
+  assert.equal(page.data.items.length, 0)
+  assert.equal(page.data.problemCount, 0, '不许在工具里报假问题')
+  assert.match(page.data.runtimeReason, /真机/)
+
+  const markup = read('pages/bluetoothPermission/bluetoothPermission.wxml')
+  assert.equal(markup.includes('wx:if="{{!runtimeSupported}}"'), true)
+})
+
+test('bluetooth permission page never reports a missing field as a problem', async () => {
+  // 旧基础库拿不到的字段是 undefined。拿不到 ≠ 没开——
+  // 误报一次用户就不信这一页了，而这一页的全部价值就是「可信」。
+  const { page } = loadBluetoothPermissionPage({
+    platform: 'ios',
+    system: {},
+    appAuthorize: {},
+    authSetting: {}
+  })
+  await page.runCheck()
+  assert.equal(page.data.problemCount, 0)
+  assert.equal(page.data.okCount, 6)
+})
+
+test('bluetooth permission rows route to the setting page that can actually fix them', async () => {
+  const { page, opened } = loadBluetoothPermissionPage({
+    platform: 'android',
+    system: { bluetoothEnabled: false, locationEnabled: true },
+    appAuthorize: { bluetoothAuthorized: 'denied', locationAuthorized: 'authorized' },
+    authSetting: { 'scope.userLocation': false }
+  })
+  await page.runCheck()
+
+  // 已就绪的行点了不该有任何反应
+  page.fixItem({ currentTarget: { dataset: { key: 'wechatLocation' } } })
+  assert.equal(opened.length, 0)
+
+  // 小程序自己的授权 → 小程序设置页
+  page.fixItem({ currentTarget: { dataset: { key: 'miniLocation' } } })
+  assert.equal(opened.at(-1), 'openSetting')
+
+  // 微信这个 App 在系统里的权限 → 系统应用设置页
+  page.fixItem({ currentTarget: { dataset: { key: 'wechatBluetooth' } } })
+  assert.equal(opened.at(-1), 'openAppAuthorizeSetting')
+
+  // 系统总开关小程序打不开，只能告诉他去哪儿点
+  page.fixItem({ currentTarget: { dataset: { key: 'systemBluetooth' } } })
+  assert.equal(opened.at(-1), 'showModal:系统蓝牙开关')
+})
+
+// ---------------------------------------------------------------- 声纹授权
+// 2026-08 审核第三次打回：「你的小程序涉及收集、使用和存储用户声纹录取，
+// 需增加独立的《声纹授权协议》，明确告知收集用户个人信息的使用目的、方式和用途，
+// 并取得用户授权同意后，才能获取用户个人声纹信息。」
+//
+// 下面这几条守的是那句「**才能**」——顺序反了就等于先开麦再补协议。
+
+function loadRealVoiceConsent(initialStorage = {}) {
+  const store = { ...initialStorage }
+  const wx = {
+    getStorageSync: (key) => (key in store ? store[key] : ''),
+    setStorageSync: (key, value) => { store[key] = value },
+    removeStorageSync: (key) => { delete store[key] }
+  }
+  const moduleShim = { exports: {} }
+  vm.runInNewContext(read('utils/voiceConsent.js'), {
+    module: moduleShim,
+    exports: moduleShim.exports,
+    wx
+  }, { filename: 'utils/voiceConsent.js' })
+  return { store, wx, consent: moduleShim.exports }
+}
+
+test('the standalone voiceprint agreement page exists and states purpose, method and use', () => {
+  const appConfig = JSON.parse(read('app.json'))
+  assert.equal(appConfig.pages.includes('pages/voiceAuth/voiceAuth'), true)
+  for (const extension of ['js', 'json', 'wxml', 'wxss']) {
+    assert.equal(
+      fs.existsSync(path.join(projectRoot, `pages/voiceAuth/voiceAuth.${extension}`)),
+      true
+    )
+  }
+
+  const { consent } = loadRealVoiceConsent()
+  const agreement = consent.AGREEMENT
+  assert.equal(agreement.title, '声纹授权协议')
+
+  // 审核点名要有的三样。标题里就得能看见，别让审核去正文里找。
+  const headings = agreement.sections.map((section) => section.heading).join('')
+  assert.match(headings, /方式/, '要写清收集方式')
+  assert.match(headings, /目的/, '要写清使用目的')
+  assert.match(headings, /用途/, '要写清用途')
+
+  // 《个人信息保护法》要求同意可撤回，撤回入口必须真的在页面上
+  const markup = read('pages/voiceAuth/voiceAuth.wxml')
+  assert.equal(markup.includes('bindtap="revoke"'), true, '协议页要有撤回入口')
+
+  // 正文是从 utils/voiceConsent 取的，不许在页面里另抄一份——
+  // 弹窗摘要和协议正文说法不一致，本身就是个合规问题
+  const script = read('pages/voiceAuth/voiceAuth.js')
+  assert.equal(script.includes("require('../../utils/voiceConsent')"), true)
+  assert.equal(markup.includes('wx:for="{{sections}}"'), true)
+})
+
+test('recording is refused until the voiceprint agreement is accepted', () => {
+  const calls = { getSetting: 0, authorize: 0, start: 0 }
+  const recorder = {
+    onStart() {}, onStop() {}, onError() {},
+    start() { calls.start += 1 }
+  }
+  const consent = createVoiceConsentDouble(false)
+  const { component, componentConfig } = loadComponent('components/recorder/recorder.js', {
+    getRecorderManager: () => recorder,
+    getSetting(options) { calls.getSetting += 1; options.success({ authSetting: {} }) },
+    authorize(options) { calls.authorize += 1; options.success(); options.complete() },
+    showToast() {}
+  }, { consent })
+
+  componentConfig.lifetimes.attached.call(component)
+  component.startRecorder()
+
+  // 弹的是协议，不是麦克风权限
+  assert.equal(component.data.voiceAuthVisible, true)
+  assert.equal(component.data.recordPermissionVisible, false)
+  // **这三个 0 是这条用例的全部意义**：授权拿到之前，麦克风一步都没往前走
+  assert.equal(calls.getSetting, 0, '声纹授权没拿到就不该去碰麦克风权限')
+  assert.equal(calls.authorize, 0, '声纹授权没拿到就不该申请 scope.record')
+  assert.equal(calls.start, 0, '声纹授权没拿到就绝不能开麦')
+
+  // 不同意 = 到此为止，麦克风依旧一次没开
+  component.onVoiceAuthReject()
+  assert.equal(component.data.voiceAuthVisible, false)
+  assert.equal(consent.state.granted, false)
+  assert.equal(calls.getSetting + calls.authorize + calls.start, 0)
+
+  // 同意：照真实顺序走一遍——弹窗组件先记下授权，再通知父级
+  component.startRecorder()
+  const { component: popup } = loadComponent('components/voiceAuth/voiceAuth.js', {}, { consent })
+  const popupEvents = []
+  popup.triggerEvent = (name) => popupEvents.push(name)
+  popup.agree()
+  assert.deepEqual(popupEvents, ['agree'], '弹窗要在记下授权后才通知父级')
+  assert.equal(consent.state.granted, true)
+  assert.equal(consent.state.grants, 1)
+  assert.match(consent.state.at, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/, '要记下授权时间')
+
+  // 同意声纹协议之后接的是**麦克风权限**，不是直接开录——
+  // 两道闸门是分开的：给过微信麦克风权限不等于同意收集声纹，反过来也一样
+  component.onVoiceAuthAgree()
+  assert.equal(calls.getSetting, 1)
+  assert.equal(component.data.recordPermissionVisible, true, '这台机器还没给麦克风权限')
+  assert.equal(calls.start, 0, '麦克风权限还没拿到，仍然不能开麦')
+
+  component.confirmRecordPermission()
+  assert.equal(calls.authorize, 1)
+  assert.equal(calls.start, 1)
+
+  // 存储写不进去时（配额满、隐私模式）不能变成弹窗→同意→弹窗的死循环：
+  // 用户点过「同意」，这一次就该录得上
+  const stubborn = createVoiceConsentDouble(false)
+  stubborn.module.grant = () => false
+  const { component: looped, componentConfig: loopedConfig } = loadComponent(
+    'components/recorder/recorder.js',
+    {
+      getRecorderManager: () => recorder,
+      getSetting(options) { options.success({ authSetting: { 'scope.record': true } }) },
+      showToast() {}
+    },
+    { consent: stubborn }
+  )
+  loopedConfig.lifetimes.attached.call(looped)
+  looped.startRecorder()
+  assert.equal(looped.data.voiceAuthVisible, true)
+  const before = calls.start
+  looped.onVoiceAuthAgree()
+  assert.equal(looped.data.voiceAuthVisible, false)
+  assert.equal(calls.start, before + 1, '同意过了就该录得上，不许再弹一次')
+})
+
+test('voice conversion also gates recording behind the agreement', () => {
+  let startCalls = 0
+  const recorder = {
+    onStart() {}, onStop() {}, onError() {},
+    start() { startCalls += 1 }
+  }
+  const consent = createVoiceConsentDouble(false)
+  const { page } = loadPage('pages/voiceConvert/voiceConvert.js', {
+    consent,
+    wx: { getRecorderManager: () => recorder }
   })
 
-  await page.onLoad()
-  await page.chooseAvatar()
+  page.setupRecorder()
+  page.setData({ timbres: [{ id: 7 }], selectedTimbreId: 7 })
 
-  assert.equal(uploadCalls.length, 1)
-  assert.equal(uploadCalls[0].method, 'PUT')
-  assert.equal(uploadCalls[0].url, 'http://192.168.5.245:9000/api/v1/user/profile/avatar')
-  assert.equal(uploadCalls[0].header.Authorization, 'Bearer test-token')
-  assert.match(uploadCalls[0].header['Content-Type'], /^multipart\/form-data; boundary=/)
-  const multipartText = Buffer.from(new Uint8Array(uploadCalls[0].data)).toString('utf8')
-  assert.equal(multipartText.includes('name="avatar"'), true)
-  assert.equal(multipartText.includes('filename="avatar.png"'), true)
-  assert.equal(page.data.avatarUrl, 'http://192.168.5.245:9000/uploads/new-avatar.png')
-  assert.equal(toastCalls.at(-1).title, '\u5934\u50cf\u5df2\u66f4\u65b0')
+  page.startRecording()
+  assert.equal(page.data.voiceAuthVisible, true)
+  assert.equal(startCalls, 0, '音色转换处理的正是声纹，同样不许先开麦')
+
+  page.onVoiceAuthReject()
+  assert.equal(startCalls, 0)
+
+  page.startRecording()
+  page.onVoiceAuthAgree()
+  assert.equal(startCalls, 1)
+
+  // 授权由弹窗组件记，父级只管往下走——两处共用同一个弹窗
+  const { component: popup } = loadComponent('components/voiceAuth/voiceAuth.js', {}, { consent })
+  popup.triggerEvent = () => {}
+  popup.agree()
+  assert.equal(consent.state.granted, true)
+})
+
+test('every place that opens the microphone checks the agreement first', () => {
+  // 新加录音入口时这条会红。别改断言——去给新入口加闸门。
+  const sources = [
+    ['components/recorder/recorder.js', 'startRecorder'],
+    ['pages/voiceConvert/voiceConvert.js', 'startRecording']
+  ]
+
+  for (const [file] of sources) {
+    const code = read(file)
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, '')
+    const gate = code.indexOf('voiceConsent.granted()')
+    assert.ok(gate > -1, `${file} 没有声纹授权闸门`)
+    // 闸门必须在开麦动作**前面**出现
+    for (const opener of ['recorder.start(', 'wx.authorize(', 'wx.getSetting(']) {
+      const at = code.indexOf(opener)
+      if (at === -1) continue
+      assert.ok(gate < at, `${file}：${opener} 出现在声纹授权闸门之前，顺序反了`)
+    }
+  }
+
+  // 会开麦的文件就这两个。多出来的必须一并加闸门。
+  const openers = []
+  for (const dir of ['pages', 'components']) {
+    const walk = (current) => {
+      for (const entry of fs.readdirSync(path.join(projectRoot, current))) {
+        const next = `${current}/${entry}`
+        if (fs.statSync(path.join(projectRoot, next)).isDirectory()) { walk(next); continue }
+        if (!entry.endsWith('.js')) continue
+        if (/\.start\(\{/.test(read(next))) openers.push(next)
+      }
+    }
+    walk(dir)
+  }
+  assert.deepEqual(openers.sort(), sources.map(([file]) => file).sort())
+})
+
+test('voice consent survives a restart, and revoking it really takes the grant away', () => {
+  const first = loadRealVoiceConsent()
+  assert.equal(first.consent.granted(), false, '没授权过就该是 false')
+
+  first.consent.grant('2026-08-14 12:00:00')
+  assert.equal(first.consent.granted(), true)
+  assert.equal(first.consent.grantedAt(), '2026-08-14 12:00:00')
+
+  // 换个「进程」，存储原样带过去——重启后不该再问一遍
+  const restarted = loadRealVoiceConsent(first.store)
+  assert.equal(restarted.consent.granted(), true)
+
+  restarted.consent.revoke()
+  assert.equal(restarted.consent.granted(), false)
+  assert.equal(restarted.consent.grantedAt(), '')
+
+  // 协议实质改版后，老授权作废，要重新问
+  const stale = loadRealVoiceConsent({
+    [first.consent.STORAGE_KEY]: { granted: true, version: 0, at: '2025-01-01 00:00:00' }
+  })
+  assert.equal(stale.consent.granted(), false, '旧版协议的授权不该继续算数')
+
+  // 存储读不出来时按「没授权」处理：宁可多问一次，也不能默认放行
+  const broken = loadRealVoiceConsent()
+  broken.wx.getStorageSync = () => { throw new Error('storage exploded') }
+  const reloaded = { exports: {} }
+  vm.runInNewContext(read('utils/voiceConsent.js'), {
+    module: reloaded, exports: reloaded.exports, wx: broken.wx
+  }, { filename: 'utils/voiceConsent.js' })
+  assert.equal(reloaded.exports.granted(), false)
+})
+
+test('the agreement is reachable and revocable from the mine tab', () => {
+  const { navigationCalls, page } = loadPage('pages/mine/mine.js')
+  page.openVoiceAuth()
+  assert.equal(navigationCalls.at(-1).options.url, '../voiceAuth/voiceAuth')
+
+  const markup = read('pages/mine/mine.wxml').replace(/<!--[\s\S]*?-->/g, '')
+  assert.equal(markup.includes('bindtap="openVoiceAuth"'), true)
+  assert.equal(markup.includes('声纹授权协议'), true)
+
+  // 撤回：走的是二次确认，别让人一不小心点掉
+  const consent = createVoiceConsentDouble(true)
+  let modalCalls = 0
+  const { page: authPage } = loadPage('pages/voiceAuth/voiceAuth.js', {
+    consent,
+    wx: {
+      showModal(options) { modalCalls += 1; options.success({ confirm: true }) }
+    }
+  })
+  authPage.onShow()
+  assert.equal(authPage.data.granted, true)
+  authPage.revoke()
+  assert.equal(modalCalls, 1, '撤回要二次确认')
+  assert.equal(consent.state.revokes, 1)
+  assert.equal(authPage.data.granted, false)
+})
+
+test('the consent popup and the full agreement cannot drift apart', () => {
+  // 弹窗摘要和协议正文都从 utils/voiceConsent 取。
+  // 谁把文案硬编码回 wxml，这条就红。
+  const popup = read('components/voiceAuth/voiceAuth.js')
+  assert.equal(popup.includes("require('../../utils/voiceConsent')"), true)
+  assert.equal(popup.includes('voiceConsent.AGREEMENT.summary'), true)
+
+  const popupMarkup = read('components/voiceAuth/voiceAuth.wxml')
+  assert.equal(popupMarkup.includes('wx:for="{{summary}}"'), true)
+  assert.equal(popupMarkup.includes('bindtap="openAgreement"'), true, '弹窗要能看完整协议')
+  assert.equal(popupMarkup.includes('bindtap="agree"'), true)
+  assert.equal(popupMarkup.includes('bindtap="reject"'), true)
+
+  // 两个入口挂的是同一个组件——同一件事在两处说法不同也是合规问题
+  for (const [config, markup] of [
+    ['components/recorder/recorder.json', 'components/recorder/recorder.wxml'],
+    ['pages/voiceConvert/voiceConvert.json', 'pages/voiceConvert/voiceConvert.wxml']
+  ]) {
+    assert.ok(JSON.parse(read(config)).usingComponents['voice-auth'], `${config} 没注册 voice-auth`)
+    assert.equal(read(markup).includes('<voice-auth'), true, `${markup} 没挂 voice-auth`)
+  }
+
+  // 点遮罩不能关掉：同意与否必须是个明确动作
+  const styles = read('components/voiceAuth/voiceAuth.wxss')
+  assert.equal(styles.includes('.vaMask'), true)
+  assert.equal(popupMarkup.includes('bindtap="close"'), false, '不许点遮罩溜过去')
 })
 
 async function main() {

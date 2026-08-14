@@ -11,8 +11,10 @@
         >{{item.name}}</button>
       </view>
 
+      <ai-notice text="以下广告词由人工智能生成，请自行核对后使用" />
+
       <view class="generatingState" wx:if="{{generating && !content}}">
-        <van-loading color="#C91C1C" size="28px">广告词生成中...</van-loading>
+        <van-loading color="#AE3327" size="28px">广告词生成中...</van-loading>
       </view>
       <text wx:else class="resultText resultText--{{fontSize}}" user-select="{{true}}">{{content}}</text>
 

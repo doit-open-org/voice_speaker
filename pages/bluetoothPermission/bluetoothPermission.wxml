@@ -1,0 +1,72 @@
+<view class="permission-page">
+  <!-- 本仓库的惯例是页面 disableScroll，滚动交给 scroll-view。
+       六行权限 + 说明卡在小屏上一定超一屏，所以这里必须能滚。 -->
+  <scroll-view class="permission-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="permission-body">
+      <view class="permission-hero">
+        <view class="hero-mark">BLE</view>
+        <view class="hero-copy">
+          <text class="hero-title">蓝牙权限检查</text>
+          <text class="hero-desc">连接音箱前，确认蓝牙、定位和小程序授权。</text>
+        </view>
+        <view wx:if="{{runtimeSupported}}" class="hero-status status-{{summaryLevel}}">{{summaryText}}</view>
+      </view>
+
+      <!-- 开发者工具里蓝牙是停用的，检测结果没有参考价值。
+           如实说一句，比列出六个假问题诚实得多。 -->
+      <view wx:if="{{!runtimeSupported}}" class="runtime-card">
+        <view class="runtime-mark">!</view>
+        <view class="runtime-copy">
+          <text class="runtime-title">当前环境不能检测</text>
+          <text class="runtime-text">{{runtimeReason}}</text>
+        </view>
+      </view>
+
+      <block wx:else="">
+        <view class="summary-panel">
+          <view class="summary-item">
+            <text class="summary-number">{{okCount}}</text>
+            <text class="summary-label">已就绪</text>
+          </view>
+          <view class="summary-divider"></view>
+          <view class="summary-item problem">
+            <text class="summary-number">{{problemCount}}</text>
+            <text class="summary-label">待处理</text>
+          </view>
+          <button class="check-button" bindtap="requestAndCheck" loading="{{checking}}" disabled="{{checking}}">重新检查权限</button>
+        </view>
+
+        <!-- 整行可点：没就绪的那一项，点一下直接送到能解决它的设置页，
+             别让用户自己在手机设置里翻。 -->
+        <view class="permission-list">
+          <view
+            class="permission-row permission-{{item.level}}"
+            wx:for="{{items}}"
+            wx:key="key"
+            data-key="{{item.key}}"
+            bindtap="fixItem"
+            hover-class="{{item.ok ? 'none' : 'permission-row--pressed'}}"
+          >
+            <view class="permission-dot status-{{item.level}}"></view>
+            <view class="permission-main">
+              <text class="permission-label">{{item.label}}</text>
+              <text class="permission-detail" wx:if="{{item.detail}}">{{item.detail}}</text>
+            </view>
+            <view class="status-badge status-{{item.level}}">{{item.status}}</view>
+          </view>
+        </view>
+
+        <view class="setting-card" wx:if="{{showSettingButton}}">
+          <view class="setting-copy">
+            <text class="setting-title">权限还没完全打开</text>
+            <text class="setting-desc">蓝牙扫描依赖系统蓝牙、位置开关和微信授权。</text>
+          </view>
+          <view class="setting-button" bindtap="openSettingPage">打开权限设置</view>
+        </view>
+
+        <view class="permission-note">{{platformNote}}</view>
+        <view class="permission-note">系统开关（蓝牙 / 定位）要在手机「设置」里手动打开，小程序改不了；全部点亮后返回即可搜索音箱。</view>
+      </block>
+    </view>
+  </scroll-view>
+</view>

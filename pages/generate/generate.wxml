@@ -1,4 +1,5 @@
 <view class="container pos_rel">
+  <ai-notice text="本段音频由人工智能生成，请注意甄别" />
   <!-- 音频波形区域 -->
   <view class="audio-section">
     <view class="waveform">

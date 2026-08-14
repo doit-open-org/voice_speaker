@@ -1,0 +1,35 @@
+/* 「显著」是审核用词，所以这条不能做成灰扑扑的脚注：
+   实心的标签块 + 有底色的整条，扫一眼就能看见。
+   同时也不能盖过页面本身的行动按钮——用的是浅底 + 描边，
+   本程序最饱和的红仍然留给「生成」「合成」那些按钮。 */
+.aiNotice {
+  display: flex;
+  align-items: center;
+  margin: 16rpx 0;
+  padding: 14rpx 18rpx;
+  box-sizing: border-box;
+  border: 2rpx solid #f0c9c4;
+  border-radius: 12rpx;
+  background: #fdf3f1;
+}
+
+.aiNoticeTag {
+  flex: none;
+  margin-right: 14rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  background: #AE3327;
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  line-height: 1.6;
+}
+
+.aiNoticeText {
+  min-width: 0;
+  flex: 1;
+  color: #8a4038;
+  font-size: 22rpx;
+  line-height: 1.5;
+}

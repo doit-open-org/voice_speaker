@@ -1,9 +1,9 @@
 <view class="videoExtractPage">
   <view class="extractMain">
     <view class="extractSymbol" aria-hidden="true">
-      <van-icon name="video-o" size="132px" color="#C91C1C" />
+      <van-icon name="video-o" size="132px" color="#AE3327" />
       <view class="settingIcon">
-        <van-icon name="setting-o" size="64px" color="#C91C1C" />
+        <van-icon name="setting-o" size="64px" color="#AE3327" />
       </view>
     </view>
 

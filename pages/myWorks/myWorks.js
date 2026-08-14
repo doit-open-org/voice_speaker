@@ -1,6 +1,7 @@
 // pages/myWorks/myWorks.js
 const app = getApp()
 const { request, wechatLogin, checkLoginStatus, logout,checkLogin,showToast } = require('../../utils/request')
+const share = require('../../utils/share')
 let innerAudioContext = ''
 const TITLE_DISPLAY_LIMIT = 40
 Page({
@@ -263,10 +264,9 @@ Page({
     console.log("触底了！");
   },
 
-  /**
-   * 用户点击右上角分享
-   */
+  // 本页数据经 app.globalData 交接，接收方点开是空壳，
+  // 所以转发落回首页；同理不挂 onShareTimeline
   onShareAppMessage() {
-
+    return share.toHome('四博配音宝：文字转语音，还能自己录')
   }
 })

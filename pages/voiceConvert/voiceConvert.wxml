@@ -1,5 +1,6 @@
 <view class="voiceConvertPage">
   <scroll-view class="timbreScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <ai-notice text="转换后的音频由人工智能生成，请注意甄别" />
     <view class="timbreGrid" wx:if="{{timbres.length}}">
       <view
         class="timbreItem {{selectedTimbreId === item.id ? 'timbreItem--active' : ''}}"
@@ -20,13 +21,13 @@
     <view class="primaryActions">
       <view class="actionItem" bindtap="startRecording">
         <view class="actionButton">
-          <van-icon name="play-circle-o" size="62px" color="#C91818" />
+          <van-icon name="play-circle-o" size="62px" color="#AE3327" />
         </view>
         <text class="actionLabel">开始录音</text>
       </view>
       <view class="actionItem" bindtap="bgmPop">
         <view class="actionButton">
-          <van-icon name="music-o" size="62px" color="#C91818" />
+          <van-icon name="music-o" size="62px" color="#AE3327" />
         </view>
         <text class="actionLabel">{{selectedBgm.name || '背景音乐'}}</text>
       </view>
@@ -40,9 +41,9 @@
         max="2"
         step="0.1"
         value="{{speed}}"
-        activeColor="#C91818"
+        activeColor="#AE3327"
         backgroundColor="#E5E5E5"
-        block-color="#C91818"
+        block-color="#AE3327"
         block-size="22"
         bindchange="changeSpeed"
         bindchanging="changeSpeed"
@@ -57,9 +58,9 @@
         max="2"
         step="0.1"
         value="{{volume}}"
-        activeColor="#C91818"
+        activeColor="#AE3327"
         backgroundColor="#E5E5E5"
-        block-color="#C91818"
+        block-color="#AE3327"
         block-size="22"
         bindchange="changeVolume"
         bindchanging="changeVolume"
@@ -93,4 +94,7 @@
       bind:bmgSetConfirm="bmgSetConfirm"
     />
   </van-popup>
+  <!-- 声纹授权闸门。挡在 recorder.start() 前面，见 startRecording。 -->
+  <voice-auth show="{{voiceAuthVisible}}"
+    bind:agree="onVoiceAuthAgree" bind:reject="onVoiceAuthReject" />
 </view>

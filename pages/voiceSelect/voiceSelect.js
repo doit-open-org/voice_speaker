@@ -31,12 +31,13 @@ Page({
     longTxtFlag: false, //长文本
   },
 
-  onLoad() {
+  onLoad(options = {}) {
     this.pageActive = true
     this.baseVoiceList = { categories: [], voices: {} }
     this.favoriteVoices = []
     this.favoritePendingIds = {}
     this.favoriteListLoading = true
+    this.setData({ longTxtFlag: options.longTxtFlag === '1' })
     this.eventChannel = this.getOpenerEventChannel()
     this.eventChannel.on('initVoiceSelect', ({ voiceList = {}, activeVoiceId = 0 } = {}) => {
       this.applyVoiceList(voiceList, activeVoiceId)
@@ -126,7 +127,9 @@ Page({
     this.updateVoiceListView()
     try {
       const res = await request({
-        url: '/user/voices/favorites/list',
+        url: this.data.longTxtFlag
+          ? '/user/voices/long-text/favorites/list'
+          : '/user/voices/favorites/list',
         method: 'GET',
         needAuth: true
       })

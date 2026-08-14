@@ -43,7 +43,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #c91c1c;
+  color: #ae3327;
   font-size: 27rpx;
   line-height: 1.4;
 }
@@ -76,7 +76,7 @@
 .compactButton {
   padding: 8rpx 20rpx;
   border-radius: 28rpx;
-  background: #c91c1c;
+  background: #ae3327;
   color: #ffffff;
   font-size: 24rpx;
 }
@@ -128,7 +128,7 @@
   height: 96rpx;
   margin: 46rpx auto calc(40rpx + env(safe-area-inset-bottom));
   border-radius: 48rpx;
-  background: #c91c1c;
+  background: #ae3327;
   color: #ffffff;
   font-size: 34rpx;
   font-weight: 600;
@@ -181,8 +181,8 @@
 }
 
 .sheetOption--active {
-  border-color: #c91c1c;
-  color: #c91c1c;
+  border-color: #ae3327;
+  color: #ae3327;
 }
 
 .selectionSheet--language {
@@ -203,7 +203,7 @@
 }
 
 .languageOption--active {
-  color: #c91c1c;
+  color: #ae3327;
   font-weight: 600;
 }
 

@@ -12,16 +12,16 @@
 			<view class="voiceName flex_1">{{item.name}}</view>
 			<view class="voiceOp flex_C_SB">
 				<view class="voicePlay flexCC" bindtap="bgmPlay" data-id="{{item.id}}" data-source="{{item.source}}">
-					<van-icon size='30px' color="#E20E0E" name="{{item.id == palyId && item.source == palySource ? 'pause-circle' : 'play-circle'}}" />
+					<van-icon size='30px' color="#C0392B" name="{{item.id == palyId && item.source == palySource ? 'pause-circle' : 'play-circle'}}" />
 				</view>
 				<view class="voiceCheck br50 flexCC" style="border: {{item.id == activeId?'0px':'1px solid #ccc'}};" data-id="{{item.id}}" data-source="{{item.source}}" bindtap="chooseBgm">
-					<van-icon size='30px' color="#E20E0E" wx:if="{{item.id == activeId}}" name="checked" />
+					<van-icon size='30px' color="#C0392B" wx:if="{{item.id == activeId}}" name="checked" />
 				</view>
 				<view class="favoriteButton flexCC" wx:if="{{item.showFavorite}}" data-id="{{item.id}}" catchtap="toggleFavorite">
-					<van-icon size="24px" color="{{item.isFavorite ? '#E20E0E' : '#D8D8D8'}}" name="star" />
+					<van-icon size="24px" color="{{item.isFavorite ? '#C0392B' : '#D8D8D8'}}" name="star" />
 				</view>
 				<view class="deleteButton flexCC" wx:if="{{item.showDelete}}" data-id="{{item.id}}" catchtap="deleteBgm">
-					<van-icon size="24px" color="{{item.deletePending ? '#D8D8D8' : '#E20E0E'}}" name="delete-o" />
+					<van-icon size="24px" color="{{item.deletePending ? '#D8D8D8' : '#C0392B'}}" name="delete-o" />
 				</view>
 			</view>
 		</view>

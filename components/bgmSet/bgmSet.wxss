@@ -5,7 +5,7 @@
 
 /* 头部 */
 .modal-header {
-  background: #E20E0E;
+  background: #C0392B;
   color: #fff;
   padding: 24rpx 30rpx;
   display: flex;
@@ -49,10 +49,10 @@
 
 .item-link {
   font-size: 28rpx;
-  color: #E20E0E;
+  color: #C0392B;
 }
 .reset{
-  background: #E20E0E;
+  background: #C0392B;
   color: #fff;
   padding: 5rpx 20rpx;
   border-radius: 10rpx;
@@ -102,7 +102,7 @@
 
 .tab-item.active {
   background: #fff5f5;
-  color: #E20E0E;
+  color: #C0392B;
 }
 
 /* 数字加减输入 */
@@ -140,7 +140,7 @@
 }
 
 .confirm-btn {
-  background: #E20E0E !important;
+  background: #C0392B !important;
   color: #fff !important;
   border-radius: 44rpx !important;
   font-size: 32rpx !important;

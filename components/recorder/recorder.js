@@ -1,4 +1,6 @@
 // components/recorder/recorder.js
+const voiceConsent = require('../../utils/voiceConsent')
+
 Component({
   /**
    * 组件的属性列表
@@ -61,6 +63,7 @@ Component({
     audioPath: '',
     recorderMask: false,
     recordPermissionVisible: false,
+    voiceAuthVisible: false,
     speed: 1,
     speedDisplay: '1.0',
     volume: 2,
@@ -92,6 +95,18 @@ Component({
         return
       }
       if (!this.recorder || this._requestingRecordPermission || this.data.recordPermissionVisible) return
+      if (this.data.voiceAuthVisible) return
+      // **声纹授权要问在麦克风权限前面。** 顺序反了就是「先开麦再补协议」，
+      // 正是 2026-08 审核打回的那件事。而且两者不能互相代替：用户早就给过
+      // 微信麦克风权限（别的小程序给的），不等于同意我们收集声纹。
+      if (!voiceConsent.granted()) {
+        this.setData({ voiceAuthVisible: true })
+        return
+      }
+      this.requestMicrophoneAndRecord()
+    },
+    /** 拿到声纹授权之后的那一段：申请麦克风权限，然后开录。 */
+    requestMicrophoneAndRecord(){
       wx.getSetting({
         success: (res) => {
           if (this._isDetached) return
@@ -105,6 +120,20 @@ Component({
           if (!this._isDetached) this.showRecordPermissionPrompt()
         }
       })
+    },
+    onVoiceAuthAgree(){
+      this.setData({ voiceAuthVisible: false })
+      // **直接进麦克风流程，不要再回头调 startRecorder()。**
+      // 授权是弹窗组件写进存储的，这儿再查一遍 granted() 看着更严谨，
+      // 其实是个死循环隐患：存储写失败（配额满、隐私模式）时 granted() 仍是
+      // false，于是弹窗→同意→弹窗→同意，用户永远录不上音也退不出去。
+      // 用户点了「同意并授权」，这一次的同意就已经成立，不需要再问存储确认。
+      // 存储真没写上，无非下次再问一遍——那个方向是安全的。
+      this.requestMicrophoneAndRecord()
+    },
+    onVoiceAuthReject(){
+      // 不同意就到此为止，麦克风一次都没开过
+      this.setData({ voiceAuthVisible: false })
     },
     showRecordPermissionPrompt(){
       if (this._requestingRecordPermission || this.data.recordPermissionVisible) return

@@ -1,16 +1,52 @@
 <view class="container flex flex_d_c">
   <view class="content flex_1 flex flex_d_c flex_jc_sb">
-    <!-- 促销图片 -->
-    <view class="bannerView" bindtap="jumpXxmini">
-      <!-- <swiper class="bannerSwiper" autoplay="{{true}}" circular="{{true}}" interval="5000" duration="1000">
-        <swiper-item wx:for="{{bannerImages}}" wx:key="*this">
-          <view style="width: 100%;height: 100%; position: relative;">
-            <image class="bannerImg" src="{{item}}" mode="aspectFit"></image>
-            <view class="bannerTxt">{{bannerImagesTxt[index]}}</view>
+    <!-- 顶部：四博学习宝推广位。整块可点，进的是**另一个小程序**。
+         原来这里是 yinxiang.png，「智能音箱」四个字是烧在图里的——
+         那是在说硬件形态，不是在说这东西对孩子有什么用。
+         换成学习宝自己的话：海量资源、离线学习。
+         产品图从推广视频的分镜里裁的（四博学习宝推广视频/scene_01.jpg）。
+
+         绿色是刻意的：本程序通体是红的，学习宝的品牌色是绿的。
+         用一块绿把「这是另一个产品」在视觉上说出来，比写一行字管用。 -->
+    <view class="bannerView flex" bindtap="jumpXxmini" hover-class="bannerView--pressed">
+      <view class="xxbShot">
+        <image class="xxbShotImg" src="/img/xxb_product.jpg" mode="aspectFill"></image>
+      </view>
+
+      <view class="xxbCopy flex_1">
+        <!-- 对已经买了音箱的人，这是整块里最有分量的一句：
+             手上这台不用再添置什么，装个小程序就多出 37 万首诗词。
+             放在最上面——看这个页面的人多半就是有设备的人，
+             先让他知道「这跟我有关」，再说它是什么。 -->
+        <view class="xxbDeviceTag">✓ 本设备也支持四博学习宝</view>
+        <!-- ↗ 保留：微信生态里这就是「会跳出去」的通用符号，
+             「这是另一个小程序」这层意思靠它带，不再占一行字。 -->
+        <view class="xxbEyebrow">点击进入 ↗</view>
+        <view class="xxbTitleRow flex">
+          <image class="xxbLogo" src="/img/xx.png" mode="aspectFit"></image>
+          <text class="xxbTitle">四博学习宝</text>
+        </view>
+        <view class="xxbSub">海量资源 · 离线学习</view>
+
+        <!-- 竖向自动轮播。一次只露一条，用户扫一眼就能读完；
+             四条堆在一起没人看。vertical + circular 是小程序里公告栏的常规做法。
+             这条自己挂 catchtap：swiper 会接管触摸手势，点在它上面不一定能
+             冒泡到外层；用 catch 停止冒泡，免得跟父级重复触发跳两次。 -->
+        <view class="xxbStrip flex" catchtap="jumpXxmini" hover-class="xxbStrip--pressed">
+          <swiper class="xxbStripSwiper" vertical="{{true}}" autoplay="{{true}}"
+            circular="{{true}}" interval="3000" duration="600">
+            <swiper-item wx:for="{{xxbPoints}}" wx:key="*this">
+              <view class="xxbStripText">{{item}}</view>
+            </swiper-item>
+          </swiper>
+          <!-- 上面那行已经写了「点击进入」，这里不再重复同一句话。
+               这颗按钮是整块里唯一饱和的绿，形状本身就是行动点。 -->
+          <view class="xxbStripGo flex">
+            <text>进入</text>
+            <text class="xxbStripArrow">›</text>
           </view>
-        </swiper-item>
-      </swiper> -->
-      <image class="bannerImg" src="/img/yinxiang.png" mode="aspectFit"></image>
+        </view>
+      </view>
     </view>
     <!-- 文字输入 -->
     <view class="textView w100 flexCC">
@@ -26,7 +62,7 @@
           <view class="char_count">
             <view>{{inputText.length}}/299</view>
             <view class="clearButton" bindtap="clearText">
-              <van-icon name="delete-o" size="21px" color="#C91818" />
+              <van-icon name="delete-o" size="21px" color="#AE3327" />
             </view>
           </view>
         </view>
@@ -85,12 +121,26 @@
         </view>
         <view class="AdvRecordViewTxt">录音功能</view>
       </view>
-      <view class="AdvRecordView flexCC" bindtap="jumpXxmini">
+      <!-- 这一格跟左边两格性质不同：那两个是本程序内的页面，
+           这个是**跳到另一个小程序**（四博学习宝）。原来三格长得一模一样，
+           用户点下去才发现换了个 App。所以做了三处区分：
+             · 边框改成虚线 + 淡底，一眼看出不是一类
+             · 右上角 ↗ 角标，微信生态里这就是「跳出去」的通用符号
+             · 底下一行小字写「点击进入」，把可点这件事说明白
+           「这是另一个小程序」那层意思现在全靠 ↗ 带——跟顶部横幅一致。 -->
+      <view class="AdvRecordView AdvJumpView flexCC" bindtap="jumpXxmini" hover-class="AdvJumpView--pressed">
         <view class="AdvRecordViewImg flex">
           <image class="AdvRecordViewIcon" src="/img/xx.png" mode="aspectFit"></image>
         </view>
-        <view class="AdvRecordViewTxt">四博学习宝</view>
+        <view class="AdvJumpCopy">
+          <view class="AdvRecordViewTxt">四博学习宝</view>
+          <view class="AdvJumpNote">点击进入</view>
+        </view>
+        <text class="AdvJumpArrow">↗</text>
       </view>
+    </view>
+    <view class="w90" style="margin-left: 5%;">
+      <ai-notice text="合成的音频由人工智能生成，请注意甄别" />
     </view>
     <!-- 背景、合成 -->
     <view class="makeAudio flex_C_SB w90" style="margin-left: 5%;">
@@ -108,11 +158,11 @@
       <view class="musicPopTiltle">音效设置</view>
       <view class="musicSlider w90 flex_ai_c">
         <text>语速</text>
-        <slider class="w75" min="0.5" value="{{speed}}" max="2.0" step="0.1" show-value="true" activeColor="#E20E0E" block-color="#E20E0E" block-size="20" bindchange="musicSliderChange"></slider>
+        <slider class="w75" min="0.5" value="{{speed}}" max="2.0" step="0.1" show-value="true" activeColor="#C0392B" block-color="#C0392B" block-size="20" bindchange="musicSliderChange"></slider>
       </view>
       <view class="musicSlider w90 flex_ai_c">
         <text>音量</text>
-        <slider class="w75" min="0.5" value="{{yxVoice}}" max="2.0" step="0.1" show-value="true" activeColor="#E20E0E" block-color="#E20E0E" block-size="20" bindchange="voiceSliderChange"></slider>
+        <slider class="w75" min="0.5" value="{{yxVoice}}" max="2.0" step="0.1" show-value="true" activeColor="#C0392B" block-color="#C0392B" block-size="20" bindchange="voiceSliderChange"></slider>
       </view>
       <view class="musicPopTxtView">
         <view class="musicPopTxt reset" bindtap="musicPopReset">还原</view>
@@ -130,7 +180,7 @@
       <view class="musicPopTiltle">插入停顿</view>
       <view class="stopVal">{{stopVal}} s</view>
       <view class="musicSlider w90 flex_ai_c">
-        <slider class="w75" min="0.1" value="{{stopVal}}" max="10.0" step="0.1" activeColor="#E20E0E" block-color="#E20E0E" block-size="20"  bindchanging="stopSliderChange" bindchange="stopSliderChange"></slider>
+        <slider class="w75" min="0.1" value="{{stopVal}}" max="10.0" step="0.1" activeColor="#C0392B" block-color="#C0392B" block-size="20"  bindchanging="stopSliderChange" bindchange="stopSliderChange"></slider>
       </view>
       <view class="musicPopTxt" bindtap="stopPopConfirm">确定</view>
     </view>

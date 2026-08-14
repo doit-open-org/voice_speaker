@@ -1,0 +1,28 @@
+<view class="authPage">
+  <scroll-view class="authScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="authHead">
+      <view class="authTitle">《{{title}}》</view>
+      <view class="authMeta">更新日期：{{updatedAt}}</view>
+    </view>
+
+    <view class="authIntro">
+      本协议是四博配音宝小程序开发者（深圳四博智联科技有限公司）就录制、使用和存储你的语音（含其中的声纹特征）与你达成的约定。请你在首次录音前仔细阅读。
+    </view>
+
+    <view class="authSection" wx:for="{{sections}}" wx:for-item="section" wx:key="heading">
+      <view class="authHeading">{{section.heading}}</view>
+      <view class="authItem" wx:for="{{section.items}}" wx:key="*this">
+        <text class="authBullet">·</text>
+        <text class="authItemText">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="authState" wx:if="{{granted}}">
+      <view class="authStateText">你已于 {{grantedAt}} 同意本协议。</view>
+      <view class="authRevoke" bindtap="revoke" hover-class="authRevoke--pressed">撤回授权</view>
+    </view>
+    <view class="authState" wx:else>
+      <view class="authStateText">你尚未授权。首次点击录音时会再次征求你的同意。</view>
+    </view>
+  </scroll-view>
+</view>

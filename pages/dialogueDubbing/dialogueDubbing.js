@@ -1,4 +1,5 @@
 const { request, showToast } = require('../../utils/request')
+const share = require('../../utils/share')
 const app = getApp()
 const MAX_INPUT_LENGTH = 299
 
@@ -595,5 +596,13 @@ Page({
         wx.hideLoading()
       }
     }
+  },
+
+  onShareAppMessage() {
+    return share.toPage('多个角色对话配音，一人分饰几角', '/pages/dialogueDubbing/dialogueDubbing')
+  },
+
+  onShareTimeline() {
+    return share.timeline('多个角色对话配音，一人分饰几角')
   }
 })

@@ -307,7 +307,7 @@ Page({
         title: '删除模板',
         content: '确定删除该模板吗？',
         confirmText: '删除',
-        confirmColor: '#E20E0E',
+        confirmColor: '#C0392B',
         success: (result) => resolve(Boolean(result.confirm)),
         fail: () => resolve(false)
       })

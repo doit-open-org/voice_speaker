@@ -4,8 +4,8 @@
 			<!-- 左边：图标 + 标题 + 时间 -->
 			<view class="left  w65">
 				<view class="flex" style="margin-right: 15rpx;" bindtap="playMusic" id="{{index}}">
-					<!-- <van-icon name="audio" color="#E20E0E" size="30" /> -->
-					<van-icon size='30px' color="#E20E0E" name="{{item.id == palyId?'pause-circle':'play-circle'}}" />
+					<!-- <van-icon name="audio" color="#C0392B" size="30" /> -->
+					<van-icon size='30px' color="#C0392B" name="{{item.id == palyId?'pause-circle':'play-circle'}}" />
 				</view>
 				<view class="info flex flex_d_c flex-wrap_wrap">
 					<text class="title">{{item.display_title}}</text>

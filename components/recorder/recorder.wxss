@@ -1,6 +1,6 @@
 @import '../../app.wxss';
 .recorderCom{
-	background: linear-gradient(#E20E0E,#FFFCE9);
+	background: linear-gradient(#C0392B,#FFFCE9);
 	height: 100%;
 }
 .reIcon{
@@ -80,7 +80,7 @@
 	color: #555;
 }
 .permissionConfirm {
-	background: #c91818;
+	background: #ae3327;
 	color: #fff;
 }
 .reModal{
@@ -96,7 +96,7 @@
 	margin-top: 20rpx;
 }
 .recorderStopBtn{
-	background: #E20E0E;
+	background: #C0392B;
 	color: #fff;
 	padding: 10rpx 30rpx;
 	border-radius: 10rpx;
@@ -107,7 +107,7 @@
   height: 200rpx;
 }
 .reTxt{
-	color: #E20E0E;
+	color: #C0392B;
 	margin-top: 20rpx;
 }
 .settingRow {

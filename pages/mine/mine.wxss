@@ -22,7 +22,7 @@ page {
   min-height: 360rpx;
   padding: 50rpx 30rpx 0;
   box-sizing: border-box;
-  background: linear-gradient(180deg, #E20E0E 0%, #f16c6c 58%, #f7b8b8 100%);
+  background: linear-gradient(180deg, #C0392B 0%, #f16c6c 58%, #f7b8b8 100%);
 }
 
 .mineHeader::after {
@@ -36,33 +36,32 @@ page {
   content: '';
 }
 
-.identityRow {
+/* 产品标识。原来这块是头像 + 昵称，因审核要求（内容安全）整套删了，
+   见 mine.js 顶部。这里不放任何可点的东西——它就是个招牌。 */
+.brandRow {
   display: flex;
   align-items: center;
   min-width: 0;
 }
 
-.avatar {
+.brandMark {
   width: 116rpx;
   height: 116rpx;
   flex: 0 0 116rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border: 4rpx solid rgba(255, 255, 255, 0.85);
   border-radius: 50%;
-  background: #5d94f3;
+  background: #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.12);
 }
 
-.avatarImage {
-  width: 100%;
-  height: 100%;
-}
-
-.nickname {
-  max-width: 410rpx;
+.brandCopy {
+  min-width: 0;
   margin-left: 24rpx;
+}
+
+.brandName {
   overflow: hidden;
   color: #ffffff;
   font-size: 38rpx;
@@ -72,14 +71,11 @@ page {
   white-space: nowrap;
 }
 
-.editProfile {
-  width: 56rpx;
-  height: 56rpx;
-  flex: 0 0 56rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8rpx;
+.brandSlogan {
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 24rpx;
+  line-height: 1.4;
 }
 
 .tapPressed {
@@ -103,6 +99,14 @@ page {
   display: flex;
   align-items: center;
   border-bottom: 1rpx solid #e8e8e8;
+}
+
+/* 蓝牙那一行用图片图标（vant 没有蓝牙图标）。
+   尺寸对齐 van-icon 的 23px，不然一行高一行低。 */
+.settingIcon {
+  width: 46rpx;
+  height: 46rpx;
+  flex: none;
 }
 
 .settingLabel {

@@ -9,11 +9,11 @@
 		<view class="reIOp">
 			<view class="opReIcon flexCC">
 				<view bindtap="startRecorder">
-					<van-icon name="play-circle-o" color="#E20E0E" size="60" />
+					<van-icon name="play-circle-o" color="#C0392B" size="60" />
 					<view class="reTxt">开始录音</view>
 				</view>
 				<view bindtap="showBgm" >
-					<van-icon name="music-o" color="#E20E0E" size="60" custom-style="margin-left:170rpx" />
+					<van-icon name="music-o" color="#C0392B" size="60" custom-style="margin-left:170rpx" />
 					<view class="reTxt" style="text-align: right;">背景音乐</view>
 				</view>
 			</view>
@@ -27,9 +27,9 @@
 				step="0.1"
 				value="{{speed}}"
 				disabled="{{disabled}}"
-				activeColor="#C91818"
+				activeColor="#AE3327"
 				backgroundColor="#E5E5E5"
-				block-color="#C91818"
+				block-color="#AE3327"
 				block-size="22"
 				bindchange="changeSpeed"
 				bindchanging="changeSpeed"
@@ -45,9 +45,9 @@
 				step="0.1"
 				value="{{volume}}"
 				disabled="{{disabled}}"
-				activeColor="#C91818"
+				activeColor="#AE3327"
 				backgroundColor="#E5E5E5"
-				block-color="#C91818"
+				block-color="#AE3327"
 				block-size="22"
 				bindchange="changeVolume"
 				bindchanging="changeVolume"
@@ -69,6 +69,9 @@
 			</view>
 		</view>
 	</view>
+	<!-- 声纹授权闸门。挡在麦克风权限前面，见 startRecorder。 -->
+	<voice-auth show="{{voiceAuthVisible}}"
+		bind:agree="onVoiceAuthAgree" bind:reject="onVoiceAuthReject" />
 	<!-- 录音弹窗  -->
 	<view class="reTanchuang flexCC" wx:if="{{recorderMask}}">
 		 <view class="reModal flexCC flex_d_c">

@@ -1,4 +1,5 @@
 const { request, showToast } = require('../../utils/request')
+const share = require('../../utils/share')
 const app = getApp()
 
 Page({
@@ -182,5 +183,11 @@ Page({
     } finally {
       if (this.pageActive) this.setData({ saving: false })
     }
+  },
+
+  // 本页数据经 app.globalData 交接，接收方点开是空壳，
+  // 所以转发落回首页；同理不挂 onShareTimeline
+  onShareAppMessage() {
+    return share.toHome('这段文案是用四博配音宝生成的')
   }
 })

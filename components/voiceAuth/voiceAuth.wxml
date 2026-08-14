@@ -1,0 +1,22 @@
+<view wx:if="{{show}}" class="vaMask" catchtouchmove="preventTouchMove">
+  <view class="vaPanel">
+    <view class="vaTitle">《{{title}}》</view>
+    <view class="vaLead">开始录音前，需要先取得你的同意。</view>
+
+    <view class="vaList">
+      <view class="vaItem" wx:for="{{summary}}" wx:key="*this">
+        <text class="vaDot">·</text>
+        <text class="vaItemText">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="vaLink" bindtap="openAgreement" hover-class="vaLink--pressed">
+      查看完整协议 ›
+    </view>
+
+    <view class="vaActions">
+      <view class="vaButton vaButton--ghost" bindtap="reject" hover-class="vaButton--pressed">不同意</view>
+      <view class="vaButton vaButton--primary" bindtap="agree" hover-class="vaButton--pressed">同意并授权</view>
+    </view>
+  </view>
+</view>

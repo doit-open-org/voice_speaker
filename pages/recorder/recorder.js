@@ -1,5 +1,6 @@
 const app = getApp()
 const { showToast } = require('../../utils/request')
+const share = require('../../utils/share')
 const API_ORIGIN =  getApp().globalData.domain
 const VOICE_CONVERT_UPLOAD_URL = API_ORIGIN+'/api/v1/user/tts/synthesize-audio'
 Page({
@@ -149,5 +150,13 @@ Page({
   handleSucRec(data) {
     app.globalData.generate = data
     wx.redirectTo({ url: '../generate/generate' })
+  },
+
+  onShareAppMessage() {
+    return share.toPage('录一段，配上背景音乐就是成品', '/pages/recorder/recorder')
+  },
+
+  onShareTimeline() {
+    return share.timeline('录一段，配上背景音乐就是成品')
   }
 })

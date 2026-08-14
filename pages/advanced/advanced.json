@@ -2,7 +2,7 @@
   "enablePullDownRefresh": false,
   "disableScroll": true,
   "navigationBarTitleText": "高级功能",
-  "navigationBarBackgroundColor": "#E20E0E",
+  "navigationBarBackgroundColor": "#C0392B",
   "navigationBarTextStyle": "black",
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index",

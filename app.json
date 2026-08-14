@@ -20,17 +20,18 @@
     "pages/devMusicList/devMusicList",
     "pages/myWorks/myWorks",
     "pages/mine/mine",
-    "pages/profile/profile",
+    "pages/bluetoothPermission/bluetoothPermission",
     "pages/faq/faq",
     "pages/faqDetail/faqDetail",
     "pages/feedback/feedback",
     "pages/contact/contact",
-    "pages/about/about"
+    "pages/about/about",
+    "pages/voiceAuth/voiceAuth"
   ],
   "window": {
     "navigationBarTitleText": "",
     "navigationBarTextStyle": "white",
-    "navigationBarBackgroundColor": "#E20E0E",
+    "navigationBarBackgroundColor": "#C0392B",
     "navigationStyle": "default"
   },
   "permission": {
@@ -40,5 +41,8 @@
   },
   "componentFramework": "glass-easel",
   "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "navigateToMiniProgramAppIdList": [
+    "wx7fa7b99ba9bd3ba7"
+  ]
 }

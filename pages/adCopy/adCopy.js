@@ -1,5 +1,6 @@
 const { request, showToast } = require('../../utils/request')
 
+const share = require('../../utils/share')
 const DEFAULT_FORM = {
   categoryId: 0,
   categoryName: '请选择',
@@ -183,5 +184,13 @@ Page({
         result.eventChannel.emit('initAdCopyResult', { params })
       }
     })
+  },
+
+  onShareAppMessage() {
+    return share.toPage('广告文案不会写？让 AI 起个头', '/pages/adCopy/adCopy')
+  },
+
+  onShareTimeline() {
+    return share.timeline('广告文案不会写？让 AI 起个头')
   }
 })

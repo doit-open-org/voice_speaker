@@ -1,18 +1,26 @@
 <view class="minePage">
   <scroll-view class="mineScroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <!-- 这里原来是头像 + 昵称 + 一支编辑笔，点进去能改头像、改昵称。
+         2026-08 审核打回：「存在信息安全风险，请尽快完善内容机制：
+         确保已接入内容安全API，并要求所调用API可在小程序内任意发布的场景生效」。
+         头像和昵称是**用户自己填的内容**，要留着就得接 imgSecCheck + msgSecCheck，
+         还得保证任意发布场景都覆盖到——那是一整条要长期维护的审核链路。
+
+         而这个小程序根本不靠用户身份做事：作品列表、模板、设备全部按 token 走，
+         昵称和头像哪儿都没用上，纯粹是个摆设。为一个没用的摆设扛一条审核链路
+         不划算，所以整套删掉，风险面直接归零。
+
+         腾出来的位置放产品标识——同样填得住这块红底，而且不是用户产生的内容。 -->
     <view class="mineHeader">
-      <view class="identityRow">
-        <view class="avatar" bindtap="openProfile" hover-class="tapPressed">
-          <image wx:if="{{avatarUrl}}" class="avatarImage" src="{{avatarUrl}}" mode="aspectFill"></image>
-          <van-icon wx:else name="manager-o" size="46px" color="#ffffff" />
+      <view class="brandRow">
+        <view class="brandMark">
+          <van-icon name="audio" size="44px" color="#C0392B" />
         </view>
-        <text class="nickname" bindtap="openProfile" hover-class="tapPressed">{{nickname}}</text>
-        <view class="editProfile" bindtap="openProfile" hover-class="tapPressed">
-          <van-icon name="edit" size="24px" color="#ffffff" />
+        <view class="brandCopy">
+          <view class="brandName">四博配音宝</view>
+          <view class="brandSlogan">文字转语音 · 真人录音 · AI 创作</view>
         </view>
       </view>
-
-
     </view>
 
     <view class="mineBody">
@@ -29,6 +37,26 @@
           <text class="settingLabel">我的订单</text>
           <van-icon name="arrow" size="19px" color="#555555" />
         </view> -->
+        <!-- 放在最上面：这是本程序里唯一一个「东西不工作时先来这儿」的排障入口。
+             配音宝配的是台蓝牙音箱，连不上是最常见的求助，而连不上的六种原因
+             报错长得一模一样，用户自己分不出来。让它比「常见问题」更好找。 -->
+        <view class="settingRow" bindtap="openBluetoothPermission" hover-class="tapPressed">
+          <!-- 用 bluetooth_red.png，不是 bluetooth.png：后者是纯白图标，
+               本来是贴在 generate 页那个灰圆上的，放在这张白色列表里等于隐形。
+               红版是从它重新上色来的，跟同列其它 van-icon 一个颜色（#d82929）。 -->
+          <image class="settingIcon" src="/img/bluetooth_red.png" mode="aspectFit"></image>
+          <text class="settingLabel">蓝牙权限检查</text>
+          <van-icon name="arrow" size="19px" color="#555555" />
+        </view>
+        <!-- 《声纹授权协议》。审核要求它是**独立的**一份协议，
+             那就得能独立找得到——不能只在录音前那个弹窗里一闪而过。
+             撤回入口也在那一页里：同意可撤回是《个人信息保护法》的要求，
+             不是我们发善心。 -->
+        <view class="settingRow" bindtap="openVoiceAuth" hover-class="tapPressed">
+          <van-icon name="records" size="23px" color="#d82929" />
+          <text class="settingLabel">声纹授权协议</text>
+          <van-icon name="arrow" size="19px" color="#555555" />
+        </view>
         <view class="settingRow" bindtap="openFaq" hover-class="tapPressed">
           <van-icon name="question-o" size="23px" color="#d82929" />
           <text class="settingLabel">常见问题</text>
