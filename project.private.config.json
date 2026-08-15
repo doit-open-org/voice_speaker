@@ -18,5 +18,17 @@
     "bigPackageSizeSupport": false
   },
   "libVersion": "3.10.3",
-  "condition": {}
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "generate",
+          "pathName": "pages/generate/generate",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
+  }
 }

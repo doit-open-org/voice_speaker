@@ -164,7 +164,10 @@ Page({
       console.log("res.....",res)
       console.log("res111.....",res[0],this.data.importFile.size)
       let importPro = Math.ceil(Number(res[0]) / Number(this.data.importFile.size) * 100)
-      this.setData({ importPro })
+      if(typeof(importPro) === 'number'){
+        importPro = importPro > 100 ? 100 : importPro;
+        this.setData({ importPro })
+      }
       // this.sendFileToDevice(res[0],res[1])
       sendFileToDevice(res[0],res[1], this.data.audioBuffer)
     }

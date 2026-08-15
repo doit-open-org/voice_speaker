@@ -97,13 +97,13 @@ Page({
   // 发送到设备
   async sendToDevice() {
     //判断是否连接设备
-    if(!app.globalData.deviceInfo.connState){
-      wx.showToast({
-        title: '请先连接设备',
-        icon: 'none'
-      })
-      return
-    }
+    // if(!app.globalData.deviceInfo.connState){
+    //   wx.showToast({
+    //     title: '请先连接设备',
+    //     icon: 'none'
+    //   })
+    //   return
+    // }
     // wx.showLoading({ title: '发送中...',mask: true})
     this.setData({importMask: true})
     this.data.sendTimer && clearTimeout(this.data.sendTimer)
@@ -114,9 +114,18 @@ Page({
         title: '发送失败',
       })
     }, 10000);
-     //下载音频
-    let tempPath = await downloadAudio(this.data.generate.audio_url)
-    console.log("tempPath....",tempPath)
+    //下载音频
+    let tempPath
+    try {
+      tempPath = await downloadAudio(this.data.generate.audio_url)
+    } catch (error) {
+      console.error('音频下载失败', error)
+      this.data.sendTimer && clearTimeout(this.data.sendTimer)
+      this.data.sendTimer = null
+      this.setData({importMask: false})
+      return
+    }
+    console.log("tempPath1....",tempPath)
     this.data.tempPath = tempPath
     //读取音频数据
     let audioBuffer = await readAudioFile(tempPath)
@@ -124,6 +133,7 @@ Page({
     this.data.audioBuffer = audioBuffer
     // 音频字节数
     let audioBufferSize = audioBuffer.byteLength
+    this.data.audioBufferSize = audioBufferSize
     
     console.log("audioBuffer....",audioBuffer)
     console.log("audioBufferSize....",audioBufferSize)
@@ -208,8 +218,16 @@ Page({
       // 获取offset,chunkSize
       let res = this.getOffsetChunk(deviceDataHex)
       console.log("res.....",res)
-      let importPro = Math.ceil(Number(res[0]) / Number(this.data.generate.file_size) * 100)
-      this.setData({ importPro })
+      let importPro = 0
+      if(this.data.generate.file_size){
+        importPro = Math.ceil(Number(res[0]) / Number(this.data.generate.file_size) * 100)
+      }else{
+        importPro = Math.ceil(Number(res[0]) / Number(this.data.audioBufferSize) * 100)
+      }
+      if(typeof(importPro) === 'number'){
+        importPro = importPro > 100 ? 100 : importPro;
+        this.setData({ importPro })
+      }
       // this.sendFileToDevice(res[0],res[1])
       sendFileToDevice(res[0],res[1], this.data.audioBuffer)
     }
