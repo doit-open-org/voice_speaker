@@ -83,11 +83,15 @@ Page({
   },
  
   onShow(){
+    this.refreshHomeData()
+  },
+
+  refreshHomeData(preferredVoice) {
     this.data.deviceInfo = app.globalData.deviceInfo
     wx.getStorage({
       key: 'voiceList',
       success: (res) => {
-        this.handleVoiceList(res.data)
+        this.handleVoiceList(res.data, preferredVoice)
       }
     })
     wx.getStorage({
@@ -97,7 +101,7 @@ Page({
       }
     })
     
-    console.log("122....................")
+    console.log("1223....................")
   },
 
   onHide() {
@@ -129,15 +133,21 @@ Page({
       showToast('error','音色列表拉取失败')
     } 
   },
-  handleVoiceList(data){
+  handleVoiceList(data, preferredVoice){
     const voiceCatalog = data || {}
     const homeVoices = Array.isArray(voiceCatalog.home)
       ? voiceCatalog.home
       : []
+    const selectedMoreVoice = preferredVoice || (
+      this.data.voiceIndex === -1 && this.data.voiceCheckInfo.voice_id
+        ? this.data.voiceCheckInfo
+        : null
+    )
     this.setData({
       voiceMoreList: voiceCatalog,
       voiceList: homeVoices,
-      voiceCheckInfo: homeVoices[0],
+      voiceIndex: selectedMoreVoice ? -1 : 0,
+      voiceCheckInfo: selectedMoreVoice || homeVoices[0],
     })
   },
   async getBgmList(){
@@ -387,6 +397,7 @@ Page({
             voiceIndex: -1,
             voiceCheckInfo: voice
           })
+          this.refreshHomeData(voice)
         }
       },
       success: (res) => {

@@ -139,9 +139,10 @@
         <text class="AdvJumpArrow">↗</text>
       </view>
     </view>
-    <view class="w90" style="margin-left: 5%;">
+    <!-- AI生成提示先隐藏 -->
+    <!-- <view class="w90" style="margin-left: 5%;">
       <ai-notice text="合成的音频由人工智能生成，请注意甄别" />
-    </view>
+    </view> -->
     <!-- 背景、合成 -->
     <view class="makeAudio flex_C_SB w90" style="margin-left: 5%;">
       <view class="bgMusic makeView flexCC" bindtap="bgmPop">背景音乐</view>

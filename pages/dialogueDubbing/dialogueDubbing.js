@@ -388,10 +388,11 @@ Page({
         volume_ratio: this.data.yxVoice,
         pitch_ratio: 1
       }
-      const bgmSetDetail = this.data.bgmSetDetail || {}
-      if (bgmSetDetail.bgm_id !== undefined && Number(bgmSetDetail.bgm_id) !== 0) {
-        data = { ...data, ...bgmSetDetail }
-      }
+      //单个对话不加背景音乐，合成时才加背景音乐
+      // const bgmSetDetail = this.data.bgmSetDetail || {}
+      // if (bgmSetDetail.bgm_id !== undefined && Number(bgmSetDetail.bgm_id) !== 0) {
+      //   data = { ...data, ...bgmSetDetail }
+      // }
       const res = await request({
         url: '/user/tts/synthesize',
         method: 'POST',
@@ -436,6 +437,7 @@ Page({
       this.pauseDialogue()
       return
     }
+    this.stopVoicePreview() //停止主播音色播放
     if (this.data.playingDialogueId) this.innerAudioContext.stop()
     this.setData({ playingDialogueId: dialogue.localId })
     this.innerAudioContext.src = this.normalizeAudioUrl(dialogue.audio_url)

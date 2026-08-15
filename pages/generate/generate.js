@@ -89,9 +89,11 @@ Page({
 
     if (this.data.isPlaying) {
       this.innerAudioContext.pause()
+      this.setData({ isPlaying: false })
     } else {
       this.innerAudioContext.src = this.data.generate.audio_url
       this.innerAudioContext.play()
+      this.setData({ isPlaying: true })
     }
   },
 

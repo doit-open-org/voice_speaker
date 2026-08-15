@@ -1691,7 +1691,19 @@ test('saved ad copy opens my templates and voice-home copy fills the text input'
 })
 
 test('home routes voice, BGM, and recorder actions through EventChannel', () => {
-  const { navigationCalls, page } = loadPage('pages/index/index.js')
+  const storageReads = []
+  const cachedVoiceList = createVoiceCatalog()
+  const cachedBgmList = { categories: [{ key: 'all' }], bgms: { all: [] } }
+  const { navigationCalls, page } = loadPage('pages/index/index.js', {
+    wx: {
+      getStorage(options) {
+        storageReads.push(options.key)
+        options.success({
+          data: options.key === 'voiceList' ? cachedVoiceList : cachedBgmList
+        })
+      }
+    }
+  })
   page.data.voiceMoreList = { categories: [{ key: 'all' }], voices: { all: [] } }
   page.data.voiceCheckInfo = { id: 12, voice_name: '主播 A' }
   page.data.bgmList = { categories: [{ key: 'all' }], bgms: { all: [] } }
@@ -1703,9 +1715,15 @@ test('home routes voice, BGM, and recorder actions through EventChannel', () => 
   assert.equal(voiceCall.options.url, '../voiceSelect/voiceSelect')
   assert.equal(voiceCall.eventChannel.emitted[0].name, 'initVoiceSelect')
   assert.equal(voiceCall.eventChannel.emitted[0].payload.activeVoiceId, 12)
-  voiceCall.options.events.voiceSelected({ id: 13, voice_name: '主播 B' })
+  voiceCall.options.events.voiceSelected({ id: 13, voice_id: 'voice-13', voice_name: '主播 B' })
   assert.equal(page.data.voiceCheckInfo.id, 13)
   assert.equal(page.data.voiceIndex, -1)
+  assert.deepEqual(storageReads, ['voiceList', 'bgmList'])
+
+  page.onShow()
+  assert.equal(page.data.voiceCheckInfo.id, 13)
+  assert.equal(page.data.voiceIndex, -1)
+  assert.deepEqual(storageReads, ['voiceList', 'bgmList', 'voiceList', 'bgmList'])
 
   page.showBgmList()
   const bgmCall = navigationCalls.at(-1)

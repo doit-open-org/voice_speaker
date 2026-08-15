@@ -28,8 +28,8 @@ App({
       // voice_id: "zh_female_shuangkuaisisi_moon_bigtts",
     },
     // domain: 'https://ai-speaker.esp32.cn',
-    domain: 'http://192.168.5.245:9000',
-    // domain: 'https://peiyinbao.esp32.cn',
+    // domain: 'http://192.168.5.245:9000',
+    domain: 'https://peiyinbao.esp32.cn',
     sendFlag: true, //发送暂停标志位
   },
   bletool:require("utils/bletool.js"),
