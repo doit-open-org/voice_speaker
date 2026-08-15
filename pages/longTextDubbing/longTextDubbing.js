@@ -5,6 +5,7 @@ const app = getApp()
 const LONG_TEXT_POLL_INTERVAL = 1500
 const LONG_TEXT_MAX_POLLS = 400 //轮询限制次数
 const MAX_INPUT_LENGTH = 2000
+const SPEAK_SEGMENT_LENGTH = 150
 
 const DEFAULT_VOICES = [
   { voice_name: '智云', voice_id: 'zh_male_wenrouxiaoge_mars_bigtts', headImg: 'streamer2.jpg' },
@@ -304,6 +305,50 @@ Page({
       return `<break time="${(Number(ms) / 1000).toFixed(1)}s"></break>`
     })
   },
+  //每150个字符分割到一个speak 标签
+  buildSpeakText(text) {
+    const sourceText = String(text || '')
+    const chunks = []
+    let currentChunk = ''
+    let sourceIndex = 0
+
+    const appendPlainText = (plainText) => {
+      let remainingText = plainText
+      while (remainingText) {
+        const availableLength = SPEAK_SEGMENT_LENGTH - currentChunk.length
+        currentChunk += remainingText.slice(0, availableLength)
+        remainingText = remainingText.slice(availableLength)
+        if (currentChunk.length === SPEAK_SEGMENT_LENGTH) {
+          chunks.push(currentChunk)
+          currentChunk = ''
+        }
+      }
+    }
+
+    const pausePattern = /\[停顿\d+ms\]/g
+    let pauseMatch
+    while ((pauseMatch = pausePattern.exec(sourceText)) !== null) {
+      appendPlainText(sourceText.slice(sourceIndex, pauseMatch.index))
+      const pauseText = pauseMatch[0]
+      if (currentChunk && currentChunk.length + pauseText.length > SPEAK_SEGMENT_LENGTH) {
+        chunks.push(currentChunk)
+        currentChunk = ''
+      }
+      currentChunk += pauseText
+      if (currentChunk.length >= SPEAK_SEGMENT_LENGTH) {
+        chunks.push(currentChunk)
+        currentChunk = ''
+      }
+      sourceIndex = pausePattern.lastIndex
+    }
+
+    appendPlainText(sourceText.slice(sourceIndex))
+    if (currentChunk) chunks.push(currentChunk)
+
+    return chunks
+      .map((chunk) => `<speak>${this.convertPauseToBreak(chunk)}</speak>`)
+      .join('')
+  },
 
   async convertToSpeech() {
     if (this.data.synthesizing) return
@@ -316,11 +361,11 @@ Page({
     const voice = this.data.voiceCheckInfo || {}
     this.setData({ synthesizing: true })
     wx.showLoading({ title: '合成中...', mask: true })
-
+    // console.log("111....",this.buildSpeakText(inputText))
     let synthesisResult
     try {
       let data = {
-        text: `<speak>${this.convertPauseToBreak(inputText)}</speak>`,
+        text: this.buildSpeakText(inputText),
         voice_id: voice.voice_id || null,
         speed_ratio: this.data.speed,
         volume_ratio: this.data.yxVoice,
@@ -360,7 +405,8 @@ Page({
     if (!synthesisResult || !this.pageActive) return
     app.globalData.generate = {
       ...(app.globalData.generate || {}),
-      audio_url: synthesisResult.audio_url
+      audio_url: synthesisResult.audio_url,
+      file_name: (synthesisResult.audio_url || '').split(/[?#]/)[0].split('/').pop() || ''
     }
     wx.navigateTo({ url: '../generate/generate' })
   },

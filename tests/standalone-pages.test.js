@@ -3571,6 +3571,19 @@ test('long text dubbing submits, polls, and opens the generated audio', async ()
   page.onUnload()
 })
 
+test('long text dubbing wraps every 150 characters and keeps pauses atomic', () => {
+  const { page } = loadPage('pages/longTextDubbing/longTextDubbing.js')
+  const leadingText = 'a'.repeat(145)
+  const trailingText = 'b'.repeat(145)
+
+  assert.equal(
+    page.buildSpeakText(`${leadingText}[停顿1000ms]${trailingText}`),
+    `<speak>${leadingText}</speak>`
+      + `<speak><break time="1.0s"></break>${'b'.repeat(140)}</speak>`
+      + `<speak>${'b'.repeat(5)}</speak>`
+  )
+})
+
 test('long text dubbing blocks pause insertion beyond 2000 characters', () => {
   const { page, toastCalls } = loadPage('pages/longTextDubbing/longTextDubbing.js')
 
