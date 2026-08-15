@@ -313,9 +313,11 @@ Page({
     }
 
     if (!conversionResult || !this.pageActive) return
+    console.log("conversionResult...",conversionResult)
     app.globalData.generate = {
       ...(app.globalData.generate || {}),
-      audio_url: conversionResult.audio_url
+      audio_url: conversionResult.audio_url,
+      file_name: (conversionResult.audio_url || '').split(/[?#]/)[0].split('/').pop() || '',
     }
     wx.navigateTo({ url: '../generate/generate' })
   },

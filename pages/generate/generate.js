@@ -26,6 +26,7 @@ Page({
     app.bletool.setCurPage(this)
     app.hextool.setCurPage(this)
     const generateObj = { ...app.globalData.generate }
+    console.log('generateObj...',generateObj);
     generateObj.audio_url = this.normalizeAudioUrl(generateObj.audio_url)
     this.setData({ generate: generateObj })
     this.innerAudioContext = wx.createInnerAudioContext()
