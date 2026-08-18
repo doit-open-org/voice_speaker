@@ -59,14 +59,14 @@ Page({
     ],
   },
 
-  onLoad() {
+ async onLoad () {
     this.applyPendingVoiceText()
     this.createVoicePreviewAudio()
     // 下面函数仅执行一次
     if(app.globalData.onlyOnce){ return }
     app.globalData.onlyOnce = true;
     //检查login
-    checkLogin();
+    await checkLogin();
     // 拉取音色列表
     this.getVoiceList()
     // 拉取bgm列表

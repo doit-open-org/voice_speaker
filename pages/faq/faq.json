@@ -2,8 +2,8 @@
   "enablePullDownRefresh": false,
   "disableScroll": true,
   "navigationBarTitleText": "常见问题",
-  "navigationBarTextStyle": "black",
-  "navigationBarBackgroundColor": "#f6f6f6",
+  "navigationBarTextStyle": "white",
+  "navigationBarBackgroundColor": "#C0392B",
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index"
   }

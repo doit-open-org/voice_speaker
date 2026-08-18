@@ -11,7 +11,7 @@
     </view>
   </view>
 
-  <view class="aboutProductView">
+  <!-- <view class="aboutProductView">
     <image class="aboutProduct" src="/img/yinxiang1.png" mode="widthFix"></image>
-  </view>
+  </view> -->
 </view>

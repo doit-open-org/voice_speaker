@@ -2,6 +2,6 @@
   "enablePullDownRefresh": false,
   "disableScroll": true,
   "navigationBarTitleText": "关于我们",
-  "navigationBarTextStyle": "black",
+  "navigationBarTextStyle": "white",
   "navigationBarBackgroundColor": "#ef0000"
 }

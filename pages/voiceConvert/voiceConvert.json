@@ -3,7 +3,7 @@
   "disableScroll": true,
   "navigationBarTitleText": "音色转化",
   "navigationBarBackgroundColor": "#C0392B",
-  "navigationBarTextStyle": "black",
+  "navigationBarTextStyle": "white",
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index",
     "van-popup": "@vant/weapp/popup/index",

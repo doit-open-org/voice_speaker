@@ -843,6 +843,32 @@ test('dialogue dubbing generates playable segments and enforces list movement bo
   assert.equal(markup.includes('data-direction="1"'), true)
 })
 
+test('dialogue generation hides loading before reporting failure', async () => {
+  const { page, toastCalls, uiCalls } = loadPage('pages/dialogueDubbing/dialogueDubbing.js', {
+    request: async (options) => {
+      if (options.url === '/user/voices/categories') {
+        return { code: 200, data: createVoiceCatalog() }
+      }
+      if (options.url === '/user/bgms/categories') {
+        return { code: 200, data: { categories: [], bgms: {} } }
+      }
+      if (options.url === '/user/tts/synthesize') {
+        return { code: 400, message: '对话生成失败', data: null }
+      }
+      throw new Error(`Unexpected request: ${options.url}`)
+    }
+  })
+
+  await page.onLoad()
+  page.setData({ inputText: '测试对话生成失败' })
+  await page.generateDialogue()
+
+  assert.equal(page.data.generating, false)
+  assert.equal(toastCalls.at(-1).title, '对话生成失败')
+  assert.deepEqual(uiCalls.slice(-2), ['hideLoading', 'showToast'])
+  page.onUnload()
+})
+
 test('dialogue page only pauses audio while a segment is playing', () => {
   const { audio, page } = loadPage('pages/dialogueDubbing/dialogueDubbing.js')
 
@@ -1155,9 +1181,8 @@ test('voice conversion uploads recording, polls the task, and opens generate', a
 
 test('voice conversion reports task creation failure and hides loading', async () => {
   let uploadOptions
-  const lifecycle = []
   const { recorder } = createRecorderDouble({ tempFilePath: 'wxfile://failed.mp3' })
-  const { page, toastCalls } = loadPage('pages/voiceConvert/voiceConvert.js', {
+  const { page, toastCalls, uiCalls } = loadPage('pages/voiceConvert/voiceConvert.js', {
     request: async () => ({
       code: 200,
       data: [{ id: 7, name: 'Voice A', timbre_type: 'male', avatar_url: '' }]
@@ -1167,9 +1192,7 @@ test('voice conversion reports task creation failure and hides loading', async (
       return { abort() {} }
     },
     wx: {
-      getRecorderManager: () => recorder,
-      showLoading() { lifecycle.push('show') },
-      hideLoading() { lifecycle.push('hide') }
+      getRecorderManager: () => recorder
     }
   })
 
@@ -1184,7 +1207,7 @@ test('voice conversion reports task creation failure and hides loading', async (
 
   assert.equal(toastCalls.at(-1).title, '创建转换任务失败')
   assert.equal(page.data.uploading, false)
-  assert.equal(lifecycle.at(-1), 'hide')
+  assert.deepEqual(uiCalls.slice(-2), ['hideLoading', 'showToast'])
   page.onUnload()
 })
 

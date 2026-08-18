@@ -3,7 +3,7 @@
   "disableScroll": true,
   "navigationBarTitleText": "长文本配音AI生成",
   "navigationBarBackgroundColor": "#C0392B",
-  "navigationBarTextStyle": "black",
+  "navigationBarTextStyle": "white",
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index",
     "van-popup": "@vant/weapp/popup/index",

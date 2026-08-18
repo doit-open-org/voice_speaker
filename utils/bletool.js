@@ -6,6 +6,8 @@ let autoNeed=false
 let autoFn=false
 //连接状态监听标志位
 let connectListen=false
+//重连定时
+let reConTimer = null
 
 //BLE_event  0断开  1就绪
 
@@ -101,7 +103,7 @@ function BLE_start(ff=false) {
 
 function searchCondDev() {
   let app = getApp()
-  let reConTimer = setTimeout(() => {
+  reConTimer = setTimeout(() => {
     wx.stopBluetoothDevicesDiscovery();
     wx.offBluetoothDeviceFound();
     wx.hideLoading()
@@ -137,6 +139,16 @@ function searchCondDev() {
       BLE_erro(res)
     }
   })
+}
+//离开设备页面就不在搜索重连
+function BLE_stopReconnectSearch(){
+  console.log('000....');
+  if(reConTimer){
+    clearTimeout(reConTimer)
+    reConTimer = null
+    wx.stopBluetoothDevicesDiscovery();
+    wx.offBluetoothDeviceFound();
+  }
 }
 
 function BLE_find() {
@@ -481,5 +493,6 @@ module.exports = {
   BLE_connectLast,
   state,
   sendMsg,
-  negotiateMTU
+  negotiateMTU,
+  BLE_stopReconnectSearch
 }

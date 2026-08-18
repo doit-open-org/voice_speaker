@@ -3,7 +3,7 @@
   "disableScroll": true,
   "navigationBarTitleText": "视频提取",
   "navigationBarBackgroundColor": "#C0392B",
-  "navigationBarTextStyle": "black",
+  "navigationBarTextStyle": "white",
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index"
   }

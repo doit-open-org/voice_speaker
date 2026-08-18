@@ -192,15 +192,15 @@ Page({
   /**
    * 生命周期函数--监听页面隐藏
    */
-  onHide() {
-    
+  onHide() {    
   },
 
   /**
    * 生命周期函数--监听页面卸载
    */
   onUnload() {
-    console.log("555.....")
+    // 离开设备页面就不在搜索重连
+    app.bletool.BLE_stopReconnectSearch()
   },
 
   /**

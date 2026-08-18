@@ -3,7 +3,7 @@
   "disableScroll": true,
   "navigationBarTitleText": "广告词创作",
   "navigationBarBackgroundColor": "#C0392B",
-  "navigationBarTextStyle": "black",
+  "navigationBarTextStyle": "white",
   "usingComponents": {
     "van-loading": "@vant/weapp/loading/index",
     "ai-notice": "../../components/aiNotice/aiNotice"

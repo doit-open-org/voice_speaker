@@ -306,7 +306,9 @@ Page({
     } catch (error) {
       if (this.pageActive) {
         console.error('音色转化失败:', error)
-        showToast('none', error.message || '音色转换失败')
+        this.finishUpload()
+        // showToast('none', error.message || '音色转换失败')
+        showToast('none', '音色转换失败')
       }
     } finally {
       if (this.pageActive) this.finishUpload()

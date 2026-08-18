@@ -15,7 +15,7 @@ page {
 
 .aboutCopy {
   padding: 0 34rpx;
-  font-size: 36rpx;
+  font-size: 32rpx;
   line-height: 1.18;
   text-align: justify;
 }

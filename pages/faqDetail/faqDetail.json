@@ -2,6 +2,6 @@
   "enablePullDownRefresh": false,
   "disableScroll": true,
   "navigationBarTitleText": "问题详情",
-  "navigationBarTextStyle": "black",
-  "navigationBarBackgroundColor": "#ffffff"
+  "navigationBarTextStyle": "white",
+  "navigationBarBackgroundColor": "#C0392B"
 }

@@ -417,13 +417,18 @@ Page({
     } catch (error) {
       if (!this.pageActive) return
       console.error('生成对话失败:', error)
-      showToast('none', error.message || '对话生成失败')
+      this.finishDialogueGeneration()
+      // showToast('none', error.message || '对话生成失败')
+      showToast('none', '对话生成失败')
     } finally {
-      if (this.pageActive) {
-        this.setData({ generating: false })
-        wx.hideLoading()
-      }
+      if (this.pageActive) this.finishDialogueGeneration()
     }
+  },
+
+  finishDialogueGeneration() {
+    if (!this.data.generating) return
+    this.setData({ generating: false })
+    wx.hideLoading()
   },
 
   playDialogue(e) {

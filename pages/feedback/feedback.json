@@ -2,6 +2,6 @@
   "enablePullDownRefresh": false,
   "disableScroll": true,
   "navigationBarTitleText": "意见反馈",
-  "navigationBarTextStyle": "black",
-  "navigationBarBackgroundColor": "#f6f6f6"
+  "navigationBarTextStyle": "white",
+  "navigationBarBackgroundColor": "#C0392B"
 }
