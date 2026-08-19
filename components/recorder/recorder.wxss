@@ -95,6 +95,13 @@
 	font-size: 26rpx;
 	margin-top: 20rpx;
 }
+.recordingCountdown{
+	margin-top: 12rpx;
+	color: #d51b16;
+	font-size: 52rpx;
+	font-weight: 600;
+	line-height: 1.2;
+}
 .recorderStopBtn{
 	background: #C0392B;
 	color: #fff;

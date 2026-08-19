@@ -73,6 +73,7 @@
     <view class="recordingDialog">
       <text class="recordingTitle">最长录音时长为3分钟</text>
       <text class="recordingText">正在录制音频</text>
+      <text class="recordingCountdown">{{recordingCountdown}}</text>
       <image class="recordingWave" src="/img/recorder.gif" mode="aspectFit" />
       <button class="stopButton" bindtap="stopRecording">点击停止录音</button>
     </view>

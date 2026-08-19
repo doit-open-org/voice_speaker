@@ -1,5 +1,13 @@
 // components/recorder/recorder.js
 const voiceConsent = require('../../utils/voiceConsent')
+const RECORDING_MAX_DURATION = 180000
+const RECORDING_COUNTDOWN_SECONDS = RECORDING_MAX_DURATION / 1000
+
+function formatRecordingCountdown(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}
 
 Component({
   /**
@@ -23,11 +31,16 @@ Component({
       this.recorder = recorder
       this._onStart = () => {
         if (this._isDetached) return
+        this.startRecordingCountdown()
         console.log("录音开始");
       }
       this._onStop = (res) => {
         if (this._isDetached) return
-        this.setData({recorderMask: false})
+        this.clearRecordingCountdown()
+        this.setData({
+          recorderMask: false,
+          recordingCountdown: formatRecordingCountdown(RECORDING_COUNTDOWN_SECONDS)
+        })
         console.log("录音结束", res);
         this.setData({
           audioPath: res.tempFilePath
@@ -36,7 +49,11 @@ Component({
       }
       this._onError = (err) => {
         if (this._isDetached) return
-        this.setData({recorderMask: false})
+        this.clearRecordingCountdown()
+        this.setData({
+          recorderMask: false,
+          recordingCountdown: formatRecordingCountdown(RECORDING_COUNTDOWN_SECONDS)
+        })
         console.log("录音错误:", err);
         wx.showToast({ icon: 'none', title: '录音失败，请重试' })
       }
@@ -46,13 +63,17 @@ Component({
     },
     detached() {
       this._isDetached = true
+      this.clearRecordingCountdown()
       const recorder = this.recorder
       if (!recorder) return
       if (this.data.recorderMask) recorder.stop()
       if (recorder.offStart) recorder.offStart(this._onStart)
       if (recorder.offStop) recorder.offStop(this._onStop)
       if (recorder.offError) recorder.offError(this._onError)
-      this.setData({ recorderMask: false })
+      this.setData({
+        recorderMask: false,
+        recordingCountdown: formatRecordingCountdown(RECORDING_COUNTDOWN_SECONDS)
+      })
     }
   },
 
@@ -62,6 +83,7 @@ Component({
   data: {
     audioPath: '',
     recorderMask: false,
+    recordingCountdown: formatRecordingCountdown(RECORDING_COUNTDOWN_SECONDS),
     recordPermissionVisible: false,
     voiceAuthVisible: false,
     speed: 1,
@@ -182,7 +204,7 @@ Component({
       this.setData({recorderMask: true})
       // 最长录3分钟
       this.recorder.start({
-        duration: 180000,
+        duration: RECORDING_MAX_DURATION,
         sampleRate: 8000,
         numberOfChannels: 2,
         encodeBitRate: 48000,
@@ -190,7 +212,47 @@ Component({
       });
     },
     recorderStop(){
-      if (this.recorder) this.recorder.stop()
+      if (!this.recorder || !this.data.recorderMask) return
+      this.clearRecordingCountdown()
+      this.recorder.stop()
+    },
+    startRecordingCountdown(){
+      this.clearRecordingCountdown()
+      this.recordingDeadline = Date.now() + RECORDING_MAX_DURATION
+      this.setData({
+        recordingCountdown: formatRecordingCountdown(RECORDING_COUNTDOWN_SECONDS)
+      })
+      this.scheduleRecordingCountdownTick()
+    },
+    scheduleRecordingCountdownTick(){
+      this.recordingCountdownTimer = setTimeout(() => {
+        this.recordingCountdownTimer = null
+        this.updateRecordingCountdown()
+      }, 1000)
+    },
+    updateRecordingCountdown(){
+      if (!this.data.recorderMask || !this.recordingDeadline) {
+        this.clearRecordingCountdown()
+        return
+      }
+
+      const secondsLeft = Math.max(
+        0,
+        Math.ceil((this.recordingDeadline - Date.now()) / 1000)
+      )
+      this.setData({ recordingCountdown: formatRecordingCountdown(secondsLeft) })
+
+      if (secondsLeft === 0) {
+        this.clearRecordingCountdown()
+        this.recorderStop()
+        return
+      }
+      this.scheduleRecordingCountdownTick()
+    },
+    clearRecordingCountdown(){
+      if (this.recordingCountdownTimer) clearTimeout(this.recordingCountdownTimer)
+      this.recordingCountdownTimer = null
+      this.recordingDeadline = null
     },
     handleRecorder(){
       const { audioPath, speed, volume } = this.data

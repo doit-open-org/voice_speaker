@@ -182,6 +182,14 @@
   font-size: 28rpx;
 }
 
+.recordingCountdown {
+  margin-top: 12rpx;
+  color: #d51b16;
+  font-size: 52rpx;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
 .recordingWave {
   width: 300rpx;
   height: 110rpx;

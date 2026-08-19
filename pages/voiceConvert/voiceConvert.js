@@ -13,6 +13,14 @@ const API_ORIGIN =  getApp().globalData.domain
 const VOICE_CONVERT_UPLOAD_URL = API_ORIGIN+'/api/v1/user/voice-conversion'
 const VOICE_CONVERT_POLL_INTERVAL = 1500
 const VOICE_CONVERT_MAX_POLLS = 200
+const RECORDING_MAX_DURATION = 180000
+const RECORDING_COUNTDOWN_SECONDS = RECORDING_MAX_DURATION / 1000
+
+function formatRecordingCountdown(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}
 
 Page({
   data: {
@@ -29,6 +37,7 @@ Page({
     volume: 2,
     volumeDisplay: '2.0',
     recording: false,
+    recordingCountdown: formatRecordingCountdown(RECORDING_COUNTDOWN_SECONDS),
     uploading: false,
     pendingUpload: null
   },
@@ -48,6 +57,7 @@ Page({
     this.pageActive = false
     this.destroyVoicePreviewAudio()
     this.cancelPolling()
+    this.clearRecordingCountdown()
     if (this.data.recording && this.recorder) this.recorder.stop()
     if (this.uploadTask && this.uploadTask.abort) this.uploadTask.abort()
     if (this.data.uploading) wx.hideLoading()
@@ -62,11 +72,17 @@ Page({
     if (typeof wx.getRecorderManager !== 'function') return
     this.recorder = wx.getRecorderManager()
     this.onRecorderStart = () => {
-      if (this.pageActive) this.setData({ recording: true })
+      if (!this.pageActive) return
+      this.setData({ recording: true })
+      this.startRecordingCountdown()
     }
     this.onRecorderStop = (result) => {
       if (!this.pageActive) return
-      this.setData({ recording: false })
+      this.clearRecordingCountdown()
+      this.setData({
+        recording: false,
+        recordingCountdown: formatRecordingCountdown(RECORDING_COUNTDOWN_SECONDS)
+      })
       if (result && result.tempFilePath) {
         this.prepareUpload(result)
         return
@@ -77,7 +93,11 @@ Page({
     this.onRecorderError = (error) => {
       if (!this.pageActive) return
       console.error('音色转化录音失败:', error)
-      this.setData({ recording: false })
+      this.clearRecordingCountdown()
+      this.setData({
+        recording: false,
+        recordingCountdown: formatRecordingCountdown(RECORDING_COUNTDOWN_SECONDS)
+      })
       if (this.data.uploading) this.finishUpload()
       showToast('none', '录音失败，请重试')
     }
@@ -234,7 +254,7 @@ Page({
   beginRecordingNow() {
     this.stopVoicePreview()
     this.recorder.start({
-      duration: 180000,
+      duration: RECORDING_MAX_DURATION,
       sampleRate: 16000,
       numberOfChannels: 1,
       encodeBitRate: 96000,
@@ -258,8 +278,51 @@ Page({
 
   stopRecording() {
     if (!this.recorder || !this.data.recording || this.data.uploading) return
+    this.clearRecordingCountdown()
     this.beginUpload()
     this.recorder.stop()
+  },
+
+  startRecordingCountdown() {
+    this.clearRecordingCountdown()
+    this.recordingDeadline = Date.now() + RECORDING_MAX_DURATION
+    this.setData({
+      recordingCountdown: formatRecordingCountdown(RECORDING_COUNTDOWN_SECONDS)
+    })
+    this.scheduleRecordingCountdownTick()
+  },
+
+  scheduleRecordingCountdownTick() {
+    this.recordingCountdownTimer = setTimeout(() => {
+      this.recordingCountdownTimer = null
+      this.updateRecordingCountdown()
+    }, 1000)
+  },
+
+  updateRecordingCountdown() {
+    if (!this.data.recording || !this.recordingDeadline) {
+      this.clearRecordingCountdown()
+      return
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.ceil((this.recordingDeadline - Date.now()) / 1000)
+    )
+    this.setData({ recordingCountdown: formatRecordingCountdown(secondsLeft) })
+
+    if (secondsLeft === 0) {
+      this.clearRecordingCountdown()
+      this.stopRecording()
+      return
+    }
+    this.scheduleRecordingCountdownTick()
+  },
+
+  clearRecordingCountdown() {
+    if (this.recordingCountdownTimer) clearTimeout(this.recordingCountdownTimer)
+    this.recordingCountdownTimer = null
+    this.recordingDeadline = null
   },
 
   beginUpload() {

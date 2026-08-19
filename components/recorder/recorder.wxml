@@ -77,6 +77,7 @@
 		 <view class="reModal flexCC flex_d_c">
 			<view class="reModalTotle">最长录音时长为3分钟</view>
 			<view class="reModalTips">正在录音中</view>
+			<view class="recordingCountdown">{{recordingCountdown}}</view>
 			<view class="recordering">
 				<image class="recorderGif" src="/img/recorder.gif"></image>
 			</view>

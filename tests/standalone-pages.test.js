@@ -216,6 +216,7 @@ function loadComponent(relativePath, wx, options = {}) {
     Component(config) {
       componentConfig = config
     },
+    clearTimeout,
     console: { log() {}, error() {} },
     Date,
     // 组件也会 require（比如 recorder 要拿声纹授权状态）。
@@ -226,6 +227,7 @@ function loadComponent(relativePath, wx, options = {}) {
       if (resolved) return resolved
       throw new Error(`Unexpected module: ${modulePath}`)
     },
+    setTimeout,
     wx
   }, { filename: relativePath })
 
@@ -1132,11 +1134,14 @@ test('voice conversion uploads recording, polls the task, and opens generate', a
 
   page.startRecording()
   assert.equal(page.data.recording, true)
+  assert.equal(page.data.recordingCountdown, '03:00')
+  assert.ok(page.recordingCountdownTimer)
   assert.equal(recorder.startOptions.duration, 180000)
   assert.equal(recorder.startOptions.format, 'mp3')
   page.stopRecording()
 
   assert.equal(recorder.stopped, true)
+  assert.equal(page.recordingCountdownTimer, null)
   assert.deepEqual(lifecycle.slice(0, 2), ['show-loading', 'recorder-stop'])
   assert.equal(page.data.recording, false)
   assert.equal(page.data.pendingUpload.filePath, 'wxfile://voice-convert.mp3')
@@ -1174,9 +1179,48 @@ test('voice conversion uploads recording, polls the task, and opens generate', a
   const markup = read('pages/voiceConvert/voiceConvert.wxml')
   assert.equal(markup.includes('bindtap="startRecording"'), true)
   assert.equal(markup.includes('bindtap="stopRecording"'), true)
+  assert.equal(markup.includes('{{recordingCountdown}}'), true)
   assert.equal(markup.includes('bindchange="changeSpeed"'), true)
   assert.equal(markup.includes('bindchange="changeVolume"'), true)
   assert.equal(markup.includes('/img/recorder.gif'), true)
+})
+
+test('voice conversion shows a countdown and stops it manually or at three minutes', async () => {
+  const { recorder } = createRecorderDouble({ tempFilePath: 'wxfile://voice-limit.mp3' })
+  const { page } = loadPage('pages/voiceConvert/voiceConvert.js', {
+    request: async () => ({
+      code: 200,
+      data: [{ id: 7, name: 'Voice A', timbre_type: 'male', avatar_url: '' }]
+    }),
+    wx: { getRecorderManager: () => recorder }
+  })
+  page.prepareUpload = () => {}
+
+  await page.onLoad()
+  page.startRecording()
+
+  assert.equal(page.data.recordingCountdown, '03:00')
+  assert.ok(page.recordingCountdownTimer)
+  page.stopRecording()
+  assert.equal(page.recordingCountdownTimer, null)
+
+  page.setData({ uploading: false })
+  recorder.stopped = false
+  page.startRecording()
+  page.recordingDeadline = Date.now()
+  page.updateRecordingCountdown()
+
+  assert.equal(recorder.stopped, true)
+  assert.equal(page.data.recording, false)
+  assert.equal(page.data.uploading, true)
+  assert.equal(page.recordingCountdownTimer, null)
+
+  const markup = read('pages/voiceConvert/voiceConvert.wxml')
+  const styles = read('pages/voiceConvert/voiceConvert.wxss')
+  assert.equal(markup.includes('class="recordingCountdown"'), true)
+  assert.equal(markup.includes('{{recordingCountdown}}'), true)
+  assert.equal(styles.includes('.recordingCountdown'), true)
+  page.onUnload()
 })
 
 test('voice conversion reports task creation failure and hides loading', async () => {
@@ -2898,6 +2942,53 @@ test('recorder component stops and releases listeners when detached', () => {
   assert.equal(released.length, 3)
   callbacks.stop({ tempFilePath: 'wxfile://detached.mp3' })
   assert.equal(component.data.audioPath, '')
+})
+
+test('recorder component shows a countdown and stops it manually or at three minutes', () => {
+  const callbacks = {}
+  let stopCalls = 0
+  const recorder = {
+    onError(handler) { callbacks.error = handler },
+    onStart(handler) { callbacks.start = handler },
+    onStop(handler) { callbacks.stop = handler },
+    start(options) {
+      this.startOptions = options
+      callbacks.start()
+    },
+    stop() {
+      stopCalls += 1
+      callbacks.stop({ tempFilePath: 'wxfile://countdown.mp3' })
+    }
+  }
+  const { component, componentConfig } = loadComponent('components/recorder/recorder.js', {
+    getRecorderManager: () => recorder,
+    showToast() {}
+  })
+
+  componentConfig.lifetimes.attached.call(component)
+  component.beginRecording()
+  assert.equal(recorder.startOptions.duration, 180000)
+  assert.equal(component.data.recordingCountdown, '03:00')
+  assert.ok(component.recordingCountdownTimer)
+
+  component.recorderStop()
+  assert.equal(stopCalls, 1)
+  assert.equal(component.data.recorderMask, false)
+  assert.equal(component.recordingCountdownTimer, null)
+
+  component.beginRecording()
+  component.recordingDeadline = Date.now()
+  component.updateRecordingCountdown()
+  assert.equal(stopCalls, 2)
+  assert.equal(component.data.recorderMask, false)
+  assert.equal(component.recordingCountdownTimer, null)
+
+  const markup = read('components/recorder/recorder.wxml')
+  const styles = read('components/recorder/recorder.wxss')
+  assert.equal(markup.includes('class="recordingCountdown"'), true)
+  assert.equal(markup.includes('{{recordingCountdown}}'), true)
+  assert.equal(styles.includes('.recordingCountdown'), true)
+  componentConfig.lifetimes.detached.call(component)
 })
 
 test('recorder component exposes speed and volume controls in its upload event', () => {
