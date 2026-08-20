@@ -212,3 +212,13 @@ Confirm that the current AppID matches the backend configuration and that `/auth
 ### Audio is generated but cannot be played or transferred
 
 First confirm that the returned audio URL is reachable from the phone, then check the allowed `downloadFile` domain. Device transfer also requires an active BLE connection, sufficient device storage, and a supported file format.
+
+# Contact
+
+Email：
+
+📧 lihonggang@doit.am
+
+WeChat：
+
+![WeChat](wx.jpg)
