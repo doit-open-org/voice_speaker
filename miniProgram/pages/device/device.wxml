@@ -4,43 +4,50 @@
 			<view class="headleft flexCC">
         <image class="headleftImg" src="/img/deved.png" mode="aspectFit"></image>
         <text style="margin: 0 10rpx;">我的设备:</text>
-        <text style="color: #d81e06;">{{deviceInfo[0]['name']?deviceInfo.length:0}}</text>
+        <text style="color: #d81e06;">{{deviceInfo.length}}台</text>
       </view>
-      <view class="searchBtn" wx:if="{{!deviceInfo[0]['name']}}" bindtap="searchShow">搜索设备</view>
+      <view class="searchBtn" bindtap="searchShow">搜索设备</view>
 		</view>
-    <view class="deviceList">
-      <view class="deviceItem flex_jc_sb" wx:for="{{deviceInfo}}" wx:if="{{deviceInfo[0]['name']}}" wx:key="k" >
+    <scroll-view class="deviceList" scroll-y>
+      <view
+        class="deviceItem flex_jc_sb flex_ai_c {{!item.connState ? 'deviceItemDisconnected' : ''}} {{item.reconnectFailed ? 'deviceItemFailed' : ''}}"
+        wx:for="{{deviceInfo}}"
+        wx:key="deviceId"
+        data-device-id="{{item.deviceId}}"
+        catchlongpress="onDeviceLongPress"
+      >
         <view class="devImg flex">
-          <image class="devIcon" src="/img/devIcon.jpg" mode="aspectFit"></image>
+          <image class="devIcon" src="/img/xxb_product_tm.png" mode="aspectFit"></image>
         </view>
         <view class="devInfo h100 flex flex_d_c flex_jc_sa">
           <view class="devInfoTitle flex flex_d_c">
             <view class="devTitleView flex_C_SB">
               <text class="devTitle">{{item.name}}</text>
-              <view wx:if="{{!item.connState}}" class="reConn flex" bindtap="reconnect">重连</view>
+              <view wx:if="{{!item.connState}}" class="reConn flex" bindtap="reconnect" data-device-id="{{item.deviceId}}">重连</view>
+              <view wx:if="{{item.connState}}" class="reConn flex" bindtap="disconnect" data-device-id="{{item.deviceId}}">断开</view>
             </view>
             <text>ID: {{item.deviceId}}</text>
           </view>
-          <view class="devDis flex">
-            <view class="devDisItem ypMan" bindtap="showVoicePop">音频管理</view>
-            <view class="devDisItem devDel" bindtap="unBindDev" id="{{item.deviceId}}">设备解绑</view>
-            <view class="devDisItem {{item.connState?'connDev':'disconnDev'}}" >
-              {{item.connState?'已连接':'已断开'}}
+          <view class="devDis flex flex_C_SB">
+            <view class="devDisItem ypMan {{!item.connState ? 'devActionDisabled' : ''}}" bindtap="showVoicePop" data-device-id="{{item.deviceId}}">音频管理</view>
+            <view class="devDisItem devDel" bindtap="confirmDeleteDevice" data-device-id="{{item.deviceId}}">删除设备</view>
+            <view class="devDisItem {{item.connState ? 'connDev' : (item.reconnectFailed ? 'reconnectFailState' : 'disconnDev')}}">
+              {{item.connState ? '已连接' : (item.reconnectFailed ? '重连失败' : '已断开')}}
             </view>
           </view>
         </view>
-        <!-- 重连覆盖层 -->
-        <view wx:if="{{item.reCon}}" class="devReCon">
+        <view wx:if="{{item.reconnecting}}" class="devReCon">
           <image class="devReConImg" src="/img/Loading.png"></image>
         </view>
       </view>
-    </view>
+      <view class="emptyDevice" wx:if="{{deviceInfo.length === 0}}">暂无已保存设备</view>
+    </scroll-view>
 	</view>
 	<bottom-nav active="device" />
 </view>
 <!-- 搜索框 -->
 <van-popup round  show="{{ searchShow }}" custom-style="" data-flag="true"  bind:close="searchShow" >
-    <searchmask id="searchmask" searchShow="{{searchShow}}" bindConClose="ConClose"></searchmask>
+    <searchmask id="searchmask" searchShow="{{searchShow}}" bind:connectDevice="connectSelectedDevice"></searchmask>
 </van-popup>
 <!-- 音频列表 -->
 <van-popup position="bottom" round  show="{{ voicePop }}"  custom-style=""  bind:close="showVoicePop" >

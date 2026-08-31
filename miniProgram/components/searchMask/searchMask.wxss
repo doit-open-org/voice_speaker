@@ -26,14 +26,33 @@
   justify-content: space-between;
 }
 .connectedev,.searchdev{
-  padding: 0px 20rpx;
-  line-height: 90rpx;
+  padding: 16rpx 20rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .searchdev{
   border-bottom: 1px solid #EAE8EB;
+  min-height: 110rpx;
+}
+.devContent{
+  flex: 1;
+  min-width: 0;
+  padding-right: 16rpx;
+}
+.devName{
+  color: #202124;
+  font-size: 30rpx;
+  line-height: 42rpx;
+}
+.devMeta{
+  color: #777;
+  font-size: 23rpx;
+  line-height: 34rpx;
+}
+.devMac{
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 .confirm{
   text-align: center;
@@ -47,6 +66,7 @@
   text-align: center;
 }
 .devChooseIcon{
+  flex: 0 0 60rpx;
   display: flex;
   justify-content: center;
   align-items: center;

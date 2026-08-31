@@ -45,7 +45,11 @@
     </view>
   </scroll-view>
 
-  <view class="dialogMask" wx:if="{{templateDialogVisible}}">
+  <view
+    class="dialogMask"
+    style="bottom: {{templateKeyboardHeight}}px;"
+    wx:if="{{templateDialogVisible}}"
+  >
     <view class="templateDialog">
       <view class="dialogTitle">{{templateDialogMode === 'edit' ? '编辑我的模板' : '增加我的模板'}}</view>
       <view class="dialogInputBox">
@@ -56,7 +60,10 @@
           auto-focus="{{true}}"
           placeholder="请输入模板内容"
           disabled="{{templateSubmitting}}"
+          fixed="{{true}}"
+          adjust-position="{{false}}"
           bindinput="onTemplateInput"
+          bindkeyboardheightchange="onTemplateKeyboardHeightChange"
         ></textarea>
         <view class="templateCounter">{{templateDraft.length}}/2000</view>
       </view>

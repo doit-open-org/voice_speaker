@@ -66,12 +66,16 @@ Page({
 
   createAudio() {
     this.innerAudioContext = wx.createInnerAudioContext()
-    this.innerAudioContext.onPause(() => this.resetPlaying())
+    this.innerAudioContext.onPlay(() => this.syncPlaying())
+    this.innerAudioContext.onPause(() => {
+      if (!this.requestedPlayingId) this.resetPlaying()
+    })
     this.innerAudioContext.onEnded(() => this.resetPlaying())
     this.innerAudioContext.onError(() => {
+      const wasPreviewing = Boolean(this.data.playingId)
       this.innerAudioContext.stop()
       this.resetPlaying()
-      showToast('none', '主播试听失败')
+      if (wasPreviewing) showToast('none', '主播试听失败')
     })
   },
 
@@ -234,20 +238,29 @@ Page({
       showToast('none', '主播试听失败')
       return
     }
+    this.requestedPlayingId = id
     this.setData({ playingId: id })
     this.innerAudioContext.src = this.normalizeAudioUrl(voice.audio_path)
     this.innerAudioContext.play()
   },
 
   pauseMusic() {
+    this.requestedPlayingId = 0
     if (this.innerAudioContext) {
       this.innerAudioContext.pause()
-    } else {
-      this.resetPlaying()
     }
+    this.resetPlaying()
+  },
+
+  syncPlaying() {
+    if (!this.requestedPlayingId) return
+    this.setData({ playingId: this.requestedPlayingId })
+    const voiceList = this.selectComponent('#voiceListCom')
+    if (voiceList) voiceList.setData({ palyId: this.requestedPlayingId })
   },
 
   resetPlaying() {
+    this.requestedPlayingId = 0
     this.setData({ playingId: 0 })
     const voiceList = this.selectComponent('#voiceListCom')
     if (voiceList) voiceList.setData({ palyId: 0 })

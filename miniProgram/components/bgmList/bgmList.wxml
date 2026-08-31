@@ -14,8 +14,8 @@
 				<view class="voicePlay flexCC" bindtap="bgmPlay" data-id="{{item.id}}" data-source="{{item.source}}">
 					<van-icon size='30px' color="#C0392B" name="{{item.id == palyId && item.source == palySource ? 'pause-circle' : 'play-circle'}}" />
 				</view>
-				<view class="voiceCheck br50 flexCC" style="border: {{item.id == activeId?'0px':'1px solid #ccc'}};" data-id="{{item.id}}" data-source="{{item.source}}" bindtap="chooseBgm">
-					<van-icon size='30px' color="#C0392B" wx:if="{{item.id == activeId}}" name="checked" />
+				<view class="voiceCheck br50 flexCC" style="border: {{item.id == activeId && item.source == activeSource?'0px':'1px solid #ccc'}};" data-id="{{item.id}}" data-source="{{item.source}}" bindtap="chooseBgm">
+					<van-icon size='30px' color="#C0392B" wx:if="{{item.id == activeId && item.source == activeSource}}" name="checked" />
 				</view>
 				<view class="favoriteButton flexCC" wx:if="{{item.showFavorite}}" data-id="{{item.id}}" catchtap="toggleFavorite">
 					<van-icon size="24px" color="{{item.isFavorite ? '#C0392B' : '#D8D8D8'}}" name="star" />

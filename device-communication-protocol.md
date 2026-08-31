@@ -1,4 +1,4 @@
-# 小程序与设备 BLE 通信协议汇总
+# 小程序与设备 BLE 通信协议
 
 简体中文 | [English](./device-communication-protocol-en.md)
 

@@ -13,6 +13,7 @@ Page({
   data: {
     bgmList: {},
     activeBgmId: 0,
+    activeBgmSource: 'regular',
     hasBgmList: false,
     emptyText: '背景音乐加载中...',
     playingId: 0,
@@ -34,8 +35,12 @@ Page({
     this.uploadProgressTimer = null
     this.uploadProgressResolvers = []
     this.eventChannel = this.getOpenerEventChannel()
-    this.eventChannel.on('initBgmSelect', ({ bgmList = {}, activeBgmId = 0 } = {}) => {
-      this.applyBgmList(bgmList, activeBgmId)
+    this.eventChannel.on('initBgmSelect', ({
+      bgmList = {},
+      activeBgmId = 0,
+      activeBgmSource = 'regular'
+    } = {}) => {
+      this.applyBgmList(bgmList, activeBgmId, activeBgmSource)
     })
     this.createAudio()
     this.updateBgmListView()
@@ -81,16 +86,19 @@ Page({
     })
   },
 
-  applyBgmList(bgmList, activeBgmId = 0) {
+  applyBgmList(bgmList, activeBgmId = 0, activeBgmSource = 'regular') {
     const categories = Array.isArray(bgmList.categories) ? bgmList.categories : []
     const bgms = bgmList.bgms && typeof bgmList.bgms === 'object'
       ? bgmList.bgms
       : {}
     this.baseBgmList = { ...bgmList, categories, bgms }
-    this.updateBgmListView(activeBgmId)
+    this.updateBgmListView(activeBgmId, activeBgmSource)
   },
 
-  updateBgmListView(activeBgmId = this.data.activeBgmId) {
+  updateBgmListView(
+    activeBgmId = this.data.activeBgmId,
+    activeBgmSource = this.data.activeBgmSource
+  ) {
     const baseBgmList = this.baseBgmList || { categories: [], bgms: {} }
     const baseCategories = Array.isArray(baseBgmList.categories)
       ? baseBgmList.categories.filter((category) => (
@@ -136,6 +144,7 @@ Page({
     this.setData({
       bgmList: { ...baseBgmList, categories, bgms },
       activeBgmId,
+      activeBgmSource,
       hasBgmList: true,
       emptyText: ''
     })
@@ -149,7 +158,11 @@ Page({
         needAuth: true
       })
       if (Number(res.code) === 200) {
-        this.applyBgmList(res.data, this.data.activeBgmId)
+        this.applyBgmList(
+          res.data,
+          this.data.activeBgmId,
+          this.data.activeBgmSource
+        )
       } else {
         this.setData({ emptyText: '暂无背景音乐' })
         showToast('error', '背景音乐拉取失败')
@@ -272,9 +285,10 @@ Page({
   },
 
   chooseBgm(e) {
-    const bgm = this.findBgmById(e.detail.id, e.detail.source || 'regular')
+    const source = e.detail.source || 'regular'
+    const bgm = this.findBgmById(e.detail.id, source)
     if (!bgm) return
-    this.eventChannel.emit('bgmSelected', bgm)
+    this.eventChannel.emit('bgmSelected', { ...bgm, source })
     wx.navigateBack()
   },
 

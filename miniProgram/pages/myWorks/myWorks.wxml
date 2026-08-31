@@ -8,8 +8,7 @@
 					<van-icon size='30px' color="#C0392B" name="{{item.id == palyId?'pause-circle':'play-circle'}}" />
 				</view>
 				<view class="info flex flex_d_c flex-wrap_wrap">
-					<!-- <text class="title">{{item.display_title}}</text> -->
-					<text class="title">{{item.file_new_name}}</text>
+					<text class="title">{{item.display_title}}</text>
 					<text class="time">{{item.created_at}}</text>
 				</view>
 			</view>

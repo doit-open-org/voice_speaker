@@ -16,6 +16,7 @@
       id="bgmlistCom"
       bgmList="{{bgmList}}"
       activeId="{{activeBgmId}}"
+      activeSource="{{activeBgmSource}}"
       showBack="{{false}}"
       bind:showBgmList="goBack"
       bind:chooseBgm="chooseBgm"

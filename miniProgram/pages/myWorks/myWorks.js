@@ -49,8 +49,12 @@ Page({
   async getWorksList(){
     try {
       const res = await request({
-        url: `/user/tts/records?page=${this.data.page}&page_size=${this.data.page_size}`,
+        url: '/user/works',
         method: 'GET',
+        data: {
+          page: this.data.page,
+          page_size: this.data.page_size
+        },
         needAuth: true
       })
       if(res.code == 200){
@@ -73,19 +77,13 @@ Page({
         // voice_name: "爽快思思/Skye"
         // volume_ratio: 1
         console.log('我的作品:', res.data)
-        let data = res.data
+        let data = this.extractWorkItems(res.data)
         console.log('page...', this.data.page)
         if(!data.length){ return }
-        this.data.page += 1 
-        data.forEach(item=>{
-          item.created_at = item.created_at.replace('T', ' ')
-          // 把文件名称后缀去掉
-          item.file_new_name = item.file_name.replace(/\.[^/.]+$/, '');
-          item.display_title = this.formatWorkTitle(item)
-        })
-        let list = this.data.list
+        data = data.map(item => this.normalizeWork(item))
+        let list = this.data.list.slice()
         list.push(...data)
-        this.setData({ list })
+        this.setData({ list, page: this.data.page + 1 })
         
       }else{
         showToast('error','作品拉取失败')
@@ -94,6 +92,25 @@ Page({
       console.error('获取失败:', err)
       showToast('error','作品拉取失败')
     }
+  },
+
+  extractWorkItems(data) {
+    if (Array.isArray(data)) return data
+    const result = data || {}
+    const keys = ['items', 'list', 'works', 'records']
+    const key = keys.find(name => Array.isArray(result[name]))
+    return key ? result[key] : []
+  },
+
+  normalizeWork(item = {}) {
+    const work = { ...item }
+    if (work.id === undefined && work.work_id !== undefined) {
+      work.id = work.work_id
+    }
+    work.created_at = String(work.created_at || '').replace('T', ' ')
+    work.file_new_name = String(work.file_name || '').replace(/\.[^/.]+$/, '')
+    work.display_title = this.formatWorkTitle(work)
+    return work
   },
 
   formatWorkTitle(item = {}) {
@@ -130,7 +147,7 @@ Page({
     //深拷贝,防止generate页面修改audio_url 地址
     let item = JSON.parse(JSON.stringify(list[index]))
     console.log('item:...', item)
-    app.globalData.generate = item
+    app.globalData.generate = { ...item, source: 'works' }
     wx.navigateTo({ url: '../generate/generate' })
   },
   onDelete(e){
@@ -152,7 +169,7 @@ Page({
     }
     try {
       const res = await request({
-        url: '/user/tts/records',
+        url: '/user/works',
         data:{ "record_id":id},
         method: 'DELETE',
         needAuth: true
@@ -173,18 +190,21 @@ Page({
 
   onEdit(e){
     let index = e.currentTarget.id
-    let file_name = this.data.list[index]['file_name']
-    file_name = file_name.substr(0,file_name.length-4) //去掉后缀
+    const item = this.data.list[index] || {}
+    const title = item.title || item.file_new_name || ''
     wx.showModal({
       title: '修改名称',
-      content: file_name,
+      content: title,
       editable :true,
       complete: (res) => {    
         if (res.confirm) {
-          console.log('编辑:', res.content)
-          let newName = res.content+".mp3"
-          // list[index]['file_name'] = newName
-          this.editFileNameById(index,newName)
+          const newTitle = String(res.content || '').trim()
+          if (!newTitle) {
+            showToast('none', '标题不能为空')
+            return
+          }
+          console.log('编辑:', newTitle)
+          this.editFileNameById(index,newTitle)
         }
       }
     })
@@ -194,7 +214,7 @@ Page({
     let id = this.data.list[index]['id']
     try {
       const res = await request({
-        url: '/user/tts/records/title',
+        url: '/user/works/title',
         data:{
           "record_id":id,
           "title": newName
@@ -205,8 +225,6 @@ Page({
       if(res.code == 200){
         console.log('修改标题:', res.data)
         let list = this.data.list
-        list[index]['file_name'] = newName
-        list[index]['file_new_name'] = newName.replace(/\.[^/.]+$/, '')
         list[index]['title'] = newName
         list[index]['display_title'] = this.formatWorkTitle(list[index])
         this.setData({ list })

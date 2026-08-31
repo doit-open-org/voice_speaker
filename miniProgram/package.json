@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "test": "node tests/standalone-pages.test.js"
+    "test": "node tests/standalone-pages.test.js",
+    "test:ble": "node tests/ble-write-scheduler.test.js"
   },
   "dependencies": {
     "@vant/weapp": "^1.11.7"

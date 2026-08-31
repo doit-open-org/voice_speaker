@@ -7,6 +7,15 @@ let bleDatasList = []
 let bleDatasBackArr = []
 
 let sendFun = null
+let isSending = false
+let writeDelay = null
+
+const FILE_TRANSFER_QUEUE_KEY = "file-transfer"
+const DEFAULT_WRITE_DELAY = 5
+const UNKNOWN_ANDROID_WRITE_DELAY = 15
+const HUAWEI_P70_WRITE_DELAY = 30
+const MAX_WRITE_RETRIES = 3
+const RETRYABLE_WRITE_ERRORS = [10008, 10012]
 
 function getCurPage() {
   return curPage
@@ -58,20 +67,20 @@ function getNetSetDatasNew() {
 }
 
 //发送蓝牙指令
-function sendDatas(datas) {
+function sendDatas(datas, options = {}) {
   // 根据协商后的mtu处理
   // if(getApp().globalData.mtu == 20){
   //   bleDatasFix(datas)
   // }else{
   //   bleDatasFixLarge(datas)
   // }
-  bleDatasFixLarge(datas)
+  bleDatasFixLarge(datas, options.queueKey || null)
   
   if (!sendFun) toDispatch()
 }
 
 //蓝牙指令分包---20
-function bleDatasFix(datas) {
+function bleDatasFix(datas, queueKey = null) {
   let hex = []
   let count = 0
   for (let i = 0; i < datas.length; i += 17) {
@@ -90,12 +99,16 @@ function bleDatasFix(datas) {
     }
     count += 1
     hex.push(crc8(hex))
-    bleDatasList.push(hex)
+    bleDatasList.push({
+      data: hex,
+      queueKey,
+      retryCount: 0
+    })
   }
 }
 
 //蓝牙指令分包---512
-function bleDatasFixLarge(buf) {
+function bleDatasFixLarge(buf, queueKey = null) {
   const protocol_ver = 0x04;
   const header_size = 1 + 2 + 2; // ver + pkg_sn + data_len
   const crc_size = 1;
@@ -139,10 +152,13 @@ function bleDatasFixLarge(buf) {
       // 这里替换成你的 BLE 发送函数
       // sendBLE(Uint8Array.from(packet));
       // -------------------------
-      bleDatasList.push(packet)
+      bleDatasList.push({
+        data: packet,
+        queueKey,
+        retryCount: 0
+      })
 
       // console.log("HEX:", Buffer.from(packet).toString("hex"));
-      console.log(`send pack SN=${pkg_sn} ${ (sn_field & 0x8000) ? "(last pack)" : "(pack)" } len=${chunk_len} all_len=${packet.length}`);
 
       offset += chunk_len;
       pkg_sn++;
@@ -210,23 +226,118 @@ function clearDatas() {
   hexDatas = ""
 }
 
-function toDispatch() {
-  let app = getApp()
-  clearInterval(sendFun)
-  sendFun = setInterval(function () {
-    // console.log("bleDatasList:", bleDatasList)
-    if (bleDatasList.length == 0) {
-      clearInterval(sendFun)
-      sendFun = null
-      return
+function getDeviceInfo() {
+  try {
+    if (typeof wx.getDeviceInfo === "function") return wx.getDeviceInfo() || {}
+    if (typeof wx.getSystemInfoSync === "function") return wx.getSystemInfoSync() || {}
+  } catch (error) {
+    console.warn("get BLE device profile failed", error)
+  }
+  return {}
+}
+
+function getInitialWriteDelay() {
+  const info = getDeviceInfo()
+  const brand = String(info.brand || "").toLowerCase()
+  const model = String(info.model || "").toLowerCase()
+  const platform = String(info.platform || "").toLowerCase()
+  const isHuawei = brand.includes("huawei") || model.includes("huawei")
+  const isHuaweiP70 = isHuawei && (
+    model.includes("pura 70") || model.includes("pura70") || model.includes("p70")
+  )
+
+  if (isHuaweiP70) return HUAWEI_P70_WRITE_DELAY
+  if (model && model !== "unknown") return DEFAULT_WRITE_DELAY
+  if (platform === "android" || platform === "ohos") return UNKNOWN_ANDROID_WRITE_DELAY
+  return DEFAULT_WRITE_DELAY
+}
+
+function getWriteDelay() {
+  if (writeDelay === null) {
+    writeDelay = getInitialWriteDelay()
+    console.log("BLE write delay:", writeDelay, "ms")
+  }
+  return writeDelay
+}
+
+function increaseWriteDelay() {
+  const current = getWriteDelay()
+  if (current < 10) writeDelay = 10
+  else if (current < 20) writeDelay = 20
+  else writeDelay = 30
+  return writeDelay
+}
+
+function slowDownWrites(reason = "transfer feedback") {
+  const nextDelay = increaseWriteDelay()
+  console.warn("BLE write delay increased:", nextDelay, "ms", reason)
+  return nextDelay
+}
+
+function getErrorCode(error) {
+  const code = Number(error && error.errCode)
+  return Number.isFinite(code) ? code : null
+}
+
+function isRetryableWriteError(error) {
+  return RETRYABLE_WRITE_ERRORS.includes(getErrorCode(error))
+}
+
+function scheduleDispatch(delay = getWriteDelay()) {
+  if (sendFun || isSending || bleDatasList.length === 0) return
+  sendFun = setTimeout(dispatchNext, delay)
+}
+
+async function dispatchNext() {
+  sendFun = null
+  if (isSending || bleDatasList.length === 0) return
+
+  const app = getApp()
+  const item = bleDatasList[0]
+  isSending = true
+
+  try {
+    await app.bletool.sendMsg(item.data)
+    if (bleDatasList[0] === item) bleDatasList.shift()
+  } catch (error) {
+    if (bleDatasList[0] === item) {
+      item.retryCount += 1
+      const canRetry = isRetryableWriteError(error) && item.retryCount <= MAX_WRITE_RETRIES
+
+      if (canRetry) {
+        const nextDelay = increaseWriteDelay()
+        console.warn("BLE write retry:", item.retryCount, "delay:", nextDelay, "ms", error)
+      } else {
+        bleDatasList = []
+        if (app.bletool && typeof app.bletool.handleWriteFailure === "function") {
+          app.bletool.handleWriteFailure(error)
+        } else {
+          console.error("BLE write failed", error)
+        }
+      }
     }
-    let send = []
-    send = bleDatasList[0]
-    bleDatasList = bleDatasList.splice(1)
-    // console.log("send...",send)
-    app.bletool.sendMsg(send)
-  // }, 200)
-  }, 30)
+  } finally {
+    isSending = false
+  }
+
+  scheduleDispatch()
+}
+
+function toDispatch() {
+  scheduleDispatch()
+}
+
+function cancelQueuedDatas(queueKey) {
+  if (queueKey) {
+    bleDatasList = bleDatasList.filter(item => item.queueKey !== queueKey)
+  } else {
+    bleDatasList = []
+  }
+
+  if (bleDatasList.length === 0 && sendFun) {
+    clearTimeout(sendFun)
+    sendFun = null
+  }
 }
 
 
@@ -496,9 +607,12 @@ function unBindDev(){
 }
 
 module.exports = {
+  FILE_TRANSFER_QUEUE_KEY,
   setCurPage,
   getCurPage,
   sendDatas,
+  cancelQueuedDatas,
+  slowDownWrites,
   clearDatas,
   getNetSetDatas,
   getNetSetDatasNew,

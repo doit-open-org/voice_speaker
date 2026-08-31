@@ -1,30 +1,45 @@
-async function downloadAudio(url) {
-	return new Promise((resolve, reject) => {
-		const downloadTask = wx.downloadFile({
-			url: url,
-			success: (res) => {
-				if (res.statusCode === 200) {
-					console.log('✓ 音频下载成功:', res.tempFilePath);
-					resolve(res.tempFilePath);
-				} else {
-					reject(new Error(`下载失败: ${res.statusCode}`));
-				}
-			},
-			fail: (err) => {
-        wx.hideLoading();
-        wx.showToast({
-          icon: 'error',
-          title: '下载失败',
-        })
-				reject(err);
-			}
-		});
+function downloadAudioOnce(url) {
+  return new Promise((resolve, reject) => {
+    const downloadTask = wx.downloadFile({
+      url: url,
+      success: (res) => {
+        if (res.statusCode === 200) {
+          console.log('✓ 音频下载成功:', res.tempFilePath);
+          resolve(res.tempFilePath);
+        } else {
+          reject(new Error(`下载失败: ${res.statusCode}`));
+        }
+      },
+      fail: reject
+    });
 
-		// 下载进度
-		downloadTask.onProgressUpdate((res) => {
-			console.log(`下载进度: ${res.progress}%`);
-		});
-	});
+    // 下载进度
+    downloadTask.onProgressUpdate((res) => {
+      console.log(`下载进度: ${res.progress}%`);
+    });
+  });
+}
+
+async function downloadAudio(url) {
+  const maxAttempts = 3;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await downloadAudioOnce(url);
+    } catch (error) {
+      lastError = error;
+      console.warn(`音频下载失败，第 ${attempt} 次尝试`, error);
+    }
+  }
+
+  const finalError = lastError || new Error('下载失败');
+  finalError.downloadFailureNotified = true;
+  wx.showToast({
+    icon: 'error',
+    title: '下载失败'
+  });
+  throw finalError;
 }
 
 // 10. 读取音频文件为ArrayBuffer
@@ -179,7 +194,9 @@ function textToUnicode(str) {
  */
   async function sendFileToDevice(offset,chunkSize,audioBuffer){
     try {
-      getApp().globalData.sendFlag = true
+      const hextool = getApp().hextool
+      const queueKey = hextool.FILE_TRANSFER_QUEUE_KEY
+      hextool.cancelQueuedDatas(queueKey)
       //读取音频数据
       // let audioBuffer = this.data.audioBuffer
       // 6. 分片发送音频数据 (CMD11)
@@ -193,10 +210,7 @@ function textToUnicode(str) {
       let packets = buildCMD11Data(audioBuffer,offset,actualChunkSize,file_seq,mtuSize)
       // 逐个发送小包
       for (let packet of packets) {
-        //检查全局停止标志
-        if(!getApp().globalData.sendFlag){ break }
-        console.log('ppp.....',packet.length)
-        getApp().hextool.sendDatas(packet)
+        hextool.sendDatas(packet, { queueKey })
       }
     } catch (err) {
       console.error('传输失败:', err);

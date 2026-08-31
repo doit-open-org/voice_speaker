@@ -17,6 +17,7 @@ Page({
     templateDialogVisible: false,
     templateDialogMode: 'create',
     templateDraft: '',
+    templateKeyboardHeight: 0,
     editingTemplateId: 0,
     templateSubmitting: false,
     deletingTemplateId: 0,
@@ -231,6 +232,7 @@ Page({
       templateDialogVisible: true,
       templateDialogMode: 'create',
       templateDraft: '',
+      templateKeyboardHeight: 0,
       editingTemplateId: 0
     })
   },
@@ -243,6 +245,7 @@ Page({
       templateDialogVisible: true,
       templateDialogMode: 'edit',
       templateDraft: template.content,
+      templateKeyboardHeight: 0,
       editingTemplateId: template.id
     })
   },
@@ -252,12 +255,19 @@ Page({
     this.setData({
       templateDialogVisible: false,
       templateDraft: '',
+      templateKeyboardHeight: 0,
       editingTemplateId: 0
     })
   },
 
   onTemplateInput(e) {
     this.setData({ templateDraft: String(e.detail.value || '').slice(0, 2000) })
+  },
+
+  onTemplateKeyboardHeightChange(e) {
+    const templateKeyboardHeight = Math.max(0, Number(e.detail.height) || 0)
+    if (templateKeyboardHeight === this.data.templateKeyboardHeight) return
+    this.setData({ templateKeyboardHeight })
   },
 
   async submitTemplate() {
@@ -287,6 +297,7 @@ Page({
       this.setData({
         templateDialogVisible: false,
         templateDraft: '',
+        templateKeyboardHeight: 0,
         editingTemplateId: 0,
         activeCategoryKey: 'mine'
       })

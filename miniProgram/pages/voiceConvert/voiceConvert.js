@@ -1,4 +1,5 @@
 const { request, showToast } = require('../../utils/request')
+const { buildBgmPayload, hasBgmSelection } = require('../../utils/bgm')
 const voiceConsent = require('../../utils/voiceConsent')
 const share = require('../../utils/share')
 const app = getApp()
@@ -158,8 +159,11 @@ Page({
   },
 
   playVoicePreview(timbre) {
-    this.stopVoicePreview()
-    if (!timbre || !timbre.audio_url || !this.voicePreviewAudioContext) return
+    if (!this.voicePreviewAudioContext) return
+    if (!timbre || !timbre.audio_url) {
+      this.stopVoicePreview()
+      return
+    }
     this.voicePreviewAudioContext.src = this.normalizeAudioUrl(timbre.audio_url)
     this.voicePreviewAudioContext.play()
   },
@@ -195,7 +199,8 @@ Page({
       success: (res) => {
         res.eventChannel.emit('initBgmSelect', {
           bgmList: this.data.bgmList,
-          activeBgmId: this.data.selectedBgm.id || 0
+          activeBgmId: this.data.selectedBgm.id || 0,
+          activeBgmSource: this.data.selectedBgm.source || 'regular'
         })
       }
     })
@@ -337,17 +342,17 @@ Page({
       showToast('none', '请选择有效音色')
       return
     }
-    const bgmSetDetail = this.data.bgmSetDetail || {}
-    const bgmId = bgmSetDetail.bgm_id !== undefined
-      ? bgmSetDetail.bgm_id
-      : this.data.selectedBgm.id
+    const bgmPayload = buildBgmPayload(
+      this.data.selectedBgm,
+      this.data.bgmSetDetail
+    )
     const formData = {
       voice_timbre_id: timbre.id,
       speed: this.data.speed,
       volume: this.data.volume
     }
-    if (bgmId !== undefined && Number(bgmId) !== 0) {
-      Object.assign(formData, bgmSetDetail, { bgm_id: bgmId })
+    if (hasBgmSelection(bgmPayload)) {
+      Object.assign(formData, bgmPayload)
     }
     const payload = {
       filePath: recordResult.tempFilePath,
@@ -380,7 +385,8 @@ Page({
     if (!conversionResult || !this.pageActive) return
     console.log("conversionResult...",conversionResult)
     app.globalData.generate = {
-      ...(app.globalData.generate || {}),
+      ...conversionResult,
+      source: 'voice-convert',
       audio_url: conversionResult.audio_url,
       file_name: (conversionResult.audio_url || '').split(/[?#]/)[0].split('/').pop() || '',
     }

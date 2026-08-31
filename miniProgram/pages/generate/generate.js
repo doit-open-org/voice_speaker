@@ -1,6 +1,12 @@
 const share = require('../../utils/share')
+const { request } = require('../../utils/request')
 import {downloadAudio , readAudioFile, buildCMD10Data,buildCMD11Data,textToUnicode,sendFileToDevice} from '../../utils/operationFile'
 let app = getApp()
+
+const FILE_TRANSFER_TIMEOUT = 10000
+const MAX_FILE_BLOCK_ATTEMPTS = 3
+const FILE_TRANSFER_RETRY_MESSAGE = '发送失败，请过一分钟再试'
+
 Page({
 
   /**
@@ -17,6 +23,9 @@ Page({
     importMask: false, //发送蒙层
     importPro: 0,  //发送进度
     exportFlag: false,
+    connState: false, //连接状态
+    savingWork: false,
+    workSaved: false,
   },
 
   /**
@@ -25,10 +34,11 @@ Page({
   onLoad(options) {
     app.bletool.setCurPage(this)
     app.hextool.setCurPage(this)
-    const generateObj = { ...app.globalData.generate }
+    let connState = !!(app.globalData.deviceInfo && app.globalData.deviceInfo.connState) //设备连接状态
+    const generateObj = { ...(app.globalData.generate || {}) }
     console.log('generateObj...',generateObj);
     generateObj.audio_url = this.normalizeAudioUrl(generateObj.audio_url)
-    this.setData({ generate: generateObj })
+    this.setData({ generate: generateObj,connState: connState })
     this.innerAudioContext = wx.createInnerAudioContext()
     this.innerAudioContext.onPlay(() => {
       this.setData({ isPlaying: true })
@@ -49,6 +59,17 @@ Page({
     // console.log("uni.....",test)
   },
   onUnload() {
+    this._pageUnloaded = true
+    this._fileTransferActive = false
+    this.cancelFileTransferQueue()
+    if (this._cancelDeviceScan) {
+      this._cancelDeviceScan()
+    }
+    this.finishDeviceBinding(new Error('页面已关闭'))
+    if (this.data.sendTimer) {
+      clearTimeout(this.data.sendTimer)
+      this.data.sendTimer = null
+    }
     if (this.innerAudioContext) {
       this.innerAudioContext.destroy()
     }
@@ -99,24 +120,211 @@ Page({
 
   // 发送到设备
   async sendToDevice() {
-    //判断是否连接设备
-    // if(!app.globalData.deviceInfo.connState){
-    //   wx.showToast({
-    //     title: '请先连接设备',
-    //     icon: 'none'
-    //   })
-    //   return
-    // }
+    if (this._sendInProgress || this.data.importMask) return
+    this._sendInProgress = true
+
+    try {
+      await this.ensureDeviceConnected()
+      await this.sendAudioToDevice()
+    } catch (error) {
+      console.error('发送前连接设备失败', error)
+      this.resetSendState()
+      if (!this._pageUnloaded && !(error && error.downloadFailureNotified)) {
+        wx.showToast({
+          title: error && error.message ? error.message : '设备连接失败',
+          icon: 'none'
+        })
+      }
+    }
+  },
+
+  async ensureDeviceConnected() {
+    const deviceInfo = app.globalData.deviceInfo || {}
+    if (deviceInfo.connState) {
+      this.setData({connState: true})
+      return deviceInfo
+    }
+
+    wx.showLoading({title: '搜索设备中...', mask: true})
+    try {
+      const device = await this.searchStrongestDevice(this.deviceScanDuration || 3000)
+      wx.showLoading({title: '连接设备中...', mask: true})
+      return await this.connectAndBindDevice(device, this.deviceConnectTimeout || 25000)
+    } finally {
+      wx.hideLoading()
+    }
+  },
+
+  searchStrongestDevice(scanDuration) {
+    return new Promise((resolve, reject) => {
+      const devices = {}
+      let scanTimer = null
+      let settled = false
+
+      const cleanup = () => {
+        if (scanTimer) clearTimeout(scanTimer)
+        wx.offBluetoothDeviceFound(onDeviceFound)
+        wx.stopBluetoothDevicesDiscovery()
+        this._cancelDeviceScan = null
+      }
+      const complete = (callback, value) => {
+        if (settled) return
+        settled = true
+        cleanup()
+        callback(value)
+      }
+      const fail = (message, error) => {
+        console.error(message, error)
+        complete(reject, new Error(message))
+      }
+      const finishSearch = () => {
+        const strongestDevice = Object.keys(devices).reduce((strongest, deviceId) => {
+          const device = devices[deviceId]
+          if (!strongest) return device
+          return this.getDeviceRSSI(device) > this.getDeviceRSSI(strongest) ? device : strongest
+        }, null)
+        if (!strongestDevice) {
+          fail('没有发现可连接设备')
+          return
+        }
+        complete(resolve, strongestDevice)
+      }
+      const onDeviceFound = (result) => {
+        const foundDevices = result && Array.isArray(result.devices) ? result.devices : []
+        foundDevices.forEach((device) => {
+          if (!this.isTargetDevice(device)) return
+          const oldDevice = devices[device.deviceId]
+          if (!oldDevice || this.getDeviceRSSI(device) > this.getDeviceRSSI(oldDevice)) {
+            devices[device.deviceId] = device
+          }
+        })
+      }
+      const startDiscovery = () => {
+        wx.startBluetoothDevicesDiscovery({
+          allowDuplicatesKey: true,
+          powerLevel: 'high',
+          success: () => {
+            wx.onBluetoothDeviceFound(onDeviceFound)
+            scanTimer = setTimeout(finishSearch, scanDuration)
+          },
+          fail: (error) => fail('搜索设备失败', error)
+        })
+      }
+
+      this._cancelDeviceScan = () => complete(reject, new Error('设备搜索已取消'))
+      wx.openBluetoothAdapter({
+        success: startDiscovery,
+        fail: (error) => fail('请先打开手机蓝牙和位置信息', error)
+      })
+    })
+  },
+
+  isTargetDevice(device) {
+    if (!device || !device.deviceId || !device.name || !device.localName) return false
+    if (device.localName.toLowerCase().indexOf('tt') === -1) return false
+    if (!device.advertisData || device.advertisData.byteLength < 17) return false
+
+    const serviceUUID = Array.isArray(device.advertisServiceUUIDs) && device.advertisServiceUUIDs[0]
+    if (!serviceUUID || !app.util || !app.util.uuidCheck(serviceUUID)) return false
+
+    const advertisData = new Uint8Array(device.advertisData)
+    let pid = ''
+    for (let i = 11; i <= 16; i++) {
+      pid += String.fromCharCode(advertisData[i])
+    }
+    return pid === 'p49857'
+  },
+
+  getDeviceRSSI(device) {
+    const rssi = Number(device && device.RSSI)
+    return Number.isFinite(rssi) ? rssi : Number.NEGATIVE_INFINITY
+  },
+
+  connectAndBindDevice(device, timeout) {
+    const selectedDevice = Object.assign({}, device, {
+      name: '配音宝',
+      connState: false
+    })
+    app.globalData.deviceInfo = selectedDevice
+
+    return new Promise((resolve, reject) => {
+      this._deviceBindingResolve = resolve
+      this._deviceBindingReject = reject
+      this._deviceBindingTimer = setTimeout(() => {
+        this.finishDeviceBinding(new Error('设备连接超时'))
+      }, timeout)
+
+      try {
+        app.bletool.BLE_connect(selectedDevice.deviceId)
+      } catch (error) {
+        this.finishDeviceBinding(new Error('设备连接失败'))
+      }
+    })
+  },
+
+  finishDeviceBinding(error) {
+    if (this._deviceBindingTimer) {
+      clearTimeout(this._deviceBindingTimer)
+      this._deviceBindingTimer = null
+    }
+    const resolve = this._deviceBindingResolve
+    const reject = this._deviceBindingReject
+    this._deviceBindingResolve = null
+    this._deviceBindingReject = null
+    if (error) {
+      if (reject) reject(error)
+    } else if (resolve) {
+      resolve(app.globalData.deviceInfo)
+    }
+  },
+
+  // BLE连接就绪后，沿用设备页的 CMD0 -> CMD1 绑定流程
+  BLE_event(event) {
+    if (event === 0) {
+      this.finishDeviceBinding(new Error('设备连接失败'))
+      return true
+    } else if (event === 1) {
+      app.hextool.sendDatas(app.hextool.getCmd0New())
+      return true
+    }
+    return false
+  },
+
+  onBLEnet(datas) {
+    if (!datas || !datas.length) return
+
+    if (datas[0] === 0) {
+      const mtuBytes = datas.slice(-2)
+      if (mtuBytes.length === 2) {
+        const mtuHex = Number(mtuBytes[0]).toString(16).padStart(2, '0') +
+          Number(mtuBytes[1]).toString(16).padStart(2, '0')
+        const mtu = parseInt(mtuHex, 16) - 3
+        if (Number.isFinite(mtu) && mtu > 0) app.globalData.mtu = mtu
+      }
+      const bindDatas = app.hextool.getNetSetDatasNew()
+      app.hextool.sendDatas(bindDatas[0])
+      return
+    }
+
+    if (datas[0] === 1) {
+      app.globalData.deviceInfo.connState = true
+      this.setData({connState: true})
+      wx.setStorageSync('sbpyb2025', app.globalData.deviceInfo)
+      this.finishDeviceBinding()
+    }
+  },
+
+  async sendAudioToDevice() {
     // wx.showLoading({ title: '发送中...',mask: true})
     this.setData({importMask: true})
-    this.data.sendTimer && clearTimeout(this.data.sendTimer)
-    this.data.sendTimer = setTimeout(() => {
-      this.setData({importMask: false})
-      wx.showToast({
-        icon: 'error',
-        title: '发送失败',
-      })
-    }, 10000);
+    this._fileTransferActive = false
+    this._lastFileRequestKey = null
+    this._sameFileRequestCount = 0
+    this._lastFileRequestOffset = null
+    if (this.data.sendTimer) {
+      clearTimeout(this.data.sendTimer)
+      this.data.sendTimer = null
+    }
     //下载音频
     let tempPath
     try {
@@ -125,8 +333,9 @@ Page({
       console.error('音频下载失败', error)
       this.data.sendTimer && clearTimeout(this.data.sendTimer)
       this.data.sendTimer = null
-      this.setData({importMask: false})
-      return
+      this._sendInProgress = false
+      this.setData({importMask: false, importPro: 0})
+      throw error
     }
     console.log("tempPath1....",tempPath)
     this.data.tempPath = tempPath
@@ -146,7 +355,9 @@ Page({
     console.log('fileName....',this.data.generate.file_name)
     let data = buildCMD10Data(audioBuffer,audioBufferSize,this.data.generate.file_name)
     console.log("cmd10....",data)
+    this._fileTransferActive = true
     app.hextool.sendDatas(data)
+    this.armFileTransferTimeout()
 
     // 测试
     // setTimeout(() => {
@@ -161,6 +372,48 @@ Page({
     //   };
     //   sendNext();
     // }, 3000);
+  },
+
+  resetSendState() {
+    this.cancelFileTransferQueue()
+    this._fileTransferActive = false
+    this._lastFileRequestKey = null
+    this._sameFileRequestCount = 0
+    this._lastFileRequestOffset = null
+    if (this.data.sendTimer) {
+      clearTimeout(this.data.sendTimer)
+      this.data.sendTimer = null
+    }
+    this._sendInProgress = false
+    this.setData({importMask: false, importPro: 0})
+  },
+
+  armFileTransferTimeout() {
+    if (this.data.sendTimer) clearTimeout(this.data.sendTimer)
+    this.data.sendTimer = setTimeout(() => {
+      this.data.sendTimer = null
+      this.abortFileTransfer('file transfer timeout')
+    }, FILE_TRANSFER_TIMEOUT)
+  },
+
+  abortFileTransfer(reason) {
+    if (!this._fileTransferActive) return
+    console.warn('file transfer aborted:', reason)
+    this.resetSendState()
+    if (!this._pageUnloaded) {
+      wx.showToast({
+        icon: 'none',
+        title: FILE_TRANSFER_RETRY_MESSAGE,
+        duration: 3000
+      })
+    }
+  },
+
+  cancelFileTransferQueue() {
+    const hextool = app.hextool
+    if (hextool && typeof hextool.cancelQueuedDatas === 'function') {
+      hextool.cancelQueuedDatas(hextool.FILE_TRANSFER_QUEUE_KEY)
+    }
   },
 
   // async sendFileToDevice(offset,chunkSize){
@@ -200,44 +453,80 @@ Page({
     console.log("backData.....",deviceData)
     //发送文件信息失败
     if(deviceData[0] == 10 && deviceData[3] != 0){
-      clearTimeout(this.data.sendTimer)
-      this.setData({importMask: false, importPro: 0})
+      this.resetSendState()
+      let errorIndex = Number(deviceData[3]);
+      let errorInfoArr = ['发送成功','文件名长度超过本地缓存','已有一个文件正在传输','设备空间不足','存储设备异常','文件过多请先删除设备文件']
+      let errorInfo = errorInfoArr[errorIndex] ? errorInfoArr[errorIndex]:'发送文件信息失败'
       wx.showToast({
         icon: 'error',
-        title: '发送文件信息失败',
+        // title: '发送文件信息失败',
+        title: errorInfo,
       })
     }
     //设备要拉取的块
     if(deviceData[0] == 11){
-      clearTimeout(this.data.sendTimer)
-      // if(this.data.flag){
-      //   this.data.flag = false;
-      //   return
-      // }
-      //终止上一次的for循环发送
-      getApp().globalData.sendFlag = false
+      if (!this._fileTransferActive) {
+        console.warn('ignore file block request after transfer stopped')
+        return
+      }
       let deviceDataHex = deviceData.map(v => v.toString(16).padStart(2, '0'));
       console.log("11111.....",deviceDataHex)
       // 获取offset,chunkSize
       let res = this.getOffsetChunk(deviceDataHex)
       console.log("res.....",res)
+      const requestedOffset = Number(res[0])
+      const requestedChunkSize = Number(res[1])
+      const audioBufferSize = Number(this.data.audioBuffer && this.data.audioBuffer.byteLength)
+      const requestIsValid = Number.isInteger(requestedOffset) && requestedOffset >= 0 &&
+        Number.isInteger(requestedChunkSize) && requestedChunkSize > 0 &&
+        Number.isFinite(audioBufferSize) && requestedOffset < audioBufferSize
+      if (!requestIsValid) {
+        this.abortFileTransfer(`invalid file block request ${requestedOffset}:${requestedChunkSize}`)
+        return
+      }
+
+      const requestKey = `${requestedOffset}:${requestedChunkSize}`
+      if (this._lastFileRequestKey === requestKey) {
+        this._sameFileRequestCount += 1
+      } else {
+        this._lastFileRequestKey = requestKey
+        this._sameFileRequestCount = 1
+      }
+
+      if (this._sameFileRequestCount > MAX_FILE_BLOCK_ATTEMPTS) {
+        this.abortFileTransfer(`device repeated file block ${requestKey}`)
+        return
+      }
+
+      if (this._sameFileRequestCount > 1 && typeof app.hextool.slowDownWrites === 'function') {
+        app.hextool.slowDownWrites(`device repeated offset ${requestedOffset}`)
+      }
+      this._lastFileRequestOffset = requestedOffset
       let importPro = 0
       if(this.data.generate.file_size){
         importPro = Math.ceil(Number(res[0]) / Number(this.data.generate.file_size) * 100)
       }else{
         importPro = Math.ceil(Number(res[0]) / Number(this.data.audioBufferSize) * 100)
       }
-      if(typeof(importPro) === 'number'){
+      if(Number.isFinite(importPro)){
         importPro = importPro > 100 ? 100 : importPro;
         this.setData({ importPro })
       }
-      // this.sendFileToDevice(res[0],res[1])
-      sendFileToDevice(res[0],res[1], this.data.audioBuffer)
+      const sendTask = sendFileToDevice(requestedOffset, requestedChunkSize, this.data.audioBuffer)
+      if (sendTask && typeof sendTask.catch === 'function') {
+        sendTask.catch(error => {
+          this.abortFileTransfer(error && error.message ? error.message : 'file block send failed')
+        })
+      }
+      this.armFileTransferTimeout()
     }
     //文件传输结束
     if(deviceData[0] == 12){
-      this.setData({importMask: false})
-      this.setData({importPro: 0})
+      if (!this._fileTransferActive) {
+        console.warn('ignore file transfer result after transfer stopped')
+        return
+      }
+      this.resetSendState()
       if(deviceData[3] == 0){
         wx.showToast({
           icon:'success',
@@ -261,16 +550,44 @@ Page({
     return result  //[0, 10240]
   },
 
-  // 保存到作品
-  saveToWorks() {
-    wx.showLoading({ title: '保存中...' })
-    setTimeout(() => {
-      wx.hideLoading()
+  // 保存长文本合成结果到作品
+  async saveToWorks() {
+    if (this.data.savingWork || this.data.workSaved) return
+
+    const taskId = this.data.generate && this.data.generate.task_id
+    if (!taskId) {
+      wx.showToast({
+        title: '缺少长文本任务信息',
+        icon: 'none'
+      })
+      return
+    }
+
+    this.setData({ savingWork: true })
+    try {
+      const response = await request({
+        url: '/user/tts/long-text/save',
+        method: 'POST',
+        data: { task_id: taskId },
+        needAuth: true
+      })
+      if (Number(response.code) !== 200) {
+        throw new Error(response.message || '保存失败')
+      }
+      this.setData({ workSaved: true })
       wx.showToast({
         title: '保存成功',
         icon: 'success'
       })
-    }, 1000)
+    } catch (error) {
+      console.error('保存长文本作品失败:', error)
+      wx.showToast({
+        title: error && error.message ? error.message : '保存失败',
+        icon: 'none'
+      })
+    } finally {
+      this.setData({ savingWork: false })
+    }
   },
 
   // 导出到微信

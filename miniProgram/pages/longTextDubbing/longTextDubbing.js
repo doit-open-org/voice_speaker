@@ -1,9 +1,10 @@
 const { request, showToast } = require('../../utils/request')
+const { buildBgmPayload, hasBgmSelection } = require('../../utils/bgm')
 const share = require('../../utils/share')
 const app = getApp()
 
-const LONG_TEXT_POLL_INTERVAL = 1500
-const LONG_TEXT_MAX_POLLS = 400 //轮询限制次数
+const LONG_TEXT_POLL_INTERVAL = 3000
+const LONG_TEXT_MAX_POLLS = 200 //轮询限制次数 10分钟
 const MAX_INPUT_LENGTH = 2000
 const SPEAK_SEGMENT_LENGTH = 150
 
@@ -236,8 +237,11 @@ Page({
   },
 
   playVoicePreview(voice) {
-    this.stopVoicePreview()
-    if (!voice || !voice.audio_path || !this.voicePreviewAudioContext) return
+    if (!this.voicePreviewAudioContext) return
+    if (!voice || !voice.audio_path) {
+      this.stopVoicePreview()
+      return
+    }
     this.voicePreviewAudioContext.src = this.normalizeAudioUrl(voice.audio_path)
     this.voicePreviewAudioContext.play()
   },
@@ -286,7 +290,8 @@ Page({
       success: (res) => {
         res.eventChannel.emit('initBgmSelect', {
           bgmList: this.data.bgmList,
-          activeBgmId: this.data.activeBgmInfo.id || 0
+          activeBgmId: this.data.activeBgmInfo.id || 0,
+          activeBgmSource: this.data.activeBgmInfo.source || 'regular'
         })
       }
     })
@@ -363,6 +368,7 @@ Page({
     wx.showLoading({ title: '合成中...', mask: true })
     // console.log("111....",this.buildSpeakText(inputText))
     let synthesisResult
+    let taskId = ''
     try {
       let data = {
         text: this.buildSpeakText(inputText),
@@ -371,12 +377,12 @@ Page({
         volume_ratio: this.data.yxVoice,
         pitch_ratio: 1
       }
-      const bgmSetDetail = this.data.bgmSetDetail || {}
-      const bgmId = bgmSetDetail.bgm_id !== undefined
-        ? bgmSetDetail.bgm_id
-        : this.data.activeBgmInfo.id
-      if (bgmId !== undefined && Number(bgmId) !== 0) {
-        data = { ...data, ...bgmSetDetail, bgm_id: bgmId }
+      const bgmPayload = buildBgmPayload(
+        this.data.activeBgmInfo,
+        this.data.bgmSetDetail
+      )
+      if (hasBgmSelection(bgmPayload)) {
+        data = { ...data, ...bgmPayload }
       }
 
       const submitResponse = await request({
@@ -388,7 +394,7 @@ Page({
       if (Number(submitResponse.code) !== 200) {
         throw new Error(submitResponse.message || '长文本任务提交失败')
       }
-      const taskId = submitResponse.data && submitResponse.data.task_id
+      taskId = submitResponse.data && submitResponse.data.task_id
       if (!taskId) throw new Error('长文本任务提交失败')
 
       synthesisResult = await this.pollLongTextTask(taskId)
@@ -405,6 +411,8 @@ Page({
     if (!synthesisResult || !this.pageActive) return
     app.globalData.generate = {
       ...(app.globalData.generate || {}),
+      source: 'long-text',
+      task_id: synthesisResult.task_id || taskId,
       audio_url: synthesisResult.audio_url,
       file_name: (synthesisResult.audio_url || '').split(/[?#]/)[0].split('/').pop() || ''
     }
@@ -433,6 +441,7 @@ Page({
         if (!detail.audio_url) throw new Error('合成结果缺少音频地址')
         return detail
       }
+      // console.log("LONG_TEXT_MAX_POLLS....",LONG_TEXT_MAX_POLLS);
       if (attempt < LONG_TEXT_MAX_POLLS - 1) {
         await this.waitForNextPoll()
       }

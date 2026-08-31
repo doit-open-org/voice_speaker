@@ -132,7 +132,7 @@ Page({
       if (!this.pageActive) return
       const audioUrl = this.normalizeAudioUrl(downloadPath)
       app.globalData.generate = {
-        ...(app.globalData.generate || {}),
+        source: 'video',
         audio_url: audioUrl,
         file_name: this.getAudioFileName(downloadPath)
       }

@@ -10,8 +10,12 @@
               <van-button wx:if="{{searchDev.length != 0}}" round type="info" size="small" color="#d81e06">刷新</van-button>
             </view>
           </view>
-          <view class="searchdev" bindtap="chooseDev" wx:for="{{searchDev}}" wx:key='i' data-n="{{index+1}}">
-            <view class="devName">{{item.name}}</view>
+          <view class="searchdev" bindtap="chooseDev" wx:for="{{searchDev}}" wx:key="deviceId" data-n="{{index+1}}">
+            <view class="devContent">
+              <view class="devName">{{item.name}}</view>
+              <view class="devMeta devMac">MAC: {{item.mac}}</view>
+              <view class="devMeta">信号强度: {{item.displayRSSI}} dBm</view>
+            </view>
             <view class="devChooseIcon">
               <van-icon name="success" size="25px" color="#d81e06" custom-style="display:{{devIndex==(index+1) ? 'block' : 'none'}};" />
             </view>

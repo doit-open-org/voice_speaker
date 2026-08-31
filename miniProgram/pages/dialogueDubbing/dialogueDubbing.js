@@ -1,4 +1,5 @@
 const { request, showToast } = require('../../utils/request')
+const { buildBgmPayload, hasBgmSelection } = require('../../utils/bgm')
 const share = require('../../utils/share')
 const app = getApp()
 const MAX_INPUT_LENGTH = 299
@@ -294,8 +295,11 @@ Page({
   },
 
   playVoicePreview(voice) {
-    this.stopVoicePreview()
-    if (!voice || !voice.audio_path || !this.voicePreviewAudioContext) return
+    if (!this.voicePreviewAudioContext) return
+    if (!voice || !voice.audio_path) {
+      this.stopVoicePreview()
+      return
+    }
     this.voicePreviewAudioContext.src = this.normalizeAudioUrl(voice.audio_path)
     this.voicePreviewAudioContext.play()
   },
@@ -339,7 +343,8 @@ Page({
       success: (res) => {
         res.eventChannel.emit('initBgmSelect', {
           bgmList: this.data.bgmList,
-          activeBgmId: this.data.activeBgmInfo.id || 0
+          activeBgmId: this.data.activeBgmInfo.id || 0,
+          activeBgmSource: this.data.activeBgmInfo.source || 'regular'
         })
       }
     })
@@ -568,9 +573,12 @@ Page({
         speed_ratio: 1,
         volume_ratio: 1
       }
-      const bgmSetDetail = this.data.bgmSetDetail || {}
-      if (bgmSetDetail.bgm_id !== undefined && Number(bgmSetDetail.bgm_id) !== 0) {
-        Object.assign(fields, bgmSetDetail)
+      const bgmPayload = buildBgmPayload(
+        this.data.activeBgmInfo,
+        this.data.bgmSetDetail
+      )
+      if (hasBgmSelection(bgmPayload)) {
+        Object.assign(fields, bgmPayload)
       }
       const multipart = this.buildMergeMultipart(audioFiles, fields)
       const res = await request({

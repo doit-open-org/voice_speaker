@@ -59,8 +59,17 @@ Page({
       // extension: ["mp3", "MP3", "mp4", "m4a", "wav", "ogg"],
       extension: ["mp3", "MP3"],
       success: (result) => {
-        console.log("res...",result.tempFiles[0].path)
-        this.data.importFile = result.tempFiles[0]
+        const importFile = result.tempFiles && result.tempFiles[0]
+        if (!importFile) return
+        if (!this.isImportFileNameValid(importFile.name)) {
+          wx.showToast({
+            icon: 'none',
+            title: '中文名称至少3个字'
+          })
+          return
+        }
+        console.log("res...",importFile.path)
+        this.data.importFile = importFile
         this.sendToDevice()
       },
       fail: (res) => {
@@ -69,12 +78,19 @@ Page({
     })
   },
 
+  isImportFileNameValid(fileName) {
+    const baseName = String(fileName || '').replace(/\.[^/.]+$/, '')
+    const chineseCharacters = baseName.match(/[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/g) || []
+    return chineseCharacters.length === 0 || chineseCharacters.length >= 3
+  },
+
   async sendToDevice(){
     // wx.showLoading({ title: '正在导入...',mask: true })
     this.setData({importMask: true})
+    this._lastFileRequestOffset = null
     this.data.sendTimer && clearTimeout(this.data.sendTimer)
     this.data.sendTimer = setTimeout(() => {
-      this.setData({importMask: false})
+      this.setData({importMask: false, importPro: 0})
       wx.showToast({
         icon: 'error',
         title: '导入失败',
@@ -100,6 +116,13 @@ Page({
     let data = buildCMD10Data(audioBuffer,audioBufferSize,fileName)
     console.log("cmd10....",data)
     app.hextool.sendDatas(data)
+  },
+
+  cancelFileTransferQueue(){
+    const hextool = app.hextool
+    if (hextool && typeof hextool.cancelQueuedDatas === 'function') {
+      hextool.cancelQueuedDatas(hextool.FILE_TRANSFER_QUEUE_KEY)
+    }
   },
 
   // async sendFileToDevice(offset,chunkSize){
@@ -145,23 +168,31 @@ Page({
     //FILE_END_ REASON_BLOCK _CRC_ERR,件块校验失败错误
     //FILE END REASON SEQ ERR, seq
     if(deviceData[0] == 10 && deviceData[3] != 0){
+      this.cancelFileTransferQueue()
       clearTimeout(this.data.sendTimer)
       this.setData({importMask: false, importPro: 0})
+      let errorIndex = Number(deviceData[3]);
+      let errorInfoArr = ['发送成功','文件名长度超过本地缓存','已有一个文件正在传输','设备空间不足','存储设备异常','文件过多请先删除设备文件']
+      let errorInfo = errorInfoArr[errorIndex] ? errorInfoArr[errorIndex]:'发送文件信息失败'
       wx.showToast({
         icon: 'error',
-        title: '发送文件信息失败',
+        title: errorInfo,
       })
     }
     //设备要拉取的块
     if(deviceData[0] == 11){
       console.log("11111.....",deviceData)
       clearTimeout(this.data.sendTimer)
-      //终止上一次的for循环发送
-      getApp().globalData.sendFlag = false
       // 获取offset,chunkSize
       let deviceDataHex = deviceData.map(v => v.toString(16).padStart(2, '0'));
       let res = this.getOffsetChunk(deviceDataHex)
       console.log("res.....",res)
+      const requestedOffset = Number(res[0])
+      if (Number.isFinite(requestedOffset) && this._lastFileRequestOffset === requestedOffset &&
+          typeof app.hextool.slowDownWrites === 'function') {
+        app.hextool.slowDownWrites(`device repeated offset ${requestedOffset}`)
+      }
+      this._lastFileRequestOffset = requestedOffset
       console.log("res111.....",res[0],this.data.importFile.size)
       let importPro = Math.ceil(Number(res[0]) / Number(this.data.importFile.size) * 100)
       if(typeof(importPro) === 'number'){
@@ -173,7 +204,9 @@ Page({
     }
     //文件传输结束
     if(deviceData[0] == 12){
-      this.setData({importMask: false})
+      this.cancelFileTransferQueue()
+      this._lastFileRequestOffset = null
+      this.setData({importMask: false,importPro: 0})
       if(deviceData[3] == 0){
         wx.showToast({
           icon:'success',
@@ -448,6 +481,11 @@ Page({
    */
   onReachBottom() {
 
+  },
+
+  onUnload() {
+    this.cancelFileTransferQueue()
+    if (this.data.sendTimer) clearTimeout(this.data.sendTimer)
   },
 
   /**

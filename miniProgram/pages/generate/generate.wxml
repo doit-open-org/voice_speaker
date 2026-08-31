@@ -22,7 +22,7 @@
     <!-- 发送到智能音箱 -->
     <view class="option-item">
       <view class="option-left">
-        <view class="option-icon bluetooth-icon flex">
+        <view class="option-icon bluetooth-icon flex" style="background: {{connState?'#D32F2F':'#9E9E9E'}};">
           <image class="blueIcon" src="/img/bluetooth.png" mode="aspectFit"></image>
         </view>
         <view class="option-content">
@@ -35,18 +35,23 @@
     </view>
 
     <!-- 保存音频到作品 -->
-    <!-- <view class="option-item">
+    <view class="option-item" wx:if="{{generate.source === 'long-text' && generate.task_id}}">
       <view class="option-left">
         <view class="option-icon file-icon">
-          <text class="icon-text">📄</text>
+          <van-icon name="records" size="35rpx" color="#fff" />
         </view>
         <view class="option-content">
           <view class="option-title">保存音频到作品</view>
           <view class="option-desc">导出音频至个人作品</view>
         </view>
       </view>
-      <button class="action-btn" bindtap="saveToWorks">保存</button>
-    </view> -->
+      <button
+        class="action-btn"
+        loading="{{savingWork}}"
+        disabled="{{savingWork || workSaved}}"
+        bindtap="saveToWorks"
+      >{{workSaved ? '已保存' : '保存'}}</button>
+    </view>
 
     <!-- 导出音频到微信 -->
     <view class="option-item">

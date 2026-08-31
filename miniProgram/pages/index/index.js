@@ -1,6 +1,7 @@
 // pages/tts/tts.js
 const app = getApp()
 const { request, checkLogin, showToast } = require('../../utils/request')
+const { buildBgmPayload, hasBgmSelection } = require('../../utils/bgm')
 const share = require('../../utils/share')
 const MAX_INPUT_LENGTH = 299
 Page({
@@ -83,6 +84,7 @@ Page({
   },
  
   onShow(){
+    this.createVoicePreviewAudio()
     this.refreshHomeData()
   },
 
@@ -105,7 +107,7 @@ Page({
   },
 
   onHide() {
-    this.stopVoicePreview()
+    this.destroyVoicePreviewAudio()
   },
 
   onUnload() {
@@ -176,10 +178,15 @@ Page({
    */
   checkExistDev(){
     let dev = wx.getStorageSync('sbpyb2025')
+    const cachedDevices = wx.getStorageSync('sbpyb2025_devices')
+    if((!dev || !dev.deviceId) && Array.isArray(cachedDevices) && cachedDevices.length){
+      dev = cachedDevices[0]
+      wx.setStorageSync('sbpyb2025', dev)
+    }
     console.log("d0.........",dev)
     // dev = {"deviceId":'123',"name":'配音宝'}
     app.globalData.reConDevInfo = dev
-    if(dev){
+    if(dev && dev.deviceId){
       wx.redirectTo({  url: '../device/device?dev=1' })
     }
   },
@@ -347,9 +354,12 @@ Page({
         "volume_ratio": yxVoice,
         "pitch_ratio": 1
       }
-      let bgmSetDetail = this.data.bgmSetDetail
-      if(bgmSetDetail.bgm_id != undefined && bgmSetDetail.bgm_id != 0){
-        data = {...data,...bgmSetDetail}
+      const bgmPayload = buildBgmPayload(
+        this.data.activeBgmInfo,
+        this.data.bgmSetDetail
+      )
+      if (hasBgmSelection(bgmPayload)) {
+        data = { ...data, ...bgmPayload }
       }
       console.log("d.......",data)
       const res = await request({
@@ -419,26 +429,34 @@ Page({
     this.playVoicePreview(voiceCheckInfo)
   },
   createVoicePreviewAudio() {
-    this.voicePreviewAudioContext = wx.createInnerAudioContext()
-    this.voicePreviewAudioContext.onError(() => {
+    if (this.voicePreviewAudioContext) return this.voicePreviewAudioContext
+    const audioContext = wx.createInnerAudioContext()
+    this.voicePreviewAudioContext = audioContext
+    audioContext.onError(() => {
+      if (this.voicePreviewAudioContext !== audioContext) return
       this.stopVoicePreview()
       // showToast('none', '音色试听失败')
     })
+    return audioContext
   },
   playVoicePreview(voice) {
-    this.stopVoicePreview()
-    if (!voice || !voice.audio_path || !this.voicePreviewAudioContext) return
-    this.voicePreviewAudioContext.src = this.normalizeAudioUrl(voice.audio_path)
-    this.voicePreviewAudioContext.play()
+    if (!voice || !voice.audio_path) {
+      this.stopVoicePreview()
+      return
+    }
+    const audioContext = this.createVoicePreviewAudio()
+    audioContext.src = this.normalizeAudioUrl(voice.audio_path)
+    audioContext.play()
   },
   stopVoicePreview() {
     if (this.voicePreviewAudioContext) this.voicePreviewAudioContext.stop()
   },
   destroyVoicePreviewAudio() {
     if (!this.voicePreviewAudioContext) return
-    this.voicePreviewAudioContext.stop()
-    this.voicePreviewAudioContext.destroy()
+    const audioContext = this.voicePreviewAudioContext
     this.voicePreviewAudioContext = null
+    audioContext.stop()
+    audioContext.destroy()
   },
   normalizeAudioUrl(audioUrl) {
     if (!audioUrl) return ''
@@ -458,7 +476,8 @@ Page({
       success: (res) => {
         res.eventChannel.emit('initBgmSelect', {
           bgmList: this.data.bgmList,
-          activeBgmId: this.data.activeBgmInfo.id || 0
+          activeBgmId: this.data.activeBgmInfo.id || 0,
+          activeBgmSource: this.data.activeBgmInfo.source || 'regular'
         })
       }
     })
@@ -494,16 +513,10 @@ Page({
   showRecorderPop(){
     wx.navigateTo({
       url: '../recorder/recorder',
-      events: {
-        bgmStateChanged: ({ activeBgmInfo = {}, bgmSetDetail = {} } = {}) => {
-          this.setData({ activeBgmInfo, bgmSetDetail })
-        }
-      },
       success: (res) => {
+        this.resetBgm()
         res.eventChannel.emit('initRecorder', {
-          bgmList: this.data.bgmList,
-          activeBgmInfo: this.data.activeBgmInfo,
-          bgmSetDetail: this.data.bgmSetDetail
+          bgmList: this.data.bgmList
         })
       }
     })

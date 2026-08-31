@@ -1,4 +1,6 @@
 // components/bgmSet.js
+const { buildBgmPayload } = require('../../utils/bgm')
+
 const DEFAULT_BGM = {
   bgm_id: 0,
   bgm_volume: 1,
@@ -99,10 +101,8 @@ Component({
     },
     //确定
     confirm(){
-      let activeBgmInfo = this.data.activeBgmInfo
-      let bgm = this.data.bgm
-      bgm.bgm_id = activeBgmInfo.id
-      this.triggerEvent('bmgSetConfirm',bgm)
+      const bgm = buildBgmPayload(this.data.activeBgmInfo, this.data.bgm)
+      this.triggerEvent('bmgSetConfirm', bgm)
     }
   }
 })

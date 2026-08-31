@@ -11,6 +11,10 @@ Component({
       type: null,
       value: 0
     },
+    activeSource: {
+      type: String,
+      value: 'regular'
+    },
     showBack: {
       type: Boolean,
       value: true
@@ -86,7 +90,7 @@ Component({
     chooseBgm(e){
       const id = e.currentTarget.dataset.id
       const source = e.currentTarget.dataset.source || 'regular'
-      this.setData({activeId: id})
+      this.setData({ activeId: id, activeSource: source })
       this.triggerEvent('chooseBgm',{ id, source })
     },
     toggleFavorite(e) {

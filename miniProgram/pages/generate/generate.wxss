@@ -112,22 +112,23 @@
 }
 
 .bluetooth-icon {
-  background: #9E9E9E;
+  background: #D32F2F;
+  /* #9E9E9E */
 }
 .blueIcon{
   width: 55rpx;
   height: 55rpx;
 }
 .file-icon {
-  background: #9E9E9E;
+  background: #D32F2F;
 }
 
 .music-icon {
-  background: #9E9E9E;
+  background: #D32F2F;
 }
 
 .link-icon {
-  background: #9E9E9E;
+  background: #D32F2F;
 }
 
 .icon-text {

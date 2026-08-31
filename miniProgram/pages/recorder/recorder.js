@@ -1,5 +1,6 @@
 const app = getApp()
 const { showToast } = require('../../utils/request')
+const { buildBgmPayload, hasBgmSelection } = require('../../utils/bgm')
 const share = require('../../utils/share')
 const API_ORIGIN =  getApp().globalData.domain
 const VOICE_CONVERT_UPLOAD_URL = API_ORIGIN+'/api/v1/user/tts/synthesize-audio'
@@ -16,15 +17,11 @@ Page({
     this._isActive = true
     this._uploadId = 0
     this.eventChannel = this.getOpenerEventChannel()
-    this.eventChannel.on('initRecorder', ({
-      bgmList = {},
-      activeBgmInfo = {},
-      bgmSetDetail = {}
-    } = {}) => {
+    this.eventChannel.on('initRecorder', ({ bgmList = {} } = {}) => {
       this.setData({
         bgmList,
-        activeBgmInfo: { ...activeBgmInfo },
-        bgmSetDetail: { ...bgmSetDetail }
+        activeBgmInfo: {},
+        bgmSetDetail: {}
       })
     })
   },
@@ -52,13 +49,13 @@ Page({
       events: {
         bgmSelected: (bgm) => {
           this.setData({ activeBgmInfo: bgm })
-          this.syncBgmState()
         }
       },
       success: (res) => {
         res.eventChannel.emit('initBgmSelect', {
           bgmList: this.data.bgmList,
-          activeBgmId: this.data.activeBgmInfo.id || 0
+          activeBgmId: this.data.activeBgmInfo.id || 0,
+          activeBgmSource: this.data.activeBgmInfo.source || 'regular'
         })
       }
     })
@@ -69,21 +66,12 @@ Page({
       activeBgmInfo: {},
       bgmSetDetail: {}
     })
-    this.syncBgmState()
   },
 
   bmgSetConfirm(e) {
     this.setData({
       bgmSetDetail: { ...e.detail },
       bgmSetPop: false
-    })
-    this.syncBgmState()
-  },
-
-  syncBgmState() {
-    this.eventChannel.emit('bgmStateChanged', {
-      activeBgmInfo: this.data.activeBgmInfo,
-      bgmSetDetail: this.data.bgmSetDetail
     })
   },
 
@@ -103,9 +91,12 @@ Page({
       speed_ratio: speed,
       volume_ratio: volume
     }
-    const bgmSetDetail = this.data.bgmSetDetail
-    if (bgmSetDetail.bgm_id !== undefined && bgmSetDetail.bgm_id !== 0) {
-      formData = { ...formData, ...bgmSetDetail }
+    const bgmPayload = buildBgmPayload(
+      this.data.activeBgmInfo,
+      this.data.bgmSetDetail
+    )
+    if (hasBgmSelection(bgmPayload)) {
+      formData = { ...formData, ...bgmPayload }
     }
 
     const uploadId = ++this._uploadId
